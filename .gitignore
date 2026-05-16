@@ -1,0 +1,21 @@
+# ── Frontend ──
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# ── Backend ──
+backend/**/*.user
+backend/**/bin/
+backend/**/obj/
+backend/**/*.suo
+backend/.vs/
+backend/**/.env
+backend/**/appsettings.Development.json
+
+# ── Docker ──
+.env
+
+# ── OS ──
+.DS_Store
+Thumbs.db

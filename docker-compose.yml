@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    container_name: apex_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: apex_journal
+      POSTGRES_USER: apex
+      POSTGRES_PASSWORD: apex_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
