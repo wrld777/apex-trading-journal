@@ -1,9 +1,6 @@
-function App() {
-  return (
-    <h1 className="text-3xl font-bold text-green-400 p-8">
-      APEX Trading Journal
-    </h1>
-  )
-}
+import { RouterProvider } from 'react-router-dom'
+import { router } from './router'
 
-export default App
+export default function App() {
+  return <RouterProvider router={router} />
+}
