@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Apex.API/Apex.API.csproj" />
+  <Project Path="Apex.Application/Apex.Application.csproj" />
+  <Project Path="Apex.Domain/Apex.Domain.csproj" />
+  <Project Path="Apex.Infrastructure/Apex.Infrastructure.csproj" />
+</Solution>
