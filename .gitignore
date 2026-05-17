@@ -9,7 +9,7 @@ backend/**/*.user
 backend/**/bin/
 backend/**/obj/
 backend/**/*.suo
-backend/.vs/
+**/.vs/
 backend/**/.env
 backend/**/appsettings.Development.json
 
