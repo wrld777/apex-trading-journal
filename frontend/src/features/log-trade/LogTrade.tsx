@@ -1,10 +1,6 @@
 import { useState } from 'react'
 
-/* ── TYPES ── */
 type Direction = 'long' | 'short'
-type EmotionalState = 'Calm & Focused' | 'Confident' | 'Anxious' | 'Overconfident' | 'Revenge Mode' | 'Distracted'
-type Grade = 'A+ Setup' | 'A Setup' | 'B Setup' | 'C Setup'
-type HTFBias = 'Bullish' | 'Bearish' | 'Neutral'
 
 interface ChecklistItem {
   id: number
@@ -12,7 +8,6 @@ interface ChecklistItem {
   checked: boolean
 }
 
-/* ── CHECKLIST ITEM ── */
 function CheckItem({ item, onToggle }: { item: ChecklistItem; onToggle: (id: number) => void }) {
   return (
     <div
@@ -39,7 +34,6 @@ function CheckItem({ item, onToggle }: { item: ChecklistItem; onToggle: (id: num
   )
 }
 
-/* ── FIELD WRAPPER ── */
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -49,25 +43,21 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-/* ── INPUT ── */
 function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
       className={`bg-[#141416] border border-white/[0.07] rounded-md px-3 py-2 text-[13px] text-white outline-none w-full transition-all
-        focus:border-white/[0.18] focus:bg-[#1a1a1d] focus:shadow-[0_0_0_3px_rgba(255,255,255,0.03)]
-        placeholder:text-zinc-700 ${props.className ?? ''}`}
+        focus:border-white/[0.18] focus:bg-[#1a1a1d] placeholder:text-zinc-700 ${props.className ?? ''}`}
     />
   )
 }
 
-/* ── SELECT ── */
 function Select({ children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
       {...props}
-      className="bg-[#141416] border border-white/[0.07] rounded-md px-3 py-2 text-[13px] text-white outline-none w-full cursor-pointer transition-all
-        focus:border-white/[0.18] appearance-none"
+      className="bg-[#141416] border border-white/[0.07] rounded-md px-3 py-2 text-[13px] text-white outline-none w-full cursor-pointer transition-all focus:border-white/[0.18] appearance-none"
       style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2352525b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
         backgroundRepeat: 'no-repeat',
@@ -79,7 +69,6 @@ function Select({ children, ...props }: React.SelectHTMLAttributes<HTMLSelectEle
   )
 }
 
-/* ── TEXTAREA ── */
 function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
@@ -90,7 +79,6 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   )
 }
 
-/* ── SECTION TITLE ── */
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-3.5">
@@ -100,16 +88,14 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   )
 }
 
-/* ── FORM CARD ── */
 function FormCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-6">
+    <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-6">
       {children}
     </div>
   )
 }
 
-/* ── MAIN ── */
 export default function LogTrade() {
   const [direction, setDirection] = useState<Direction>('long')
   const [tags, setTags] = useState<string[]>(['fvg', 'london-session', 'breaker'])
@@ -135,9 +121,7 @@ export default function LogTrade() {
     }
   }
 
-  const removeTag = (tag: string) => {
-    setTags(prev => prev.filter(t => t !== tag))
-  }
+  const removeTag = (tag: string) => setTags(prev => prev.filter(t => t !== tag))
 
   const tagColor = (tag: string) => {
     if (['fvg', 'breaker', 'ob'].includes(tag)) return 'bg-green-500/10 border-green-500/20 text-green-500'
@@ -146,104 +130,67 @@ export default function LogTrade() {
   }
 
   return (
-    <div className="p-7">
+    <div className="p-4 lg:p-7">
 
       {/* Page Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="font-bold text-[22px] tracking-tight text-white leading-none mb-1">Log Trade</h1>
+          <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">Log Trade</h1>
           <p className="text-xs text-zinc-600">New entry · Fill in all required fields</p>
         </div>
         <div className="flex gap-2">
-          <button className="px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all">
-            Save Draft
-          </button>
-          <button className="px-3 py-1.5 rounded-md text-xs font-medium bg-white text-black hover:bg-white/90 transition-all">
-            Submit Trade
-          </button>
+          <button className="px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all">Save Draft</button>
+          <button className="px-3 py-1.5 rounded-md text-xs font-medium bg-white text-black hover:bg-white/90 transition-all">Submit Trade</button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3.5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
 
-        {/* ── LEFT COLUMN ── */}
+        {/* ── LEFT ── */}
         <div className="flex flex-col gap-3.5">
 
-          {/* Trade Details */}
           <FormCard>
             <SectionTitle>Trade Details</SectionTitle>
-
-            {/* Direction */}
             <div className="mb-3.5">
               <label className="text-[11px] text-zinc-600 tracking-[0.04em] block mb-1.5">Direction</label>
-              <div className="flex gap-1.5" role="group" aria-label="Trade direction">
+              <div className="flex gap-1.5">
                 <button
                   onClick={() => setDirection('long')}
-                  aria-pressed={direction === 'long'}
                   className={`flex-1 py-2 rounded-md border text-xs font-medium tracking-[0.04em] transition-all ${
                     direction === 'long'
                       ? 'bg-green-500/12 border-green-500/25 text-green-500'
                       : 'bg-[#141416] border-white/[0.07] text-zinc-600 hover:border-white/[0.11] hover:text-zinc-400'
                   }`}
-                >
-                  LONG
-                </button>
+                >LONG</button>
                 <button
                   onClick={() => setDirection('short')}
-                  aria-pressed={direction === 'short'}
                   className={`flex-1 py-2 rounded-md border text-xs font-medium tracking-[0.04em] transition-all ${
                     direction === 'short'
                       ? 'bg-red-500/12 border-red-500/25 text-red-500'
                       : 'bg-[#141416] border-white/[0.07] text-zinc-600 hover:border-white/[0.11] hover:text-zinc-400'
                   }`}
-                >
-                  SHORT
-                </button>
+                >SHORT</button>
               </div>
             </div>
 
-            {/* Fields Grid */}
-            <div className="grid grid-cols-3 gap-3 mb-3.5">
-              <Field label="Symbol *">
-                <Input type="text" placeholder="NQ, ES, AAPL…" defaultValue="NQ" />
-              </Field>
-              <Field label="Date *">
-                <Input type="date" defaultValue="2025-05-13" />
-              </Field>
-              <Field label="Time">
-                <Input type="time" defaultValue="09:47" />
-              </Field>
-              <Field label="Entry Price *">
-                <Input type="number" placeholder="0.00" defaultValue="18842.00" step="0.25" />
-              </Field>
-              <Field label="Stop Loss *">
-                <Input type="number" placeholder="0.00" defaultValue="18810.00" step="0.25" />
-              </Field>
-              <Field label="Take Profit">
-                <Input type="number" placeholder="0.00" defaultValue="18910.00" step="0.25" />
-              </Field>
-              <Field label="Exit Price">
-                <Input type="number" placeholder="0.00" defaultValue="18904.25" step="0.25" />
-              </Field>
-              <Field label="Contracts / Qty">
-                <Input type="number" placeholder="1" defaultValue="2" min="1" />
-              </Field>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3.5">
+              <Field label="Symbol *"><Input type="text" placeholder="NQ, ES…" defaultValue="NQ" /></Field>
+              <Field label="Date *"><Input type="date" defaultValue="2025-05-13" /></Field>
+              <Field label="Time"><Input type="time" defaultValue="09:47" /></Field>
+              <Field label="Entry Price *"><Input type="number" placeholder="0.00" defaultValue="18842.00" step="0.25" /></Field>
+              <Field label="Stop Loss *"><Input type="number" placeholder="0.00" defaultValue="18810.00" step="0.25" /></Field>
+              <Field label="Take Profit"><Input type="number" placeholder="0.00" defaultValue="18910.00" step="0.25" /></Field>
+              <Field label="Exit Price"><Input type="number" placeholder="0.00" defaultValue="18904.25" step="0.25" /></Field>
+              <Field label="Contracts / Qty"><Input type="number" placeholder="1" defaultValue="2" min="1" /></Field>
               <Field label="P&L ($)">
-                <Input
-                  type="text"
-                  placeholder="Auto-calculated"
-                  defaultValue="+$1,240"
-                  className="text-green-500"
-                  readOnly
-                />
+                <Input type="text" placeholder="Auto-calculated" defaultValue="+$1,240" className="text-green-500" readOnly />
               </Field>
             </div>
           </FormCard>
 
-          {/* Context */}
           <FormCard>
             <SectionTitle>Context</SectionTitle>
-            <div className="grid grid-cols-2 gap-3 mb-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3.5">
               <Field label="Session">
                 <Select>
                   <option>New York Open (09:30)</option>
@@ -264,38 +211,21 @@ export default function LogTrade() {
                 </Select>
               </Field>
               <Field label="HTF Bias">
-                <Select>
-                  <option>Bullish</option>
-                  <option>Bearish</option>
-                  <option>Neutral</option>
-                </Select>
+                <Select><option>Bullish</option><option>Bearish</option><option>Neutral</option></Select>
               </Field>
               <Field label="Confluence Grade">
-                <Select>
-                  <option>A+ Setup</option>
-                  <option>A Setup</option>
-                  <option>B Setup</option>
-                  <option>C Setup</option>
-                </Select>
+                <Select><option>A+ Setup</option><option>A Setup</option><option>B Setup</option><option>C Setup</option></Select>
               </Field>
             </div>
-
-            {/* Tags */}
             <Field label="Tags">
               <div
-                className="flex flex-wrap gap-1.5 p-2 bg-[#141416] border border-white/[0.07] rounded-md min-h-[40px] items-center cursor-text transition-all focus-within:border-white/[0.18]"
+                className="flex flex-wrap gap-1.5 p-2 bg-[#141416] border border-white/[0.07] rounded-md min-h-[40px] items-center cursor-text focus-within:border-white/[0.18] transition-all"
                 onClick={() => document.getElementById('tag-input')?.focus()}
               >
                 {tags.map(tag => (
-                  <span
-                    key={tag}
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] border ${tagColor(tag)}`}
-                  >
+                  <span key={tag} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] border ${tagColor(tag)}`}>
                     {tag}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); removeTag(tag) }}
-                      className="hover:opacity-70 ml-0.5 leading-none"
-                    >×</button>
+                    <button onClick={(e) => { e.stopPropagation(); removeTag(tag) }} className="hover:opacity-70 ml-0.5">×</button>
                   </span>
                 ))}
                 <input
@@ -309,16 +239,14 @@ export default function LogTrade() {
               </div>
             </Field>
           </FormCard>
-
         </div>
 
-        {/* ── RIGHT COLUMN ── */}
+        {/* ── RIGHT ── */}
         <div className="flex flex-col gap-3.5">
 
-          {/* Screenshot */}
           <FormCard>
             <SectionTitle>Screenshot</SectionTitle>
-            <div className="border border-dashed border-white/[0.11] rounded-[10px] p-8 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-white/[0.18] hover:bg-[#1a1a1d] transition-all text-center mb-2">
+            <div className="border border-dashed border-white/[0.11] rounded-[10px] p-6 lg:p-8 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-white/[0.18] hover:bg-[#1a1a1d] transition-all text-center mb-2">
               <div className="text-zinc-600 mb-1">
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
                   <rect x="3" y="6" width="26" height="20" rx="3" stroke="currentColor" strokeWidth="1.5"/>
@@ -328,18 +256,10 @@ export default function LogTrade() {
               </div>
               <div className="text-[13px] text-zinc-400">Drop chart screenshot</div>
               <div className="text-[11px] text-zinc-700">PNG, JPG, WebP · Max 10MB</div>
-              <button className="mt-2 px-3 py-1.5 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#141416] transition-all">
-                Browse Files
-              </button>
+              <button className="mt-2 px-3 py-1.5 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#141416] transition-all">Browse Files</button>
             </div>
             <div className="grid grid-cols-2 gap-1.5">
-              <div className="aspect-video bg-[#141416] border border-white/[0.07] rounded-md flex items-center justify-center cursor-pointer hover:border-white/[0.11] transition-all">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <rect x="2" y="3" width="14" height="12" rx="2" stroke="rgba(255,255,255,0.15)" strokeWidth="1.2"/>
-                  <circle cx="6.5" cy="7.5" r="1.5" stroke="rgba(255,255,255,0.15)" strokeWidth="1.2"/>
-                  <polyline points="2,13 6,9 9,12 12,8 16,13" stroke="rgba(255,255,255,0.15)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
+              <div className="aspect-video bg-[#141416] border border-white/[0.07] rounded-md flex items-center justify-center cursor-pointer hover:border-white/[0.11] transition-all" />
               <div className="aspect-video bg-[#141416] border border-dashed border-white/[0.07] rounded-md flex items-center justify-center cursor-pointer hover:border-white/[0.11] transition-all">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.15)" strokeWidth="1.2"/>
@@ -350,18 +270,13 @@ export default function LogTrade() {
             </div>
           </FormCard>
 
-          {/* Checklist */}
           <FormCard>
             <SectionTitle>Pre-Trade Checklist</SectionTitle>
             <div role="list">
-              {checklist.map(item => (
-                <CheckItem key={item.id} item={item} onToggle={toggleCheck} />
-              ))}
+              {checklist.map(item => <CheckItem key={item.id} item={item} onToggle={toggleCheck} />)}
             </div>
             <div className="mt-3 pt-3 border-t border-white/[0.04] flex items-center justify-between">
-              <span className="text-[11px] text-zinc-700">
-                {checklist.filter(i => i.checked).length}/{checklist.length} completed
-              </span>
+              <span className="text-[11px] text-zinc-700">{checklist.filter(i => i.checked).length}/{checklist.length} completed</span>
               <div className="flex-1 mx-3 h-1 bg-[#1a1a1d] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-green-500 rounded-full transition-all duration-500"
@@ -371,16 +286,11 @@ export default function LogTrade() {
             </div>
           </FormCard>
 
-          {/* Notes & Psychology */}
           <FormCard>
             <SectionTitle>Notes &amp; Psychology</SectionTitle>
             <div className="flex flex-col gap-3">
               <Field label="Trade Rationale">
-                <Textarea
-                  rows={3}
-                  placeholder="Describe the setup, confluence, and reason for entry…"
-                  defaultValue="NY session open. Price swept Asian highs, confirmed bearish displacement into 4h OB. FVG + breaker alignment. H4 bias: bullish continuation after liquidity grab."
-                />
+                <Textarea rows={3} placeholder="Describe the setup…" defaultValue="NY session open. Price swept Asian highs, confirmed bearish displacement into 4h OB. FVG + breaker alignment." />
               </Field>
               <Field label="Emotional State">
                 <Select>

@@ -1,24 +1,23 @@
-import { useState } from 'react'
+import React from 'react'
 
-/* ── DATA ── */
 const KPI_BAR = [
-  { label: 'Net P&L',      value: '$18,420', green: true  },
-  { label: 'Win Rate',     value: '63.8%',   green: false },
-  { label: 'Avg RR',       value: '2.14R',   green: false },
-  { label: 'Profit Factor',value: '3.62',    green: false },
-  { label: 'Max DD',       value: '-$2,140', red: true    },
-  { label: 'Avg Hold',     value: '23 min',  green: false },
-  { label: 'Best Streak',  value: '7W',      green: false },
+  { label: 'Net P&L',       value: '$18,420', color: 'text-green-500' },
+  { label: 'Win Rate',      value: '63.8%',   color: 'text-white'     },
+  { label: 'Avg RR',        value: '2.14R',   color: 'text-white'     },
+  { label: 'Profit Factor', value: '3.62',    color: 'text-white'     },
+  { label: 'Max DD',        value: '-$2,140', color: 'text-red-500'   },
+  { label: 'Avg Hold',      value: '23 min',  color: 'text-white'     },
+  { label: 'Best Streak',   value: '7W',      color: 'text-white'     },
 ]
 
 const KEY_STATS = [
-  { label: 'Avg Winner',   value: '+$641',  color: 'text-green-500' },
-  { label: 'Avg Loser',    value: '-$299',  color: 'text-red-500'   },
-  { label: 'Largest Win',  value: '+$3,200',color: 'text-green-500' },
-  { label: 'Largest Loss', value: '-$820',  color: 'text-red-500'   },
-  { label: 'Avg Hold',     value: '23 min', color: 'text-white'     },
-  { label: 'Best Streak',  value: '7W',     color: 'text-white'     },
-  { label: 'Worst Streak', value: '3L',     color: 'text-red-500'   },
+  { label: 'Avg Winner',   value: '+$641',   color: 'text-green-500' },
+  { label: 'Avg Loser',    value: '-$299',   color: 'text-red-500'   },
+  { label: 'Largest Win',  value: '+$3,200', color: 'text-green-500' },
+  { label: 'Largest Loss', value: '-$820',   color: 'text-red-500'   },
+  { label: 'Avg Hold',     value: '23 min',  color: 'text-white'     },
+  { label: 'Best Streak',  value: '7W',      color: 'text-white'     },
+  { label: 'Worst Streak', value: '3L',      color: 'text-red-500'   },
 ]
 
 const DOW_BARS = [
@@ -36,13 +35,10 @@ const PNLS: Record<number, number> = {
   27: 560, 28: 1240, 29: 780,
 }
 
-/* ── CALENDAR ── */
 function Calendar() {
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-
   const cells: React.ReactNode[] = []
 
-  // May 2025 starts on Thursday → 3 empty cells
   for (let i = 0; i < 3; i++) {
     cells.push(<div key={`empty-${i}`} className="aspect-square" />)
   }
@@ -69,8 +65,7 @@ function Calendar() {
     cells.push(
       <div
         key={d}
-        className={`aspect-square rounded-md flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all hover:opacity-80 hover:scale-105 text-[10px] ${cls} ${isToday ? 'outline outline-1 outline-white/[0.18]' : ''}`}
-        aria-label={`May ${d}${pnlStr ? ': ' + pnlStr : ''}`}
+        className={`aspect-square rounded-md flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all hover:opacity-80 hover:scale-105 ${cls} ${isToday ? 'outline outline-1 outline-white/[0.18]' : ''}`}
       >
         <span className="text-[9px] leading-none">{d}</span>
         {pnlStr && <span className="text-[8px] font-medium leading-none">{pnlStr}</span>}
@@ -90,23 +85,18 @@ function Calendar() {
   )
 }
 
-/* ── MAIN ── */
 export default function Analytics() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'trades'>('overview')
-
   return (
-    <div className="p-7">
+    <div className="p-4 lg:p-7">
 
       {/* Page Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
-          <h1 className="font-bold text-[22px] tracking-tight text-white leading-none mb-1">Analytics</h1>
+          <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">Analytics</h1>
           <p className="text-xs text-zinc-600">Deep performance analysis · 58 trades</p>
         </div>
         <div className="flex gap-2">
-          <button className="px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all">
-            Export CSV
-          </button>
+          <button className="px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all">Export CSV</button>
           <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all">
             <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
               <rect x="1" y="2" width="10" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
@@ -118,101 +108,88 @@ export default function Analytics() {
         </div>
       </div>
 
-      {/* KPI Bar */}
-      <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] px-6 py-4 flex items-center gap-8 mb-4 flex-wrap">
-        {KPI_BAR.map((k, i) => (
-          <div key={k.label} className="flex items-center gap-8">
-            <div className="flex flex-col gap-0.5">
-              <div className={`font-bold text-[20px] tracking-tight ${
-                (k as any).green ? 'text-green-500' : (k as any).red ? 'text-red-500' : 'text-white'
-              }`}>{k.value}</div>
+      {/* KPI Bar — scrollable on mobile, grid on desktop */}
+      <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 mb-4">
+        {/* Mobile: 2x grid */}
+        <div className="grid grid-cols-2 gap-3 sm:hidden">
+          {KPI_BAR.map(k => (
+            <div key={k.label} className="flex flex-col gap-0.5">
+              <div className={`font-display font-bold text-lg tracking-tight ${k.color}`}>{k.value}</div>
               <div className="text-[10px] text-zinc-700 uppercase tracking-widest">{k.label}</div>
             </div>
-            {i < KPI_BAR.length - 1 && (
-              <div className="w-px h-9 bg-white/[0.04]" />
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
+        {/* Desktop: horizontal row */}
+        <div className="hidden sm:flex items-center flex-wrap gap-6 lg:gap-8">
+          {KPI_BAR.map((k, i) => (
+            <div key={k.label} className="flex items-center gap-6 lg:gap-8">
+              <div className="flex flex-col gap-0.5">
+                <div className={`font-display font-bold text-lg lg:text-[20px] tracking-tight ${k.color}`}>{k.value}</div>
+                <div className="text-[10px] text-zinc-700 uppercase tracking-widest">{k.label}</div>
+              </div>
+              {i < KPI_BAR.length - 1 && <div className="w-px h-9 bg-white/[0.04]" />}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Cumulative PNL + Drawdown */}
-      <div className="grid grid-cols-2 gap-3.5 mb-3.5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 mb-3.5">
 
-        {/* Cumulative PNL */}
-        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-[18px] hover:border-white/[0.07] transition-colors">
+        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
           <div className="flex items-center justify-between mb-4">
             <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Cumulative P&L</div>
             <button className="text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-white/[0.07] hover:text-zinc-400 transition-all">By Trade</button>
           </div>
-          <div style={{ height: 220 }}>
-            <svg viewBox="0 0 400 220" className="w-full" style={{ height: 220 }} preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="an-eq" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(34,197,94,0.3)"/>
-                  <stop offset="100%" stopColor="rgba(34,197,94,0)"/>
-                </linearGradient>
-              </defs>
-              <line x1="0" y1="37"  x2="400" y2="37"  stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
-              <line x1="0" y1="75"  x2="400" y2="75"  stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
-              <line x1="0" y1="112" x2="400" y2="112" stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
-              <polyline points="0,140 28,130 55,122 80,128 110,112 138,95 160,88 188,102 215,86 240,72 265,60 295,52 320,42 350,34 380,26 400,20" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <polygon points="0,140 28,130 55,122 80,128 110,112 138,95 160,88 188,102 215,86 240,72 265,60 295,52 320,42 350,34 380,26 400,20 400,150 0,150" fill="url(#an-eq)"/>
-              <text x="4" y="35"  fill="rgba(255,255,255,0.2)" fontSize="8" fontFamily="monospace">$18,420</text>
-              <text x="4" y="73"  fill="rgba(255,255,255,0.2)" fontSize="8" fontFamily="monospace">$10,000</text>
-              <text x="4" y="110" fill="rgba(255,255,255,0.2)" fontSize="8" fontFamily="monospace">$0</text>
-            </svg>
-          </div>
+          <svg viewBox="0 0 400 180" className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+            <defs><linearGradient id="an-eq" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="rgba(34,197,94,0.3)"/><stop offset="100%" stopColor="rgba(34,197,94,0)"/></linearGradient></defs>
+            <line x1="0" y1="45"  x2="400" y2="45"  stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
+            <line x1="0" y1="90"  x2="400" y2="90"  stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
+            <line x1="0" y1="135" x2="400" y2="135" stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
+            <polyline points="0,165 28,152 55,142 80,148 110,132 138,112 160,104 188,120 215,100 240,84 265,70 295,60 320,48 350,38 380,28 400,20" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <polygon points="0,165 28,152 55,142 80,148 110,132 138,112 160,104 188,120 215,100 240,84 265,70 295,60 320,48 350,38 380,28 400,20 400,180 0,180" fill="url(#an-eq)"/>
+            <text x="4" y="42"  fill="rgba(255,255,255,0.2)" fontSize="9" fontFamily="monospace">$18,420</text>
+            <text x="4" y="87"  fill="rgba(255,255,255,0.2)" fontSize="9" fontFamily="monospace">$10,000</text>
+            <text x="4" y="132" fill="rgba(255,255,255,0.2)" fontSize="9" fontFamily="monospace">$0</text>
+          </svg>
         </div>
 
-        {/* Drawdown */}
-        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-[18px] hover:border-white/[0.07] transition-colors">
+        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">Drawdown Analysis</div>
-          <div style={{ height: 220 }}>
-            <svg viewBox="0 0 400 220" className="w-full" style={{ height: 220 }} preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="dd-grad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(239,68,68,0)"/>
-                  <stop offset="100%" stopColor="rgba(239,68,68,0.2)"/>
-                </linearGradient>
-              </defs>
-              <line x1="0" y1="10"  x2="400" y2="10"  stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
-              <line x1="0" y1="50"  x2="400" y2="50"  stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
-              <line x1="0" y1="100" x2="400" y2="100" stroke="rgba(255,255,255,0.06)" strokeDasharray="4,3" strokeWidth="1"/>
-              <text x="4" y="98" fill="rgba(239,68,68,0.4)" fontSize="8" fontFamily="monospace">-5% limit</text>
-              <polyline points="0,10 40,10 60,20 80,12 110,28 140,18 160,36 195,22 220,12 250,18 280,10 310,14 340,10 380,10 400,10" fill="none" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <polygon points="0,10 40,10 60,20 80,12 110,28 140,18 160,36 195,22 220,12 250,18 280,10 310,14 340,10 380,10 400,10 400,10 0,10" fill="url(#dd-grad)"/>
-              <circle cx="160" cy="36" r="3" fill="#ef4444"/>
-              <line x1="160" y1="36" x2="160" y2="150" stroke="rgba(239,68,68,0.2)" strokeWidth="1" strokeDasharray="3,3"/>
-              <text x="162" y="50" fill="rgba(239,68,68,0.6)" fontSize="8" fontFamily="monospace">-1.43%</text>
-            </svg>
-          </div>
+          <svg viewBox="0 0 400 180" className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+            <defs><linearGradient id="dd-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="rgba(239,68,68,0)"/><stop offset="100%" stopColor="rgba(239,68,68,0.2)"/></linearGradient></defs>
+            <line x1="0" y1="20"  x2="400" y2="20"  stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
+            <line x1="0" y1="80"  x2="400" y2="80"  stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
+            <line x1="0" y1="140" x2="400" y2="140" stroke="rgba(255,255,255,0.06)" strokeDasharray="4,3" strokeWidth="1"/>
+            <text x="4" y="136" fill="rgba(239,68,68,0.4)" fontSize="9" fontFamily="monospace">-5% limit</text>
+            <polyline points="0,20 40,20 60,38 80,24 110,52 140,34 160,68 195,42 220,24 250,34 280,20 310,26 340,20 380,20 400,20" fill="none" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <polygon points="0,20 40,20 60,38 80,24 110,52 140,34 160,68 195,42 220,24 250,34 280,20 310,26 340,20 380,20 400,20 400,20 0,20" fill="url(#dd-grad)"/>
+            <circle cx="160" cy="68" r="3" fill="#ef4444"/>
+            <line x1="160" y1="68" x2="160" y2="180" stroke="rgba(239,68,68,0.2)" strokeWidth="1" strokeDasharray="3,3"/>
+            <text x="162" y="86" fill="rgba(239,68,68,0.6)" fontSize="9" fontFamily="monospace">-1.43%</text>
+          </svg>
         </div>
       </div>
 
       {/* Day of Week + Win/Loss + Key Stats */}
-      <div className="grid grid-cols-3 gap-3.5 mb-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mb-3.5">
 
-        {/* P&L by Day */}
-        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-[18px] hover:border-white/[0.07] transition-colors">
+        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">P&L by Day of Week</div>
-          <div className="flex items-end gap-2 h-[120px] pb-1">
+          <div className="flex items-end gap-2 h-[100px] pb-1">
             {DOW_BARS.map(b => (
               <div key={b.day} className="flex-1 flex flex-col items-center gap-1">
-                <div
-                  className={`w-full rounded-t-sm transition-opacity hover:opacity-70 ${b.pos ? 'bg-green-500/50' : 'bg-red-500/45'}`}
-                  style={{ height: b.h }}
-                />
+                <div className={`w-full rounded-t-sm ${b.pos ? 'bg-green-500/50' : 'bg-red-500/45'}`} style={{ height: b.h * 0.9 }} />
                 <div className="text-[9px] text-zinc-700">{b.day}</div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Win / Loss Donut */}
-        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-[18px] hover:border-white/[0.07] transition-colors">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">Win / Loss Split</div>
-          <div className="flex items-center justify-center py-4">
-            <svg width="100" height="100" viewBox="0 0 100 100">
+        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
+          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-2">Win / Loss Split</div>
+          <div className="flex items-center justify-center py-2">
+            <svg width="90" height="90" viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="38" fill="none" stroke="#141416" strokeWidth="18"/>
               <circle cx="50" cy="50" r="38" fill="none" stroke="#22c55e" strokeWidth="18"
                 strokeDasharray="150.8 238.76" strokeDashoffset="0" strokeLinecap="round"
@@ -225,23 +202,18 @@ export default function Analytics() {
             </svg>
           </div>
           <div className="flex justify-center gap-4">
-            <div className="flex items-center gap-1.5 text-[11px] text-zinc-600">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500" />Wins 37
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-zinc-600">
-              <div className="w-1.5 h-1.5 rounded-full bg-red-500" />Losses 21
-            </div>
+            <div className="flex items-center gap-1.5 text-[11px] text-zinc-600"><div className="w-1.5 h-1.5 rounded-full bg-green-500" />Wins 37</div>
+            <div className="flex items-center gap-1.5 text-[11px] text-zinc-600"><div className="w-1.5 h-1.5 rounded-full bg-red-500" />Losses 21</div>
           </div>
         </div>
 
-        {/* Key Stats */}
-        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-[18px] hover:border-white/[0.07] transition-colors">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">Key Stats</div>
+        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors sm:col-span-2 lg:col-span-1">
+          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-3">Key Stats</div>
           <div className="flex flex-col">
             {KEY_STATS.map(s => (
               <div key={s.label} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                <span className="text-xs text-zinc-600">{s.label}</span>
-                <span className={`text-xs font-mono ${s.color}`}>{s.value}</span>
+                <span className="text-xs text-zinc-500">{s.label}</span>
+                <span className={`text-xs font-mono font-medium ${s.color}`}>{s.value}</span>
               </div>
             ))}
           </div>
@@ -249,12 +221,10 @@ export default function Analytics() {
       </div>
 
       {/* Monthly Calendar */}
-      <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-[18px] hover:border-white/[0.07] transition-colors">
+      <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
         <div className="flex items-center justify-between mb-4">
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Monthly P&L Calendar — May 2025</div>
-          <span className="inline-flex px-2 py-0.5 rounded text-[10px] border bg-green-500/10 border-green-500/20 text-green-500">
-            +$18,420 MTD
-          </span>
+          <span className="inline-flex px-2 py-0.5 rounded text-[10px] border bg-green-500/10 border-green-500/20 text-green-500">+$18,420 MTD</span>
         </div>
         <Calendar />
       </div>

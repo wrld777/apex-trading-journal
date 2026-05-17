@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react'
 import KpiCard from '../../components/ui/KpiCard'
 
 /* ── HEATMAP ── */
@@ -50,7 +49,7 @@ function Heatmap() {
   )
 }
 
-/* ── RECENT TRADES ── */
+/* ── DATA ── */
 const TRADES = [
   { symbol: 'NQ', dir: 'Long',  entry: '18,842.00', exit: '18,904.25', rr: '2.4R',  pnl: '+$1,240', setup: 'Breaker Block', status: 'WIN'  },
   { symbol: 'NQ', dir: 'Short', entry: '18,910.50', exit: '18,876.00', rr: '1.8R',  pnl: '+$690',   setup: 'ICT OB Entry',  status: 'WIN'  },
@@ -69,26 +68,24 @@ const SETUPS = [
 ]
 
 const SESSIONS = [
-  { name: 'London 02:00–05:00',      pnl: '+$6,280',  meta: '14 trades · 71% WR · Best session', pos: true  },
-  { name: 'New York 09:30–11:00',    pnl: '+$9,840',  meta: '22 trades · 68% WR · Most active',  pos: true  },
-  { name: 'Silver Bullet 10:00–11:00', pnl: '+$3,460', meta: '8 trades · 75% WR',               pos: true  },
-  { name: 'Afternoon / Other',       pnl: '-$1,160',  meta: '3 trades · 33% WR · Avoid',         pos: false },
+  { name: 'London 02:00–05:00',        pnl: '+$6,280', meta: '14 trades · 71% WR · Best session', pos: true  },
+  { name: 'New York 09:30–11:00',      pnl: '+$9,840', meta: '22 trades · 68% WR · Most active',  pos: true  },
+  { name: 'Silver Bullet 10:00–11:00', pnl: '+$3,460', meta: '8 trades · 75% WR',                 pos: true  },
+  { name: 'Afternoon / Other',         pnl: '-$1,160', meta: '3 trades · 33% WR · Avoid',          pos: false },
 ]
 
 /* ── MAIN ── */
 export default function Dashboard() {
   return (
-    <div className="p-7">
+    <div className="p-4 lg:p-7">
 
       {/* Page Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="font-bold text-[22px] tracking-tight text-white leading-none mb-1">
+          <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">
             Good morning, Ahmed.
           </h1>
-          <p className="text-xs text-zinc-600">
-            Tuesday, 13 May 2025 · NQ Futures · Funded $150k
-          </p>
+          <p className="text-xs text-zinc-600">Tuesday, 13 May 2025 · NQ Futures · Funded $150k</p>
         </div>
         <div className="flex gap-2">
           <button className="px-3 py-1.5 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all">May 2025</button>
@@ -97,7 +94,7 @@ export default function Dashboard() {
       </div>
 
       {/* KPI Strip */}
-      <div className="grid grid-cols-5 gap-3.5 mb-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-3.5 mb-3.5">
         <KpiCard label="Net P&L" value="$18,420" delta="+12.3% MTD" deltaUp={true}>
           <div className="h-7 mt-2">
             <svg viewBox="0 0 100 28" className="w-full h-7" preserveAspectRatio="none">
@@ -145,7 +142,7 @@ export default function Dashboard() {
       </div>
 
       {/* Equity Curve */}
-      <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-[18px] mb-3.5 hover:border-white/[0.07] transition-colors col-span-2">
+      <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] mb-3.5 hover:border-white/[0.07] transition-colors">
         <div className="flex items-center justify-between mb-4">
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Equity Curve</div>
           <div className="flex items-center gap-1.5">
@@ -182,16 +179,16 @@ export default function Dashboard() {
       </div>
 
       {/* Sessions + Setups + Stats */}
-      <div className="grid grid-cols-3 gap-3.5 mb-3.5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5 mb-3.5">
 
         {/* Sessions */}
-        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-[18px] hover:border-white/[0.07] transition-colors">
+        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">Sessions</div>
-          <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
             {SESSIONS.map(s => (
               <div key={s.name} className="bg-[#141416] border border-white/[0.04] rounded-md px-3.5 py-3 flex flex-col gap-1.5 cursor-pointer hover:border-white/[0.11] hover:-translate-y-px transition-all">
                 <div className="text-[11px] text-zinc-600 uppercase tracking-[0.05em]">{s.name}</div>
-                <div className={`font-bold text-[18px] tracking-tight ${s.pos ? 'text-green-500' : 'text-red-500'}`}>{s.pnl}</div>
+                <div className={`font-display font-bold text-[18px] tracking-tight ${s.pos ? 'text-green-500' : 'text-red-500'}`}>{s.pnl}</div>
                 <div className="text-[10px] text-zinc-700">{s.meta}</div>
               </div>
             ))}
@@ -199,7 +196,7 @@ export default function Dashboard() {
         </div>
 
         {/* Setup Performance */}
-        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-[18px] hover:border-white/[0.07] transition-colors">
+        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
           <div className="flex items-center justify-between mb-4">
             <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Setup Performance</div>
             <button className="text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-white/[0.07] hover:text-zinc-400 transition-all">View All</button>
@@ -209,10 +206,7 @@ export default function Dashboard() {
               <div key={s.name} className="flex items-center gap-2.5 py-2 border-b border-white/[0.04] last:border-0">
                 <div className="text-xs text-zinc-400 flex-1">{s.name}</div>
                 <div className="flex-[2] h-[3px] bg-[#1a1a1d] rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${s.color === 'amber' ? 'bg-amber-500' : 'bg-green-500'}`}
-                    style={{ width: `${s.wr}%` }}
-                  />
+                  <div className={`h-full rounded-full ${s.color === 'amber' ? 'bg-amber-500' : 'bg-green-500'}`} style={{ width: `${s.wr}%` }} />
                 </div>
                 <div className={`text-[11px] w-9 text-right ${s.color === 'amber' ? 'text-amber-500' : 'text-green-500'}`}>{s.wr}%</div>
                 <div className={`text-[11px] w-16 text-right font-mono ${s.pnl.startsWith('-') ? 'text-zinc-600' : 'text-green-500'}`}>{s.pnl}</div>
@@ -222,20 +216,20 @@ export default function Dashboard() {
         </div>
 
         {/* Statistics */}
-        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-[18px] hover:border-white/[0.07] transition-colors">
+        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">Statistics</div>
           <div className="grid grid-cols-2">
             {[
               { label: 'Total Trades', value: '58',      color: '' },
               { label: 'Best Trade',   value: '+$3,200', color: 'text-green-500' },
-              { label: 'Worst Trade',  value: '-$820',   color: 'text-red-500' },
+              { label: 'Worst Trade',  value: '-$820',   color: 'text-red-500'   },
               { label: 'Avg Win',      value: '$641',    color: '' },
-              { label: 'Avg Loss',     value: '-$299',   color: 'text-red-500' },
+              { label: 'Avg Loss',     value: '-$299',   color: 'text-red-500'   },
               { label: 'Best Streak',  value: '7W',      color: '' },
             ].map((s, i) => (
               <div key={s.label} className={`py-3 border-b border-white/[0.04] ${i % 2 === 1 ? 'pl-4 border-l border-white/[0.04]' : ''} ${i >= 4 ? 'border-b-0' : ''}`}>
                 <div className="text-[10px] text-zinc-700 uppercase tracking-[0.06em] mb-1">{s.label}</div>
-                <div className={`font-bold text-base tracking-tight ${s.color || 'text-white'}`}>{s.value}</div>
+                <div className={`font-display font-bold text-base tracking-tight ${s.color || 'text-white'}`}>{s.value}</div>
               </div>
             ))}
           </div>
@@ -243,55 +237,55 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Trades */}
-      <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-[18px] mb-3.5 hover:border-white/[0.07] transition-colors">
+      <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] mb-3.5 hover:border-white/[0.07] transition-colors">
         <div className="flex items-center justify-between mb-4">
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Recent Trades</div>
           <button className="text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-white/[0.07] hover:text-zinc-400 transition-all">View All →</button>
         </div>
-        <table className="w-full border-collapse text-xs">
-          <thead>
-            <tr>
-              {['Symbol','Direction','Entry','Exit','RR','P&L','Setup','Status'].map(h => (
-                <th key={h} className="text-left px-3 py-2 text-[10px] text-zinc-700 uppercase tracking-widest border-b border-white/[0.04] font-medium">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {TRADES.map((t, i) => (
-              <tr key={i} className="group hover:bg-[#1a1a1d] transition-colors">
-                <td className="px-3 py-2.5 border-b border-white/[0.04] group-last:border-0 font-bold text-white">{t.symbol}</td>
-                <td className="px-3 py-2.5 border-b border-white/[0.04] group-last:border-0">
-                  <span className={`inline-flex px-2 py-0.5 rounded text-[10px] border ${
-                    t.dir === 'Long'
-                      ? 'bg-green-500/10 border-green-500/20 text-green-500'
-                      : 'bg-red-500/10 border-red-500/20 text-red-500'
-                  }`}>{t.dir}</span>
-                </td>
-                <td className="px-3 py-2.5 border-b border-white/[0.04] group-last:border-0 text-zinc-400">{t.entry}</td>
-                <td className="px-3 py-2.5 border-b border-white/[0.04] group-last:border-0 text-zinc-400">{t.exit}</td>
-                <td className="px-3 py-2.5 border-b border-white/[0.04] group-last:border-0 text-zinc-400">{t.rr}</td>
-                <td className={`px-3 py-2.5 border-b border-white/[0.04] group-last:border-0 font-mono ${
-                  t.pnl.startsWith('+') ? 'text-green-500' : t.pnl.startsWith('-') ? 'text-red-500' : 'text-zinc-400'
-                }`}>{t.pnl}</td>
-                <td className="px-3 py-2.5 border-b border-white/[0.04] group-last:border-0 text-zinc-400">{t.setup}</td>
-                <td className="px-3 py-2.5 border-b border-white/[0.04] group-last:border-0">
-                  <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-medium tracking-wide ${
-                    t.status === 'WIN'  ? 'bg-green-500/10 text-green-500' :
-                    t.status === 'LOSS' ? 'bg-red-500/10 text-red-500' :
-                    'bg-[#1a1a1d] text-zinc-600'
-                  }`}>{t.status}</span>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-xs min-w-[600px]">
+            <thead>
+              <tr>
+                {['Symbol','Direction','Entry','Exit','RR','P&L','Setup','Status'].map(h => (
+                  <th key={h} className="text-left px-3 py-2 text-[10px] text-zinc-700 uppercase tracking-widest border-b border-white/[0.04] font-medium">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {TRADES.map((t, i) => (
+                <tr key={i} className="group hover:bg-[#1a1a1d] transition-colors">
+                  <td className="px-3 py-2.5 border-b border-white/[0.04] group-last:border-0 font-display font-bold text-white">{t.symbol}</td>
+                  <td className="px-3 py-2.5 border-b border-white/[0.04] group-last:border-0">
+                    <span className={`inline-flex px-2 py-0.5 rounded text-[10px] border ${
+                      t.dir === 'Long' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'
+                    }`}>{t.dir}</span>
+                  </td>
+                  <td className="px-3 py-2.5 border-b border-white/[0.04] group-last:border-0 text-zinc-400">{t.entry}</td>
+                  <td className="px-3 py-2.5 border-b border-white/[0.04] group-last:border-0 text-zinc-400">{t.exit}</td>
+                  <td className="px-3 py-2.5 border-b border-white/[0.04] group-last:border-0 text-zinc-400">{t.rr}</td>
+                  <td className={`px-3 py-2.5 border-b border-white/[0.04] group-last:border-0 font-mono ${
+                    t.pnl.startsWith('+') ? 'text-green-500' : t.pnl.startsWith('-') ? 'text-red-500' : 'text-zinc-400'
+                  }`}>{t.pnl}</td>
+                  <td className="px-3 py-2.5 border-b border-white/[0.04] group-last:border-0 text-zinc-400">{t.setup}</td>
+                  <td className="px-3 py-2.5 border-b border-white/[0.04] group-last:border-0">
+                    <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-medium tracking-wide ${
+                      t.status === 'WIN'  ? 'bg-green-500/10 text-green-500' :
+                      t.status === 'LOSS' ? 'bg-red-500/10 text-red-500' :
+                      'bg-[#1a1a1d] text-zinc-600'
+                    }`}>{t.status}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Heatmap */}
-      <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-[18px] hover:border-white/[0.07] transition-colors">
+      <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
         <div className="flex items-center justify-between mb-4">
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Activity Heatmap — Last 13 Weeks</div>
-          <div className="flex items-center gap-1 text-[10px] text-zinc-700">
+          <div className="hidden sm:flex items-center gap-1 text-[10px] text-zinc-700">
             <span>Less</span>
             <div className="w-2.5 h-2.5 rounded-sm bg-[#141416]" />
             <div className="w-2.5 h-2.5 rounded-sm bg-green-500/30" />
@@ -299,7 +293,11 @@ export default function Dashboard() {
             <span>More</span>
           </div>
         </div>
-        <Heatmap />
+        <div className="overflow-x-auto">
+          <div className="min-w-[500px]">
+            <Heatmap />
+          </div>
+        </div>
       </div>
 
     </div>
