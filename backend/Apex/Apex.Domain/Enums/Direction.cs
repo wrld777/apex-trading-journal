@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Apex.Domain.Enums;
 
-namespace Apex.Domain.Enums
+public enum Direction
 {
-    internal class Direction
-    {
-    }
+    Long,
+    Short
 }
