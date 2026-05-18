@@ -1,10 +1,9 @@
 ﻿using Apex.Domain.Enums;
 
-namespace Apex.Domain.Entities;
+namespace Apex.Domain.Requests;
 
-public class Trade
+public class CreateTradeRequest
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
     public string Symbol { get; set; } = string.Empty;
     public Direction Direction { get; set; }
     public decimal EntryPrice { get; set; }
@@ -12,11 +11,7 @@ public class Trade
     public decimal TakeProfit { get; set; }
     public decimal ExitPrice { get; set; }
     public int Quantity { get; set; }
-    public decimal PnL { get; set; }
-    public decimal RiskReward { get; set; }
     public DateTime EntryTime { get; set; }
-    public DateTime? ExitTime { get; set; }
-    public TradeStatus Status { get; set; }
     public string Session { get; set; } = string.Empty;
     public string Setup { get; set; } = string.Empty;
     public string HTFBias { get; set; } = string.Empty;
@@ -25,9 +20,4 @@ public class Trade
     public string EmotionalState { get; set; } = string.Empty;
     public string Mistakes { get; set; } = string.Empty;
     public List<string> Tags { get; set; } = new();
-    public List<string> Screenshots { get; set; } = new();
-    public Guid UserId { get; set; }
-    public User User { get; set; } = null!;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
