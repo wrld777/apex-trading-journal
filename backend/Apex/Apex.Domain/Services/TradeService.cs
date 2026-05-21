@@ -52,7 +52,12 @@ public class TradeService : ITradeService
         if (trade is null)
             return Result<TradeDto>.Failure(Error.TradeNotFound(id));
 
-        _mapper.Map(dto, trade);
+        trade.ExitPrice = dto.ExitPrice;
+        trade.ExitTime = dto.ExitTime;
+        trade.Rationale = dto.Rationale;
+        trade.EmotionalState = dto.EmotionalState;
+        trade.Mistakes = dto.Mistakes;
+        trade.Tags = dto.Tags;
         trade.PnL = CalculatePnL(trade);
         trade.RiskReward = CalculateRR(trade);
         trade.Status = DetermineStatus(trade);

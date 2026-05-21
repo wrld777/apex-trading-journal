@@ -1,8 +1,8 @@
 ﻿using Apex.Domain.Enums;
 
-namespace Apex.Domain.DTOs;
+namespace Apex.Domain.Responses;
 
-public class TradeDto
+public class TradeResponse
 {
     public Guid Id { get; set; }
     public string Symbol { get; set; } = string.Empty;
