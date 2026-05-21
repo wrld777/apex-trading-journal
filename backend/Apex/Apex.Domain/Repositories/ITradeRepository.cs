@@ -4,9 +4,9 @@ namespace Apex.Domain.Repositories;
 
 public interface ITradeRepository
 {
-    Task<List<Trade>> GetAllAsync(Guid userId);
-    Task<Trade?> GetByIdAsync(Guid id);
+    Task<IEnumerable<Trade>> GetAllAsync(Guid userId, CancellationToken ct);
+    Task<Trade> GetByIdAsync(Guid id, CancellationToken ct);
     Task<Trade> CreateAsync(Trade trade);
     Task<Trade> UpdateAsync(Trade trade);
-    Task DeleteAsync(Guid id);
+    Task DeleteAsync(Trade trade);
 }
