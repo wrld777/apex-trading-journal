@@ -9,4 +9,7 @@ public interface ITradeRepository
     Task<Trade> CreateAsync(Trade trade, CancellationToken ct);
     Task<Trade> UpdateAsync(Trade trade, CancellationToken ct);
     Task DeleteAsync(Trade trade, CancellationToken ct);
+    Task<List<Trade>> GetByDateRangeAsync(Guid userId, DateTime startDate, DateTime endDate, CancellationToken ct);
+    Task<List<Trade>> GetBySetupAsync(string setup, CancellationToken ct);
+    Task<List<Trade>> GetBySessionAsync(string session, CancellationToken ct);
 }
