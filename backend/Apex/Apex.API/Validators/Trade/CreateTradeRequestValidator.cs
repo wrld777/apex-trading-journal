@@ -1,34 +1,52 @@
-﻿
+﻿using Apex.Domain.Common;
 using Apex.Domain.Requests;
 using FluentValidation;
 
-namespace Apex.API.Validators;
+namespace Apex.Domain.Validators;
 
 public class CreateTradeRequestValidator : AbstractValidator<CreateTradeRequest>
 {
     public CreateTradeRequestValidator()
     {
         RuleFor(x => x.Symbol)
-            .NotEmpty().WithMessage("Symbol is required.")
-            .MaximumLength(10).WithMessage("Symbol must not exceed 10 characters.");
+            .NotEmpty().WithMessage(TradeErrors.MissingSymbol.Message)
+            .MaximumLength(10).WithMessage(TradeErrors.SymbolTooLong.Message);
 
         RuleFor(x => x.EntryPrice)
-            .GreaterThan(0).WithMessage("Entry price must be greater than 0.");
+            .GreaterThan(0).WithMessage(TradeErrors.InvalidEntryPrice.Message);
 
         RuleFor(x => x.StopLoss)
-            .GreaterThan(0).WithMessage("Stop loss must be greater than 0.")
-            .NotEqual(x => x.EntryPrice).WithMessage("Stop loss must differ from entry price.");
+            .GreaterThan(0).WithMessage(TradeErrors.InvalidStopLoss.Message)
+            .NotEqual(x => x.EntryPrice).WithMessage(TradeErrors.InvalidRisk.Message);
+
+        RuleFor(x => x.TakeProfit)
+            .GreaterThan(0).WithMessage(TradeErrors.InvalidTakeProfit.Message);
 
         RuleFor(x => x.Quantity)
-            .GreaterThan(0).WithMessage("Quantity must be at least 1.");
+            .GreaterThan(0).WithMessage(TradeErrors.InvalidQuantity.Message);
 
         RuleFor(x => x.EntryTime)
-            .NotEmpty().WithMessage("Entry time is required.");
+            .NotEmpty().WithMessage(TradeErrors.InvalidEntryTime.Message);
 
         RuleFor(x => x.Session)
-            .NotEmpty().WithMessage("Session is required.");
+            .NotEmpty().WithMessage(TradeErrors.MissingSession.Message);
 
         RuleFor(x => x.Setup)
-            .NotEmpty().WithMessage("Setup is required.");
+            .NotEmpty().WithMessage(TradeErrors.MissingSetup.Message);
+
+        RuleFor(x => x).Custom((request, context) =>
+        {
+            if (request.Direction == Domain.Enums.Direction.Long && request.StopLoss >= request.EntryPrice)
+                context.AddFailure(TradeErrors.StopLossAboveEntryForLong.Message);
+
+            if (request.Direction == Domain.Enums.Direction.Short && request.StopLoss <= request.EntryPrice)
+                context.AddFailure(TradeErrors.StopLossBelowEntryForShort.Message);
+
+            if (request.Direction == Domain.Enums.Direction.Long && request.TakeProfit <= request.EntryPrice)
+                context.AddFailure(TradeErrors.TakeProfitBelowEntryForLong.Message);
+
+            if (request.Direction == Domain.Enums.Direction.Short && request.TakeProfit >= request.EntryPrice)
+                context.AddFailure(TradeErrors.TakeProfitAboveEntryForShort.Message);
+        });
     }
 }
