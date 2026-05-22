@@ -48,4 +48,36 @@ public class TradeRepository : ITradeRepository
         _context.Trades.Remove(trade);
         await _context.SaveChangesAsync(ct);
     }
-}
+
+    public async Task<List<Trade>> GetByDateRangeAsync(Guid userId, DateTime startDate, DateTime endDate, CancellationToken ct)
+    {
+        return await _context.Trades
+            .AsNoTracking()
+            .Where(t => t.UserId == userId && t.EntryTime >= startDate && t.EntryTime <= endDate)
+            .OrderByDescending(t => t.EntryTime)
+            .ToListAsync(ct);
+    }
+
+    public async Task<List<Trade>> GetBySetupAsync(string setup, CancellationToken ct)
+    {
+        return await _context.Trades
+            .AsNoTracking()
+            .Where(t => t.Setup == setup)
+            .OrderByDescending(t => t.EntryTime)
+            .ToListAsync(ct);
+    }
+
+    public async Task<List<Trade>> GetBySessionAsync(string session, CancellationToken ct)
+    {
+        return await _context.Trades
+            .AsNoTracking()
+            .Where(t => t.Session == session)
+            .OrderByDescending (t => t.EntryTime)
+            .ToListAsync (ct);
+    }
+
+
+
+
+
+    }
