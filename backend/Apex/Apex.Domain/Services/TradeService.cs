@@ -29,7 +29,7 @@ public class TradeService : ITradeService
     {
         var trade = await _tradeRepository.GetByIdAsync(id, ct);
         if (trade is null)
-            return Result<TradeDto>.Failure(Error.TradeNotFound(id));
+            return Result<TradeDto>.Failure(Error.FromTradeError(TradeErrors.NotFound(id)));
 
         return Result<TradeDto>.Success(_mapper.Map<TradeDto>(trade));
     }
@@ -50,9 +50,14 @@ public class TradeService : ITradeService
     {
         var trade = await _tradeRepository.GetByIdAsync(id, ct);
         if (trade is null)
-            return Result<TradeDto>.Failure(Error.TradeNotFound(id));
+            return Result<TradeDto>.Failure(Error.FromTradeError(TradeErrors.NotFound(id)));
 
-        _mapper.Map(dto, trade);
+        trade.ExitPrice = dto.ExitPrice;
+        trade.ExitTime = dto.ExitTime;
+        trade.Rationale = dto.Rationale;
+        trade.EmotionalState = dto.EmotionalState;
+        trade.Mistakes = dto.Mistakes;
+        trade.Tags = dto.Tags;
         trade.PnL = CalculatePnL(trade);
         trade.RiskReward = CalculateRR(trade);
         trade.Status = DetermineStatus(trade);
@@ -65,7 +70,7 @@ public class TradeService : ITradeService
     {
         var trade = await _tradeRepository.GetByIdAsync(id, ct);
         if (trade is null)
-            return Result<bool>.Failure(Error.TradeNotFound(id));
+            return Result<bool>.Failure(Error.FromTradeError(TradeErrors.NotFound(id)));
 
         await _tradeRepository.DeleteAsync(trade, ct);
         return Result<bool>.Success(true);
