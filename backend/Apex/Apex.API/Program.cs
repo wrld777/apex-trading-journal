@@ -21,6 +21,7 @@ builder.Services.AddControllers()
 
 //Repository
 builder.Services.AddScoped<ITradeRepository, TradeRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 //Service
 builder.Services.AddScoped<ITradeService, TradeService>();
 builder.Services.AddScoped<IStatsService, StatsService>();
