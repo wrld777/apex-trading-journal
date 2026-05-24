@@ -23,6 +23,7 @@ builder.Services.AddControllers()
 builder.Services.AddScoped<ITradeRepository, TradeRepository>();
 //Service
 builder.Services.AddScoped<ITradeService, TradeService>();
+builder.Services.AddScoped<IStatsService, StatsService>();
 //AutoMapper
 builder.Services.AddAutoMapper(cfg =>
 {
