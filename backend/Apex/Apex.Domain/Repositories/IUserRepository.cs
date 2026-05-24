@@ -4,7 +4,8 @@ namespace Apex.Domain.Repositories;
 
 public interface IUserRepository
 {
-    Task<User?> GetByIdAsync(Guid id);
-    Task<User?> GetByEmailAsync(string email);
-    Task<User> CreateAsync(User user);
+    Task<List<User>> GetAllAsync(Guid userId, CancellationToken ct);
+    Task<User?> GetByIdAsync(Guid id, CancellationToken ct);
+    Task<User?> GetByEmailAsync(string email, CancellationToken ct);
+    Task<User> CreateUserAsync(User user, CancellationToken ct);
 }
