@@ -4,8 +4,6 @@ using System.Text;
 
 namespace Apex.Domain.Entities
 {
-    // Apex.Domain/Models/JwtSettings.cs
-    namespace Apex.Domain.Models;
 
     public class JwtSettings
     {

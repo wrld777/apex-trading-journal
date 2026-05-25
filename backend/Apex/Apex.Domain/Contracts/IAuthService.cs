@@ -10,6 +10,6 @@ namespace Apex.Domain.Contracts
     public interface IAuthService
     {
         Task<Result<AuthResponse>> RegisterAsync(Request.User.RegisterRequest request, CancellationToken ct);
-        Task<Result<AuthResponse>> LoginAsync(LoginRequest request, CancellationToken ct);
+        Task<Result<AuthResponse>> LoginAsync(Request.User.LoginRequest request, CancellationToken ct);
     }
 }

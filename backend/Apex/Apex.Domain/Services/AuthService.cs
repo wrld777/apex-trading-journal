@@ -1,8 +1,6 @@
 ﻿using Apex.Domain.Common;
 using Apex.Domain.Contracts;
 using Apex.Domain.Entities;
-using Apex.Domain.Entities.Apex.Domain.Models;
-using Apex.Domain.Models;
 using Apex.Domain.Repositories;
 using Apex.Domain.Request.User;
 using Apex.Domain.Response.User;
@@ -26,7 +24,7 @@ public class AuthService : IAuthService
         _jwtSettings = jwtSettings.Value;
     }
 
-    public async Task<Result<AuthResponse>> RegisterAsync(RegisterRequest request, CancellationToken ct)
+    public async Task<Result<AuthResponse>> RegisterAsync(Request.User.RegisterRequest request, CancellationToken ct)
     {
         var existing = await _userRepository.GetByEmailAsync(request.Email, ct);
         if (existing is not null)
@@ -64,7 +62,7 @@ public class AuthService : IAuthService
         });
     }
 
-    public async Task<Result<AuthResponse>> LoginAsync(LoginRequest request, CancellationToken ct)
+    public async Task<Result<AuthResponse>> LoginAsync(Request.User.LoginRequest request, CancellationToken ct)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email, ct);
         if (user is null)
