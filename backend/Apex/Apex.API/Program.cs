@@ -1,6 +1,6 @@
 using Apex.Domain.AutoMapperProfile;
 using Apex.Domain.Contracts;
-using Apex.Domain.Entities.Apex.Domain.Models;
+using Apex.Domain.Entities;
 using Apex.Domain.Repositories;
 using Apex.Domain.Services;
 using Apex.Infrastructure.DbContext;
