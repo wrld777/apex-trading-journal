@@ -19,3 +19,5 @@ backend/**/appsettings.Development.json
 # ── OS ──
 .DS_Store
 Thumbs.db
+
+.env
