@@ -10,27 +10,25 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
-    try {
-      const res = await authService.login(form)
-      setAuth(res.token, res.userId, res.name, res.email)
-      navigate('/')
-    } catch {
-      setError('Email o password errati.')
-    } finally {
-      setLoading(false)
-    }
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setLoading(true)
+  try {
+    const res = await authService.login(form)
+    setAuth(res.token, res.userId, res.name, res.email)
+    navigate('/')
+  } catch (err) {
+    console.log('ERRORE LOGIN:', err)  
+    setError('Email o password errati.')
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     <div className="min-h-screen bg-[#030304] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
 
-        {/* Logo */}
         <div className="flex items-center gap-3 mb-8">
           <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -39,7 +37,7 @@ export default function LoginPage() {
               <rect x="9" y="1" width="4" height="12" rx="1" fill="black" opacity=".4"/>
             </svg>
           </div>
-          <span className="font-display font-bold text-white tracking-widest text-sm">APEX</span>
+          <span className="font-bold text-white tracking-widest text-sm">APEX</span>
         </div>
 
         <h1 className="text-xl font-bold text-white mb-1">Bentornato</h1>
@@ -52,7 +50,10 @@ export default function LoginPage() {
               type="email"
               required
               value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              onChange={(e) => {
+                setForm({ ...form, email: e.target.value })
+                setError(null)
+              }}
               placeholder="you@example.com"
               className="bg-[#141416] border border-white/10 rounded-md px-3 py-2.5 text-sm text-white outline-none focus:border-white/25 placeholder:text-zinc-600 transition-colors"
             />
@@ -64,7 +65,10 @@ export default function LoginPage() {
               type="password"
               required
               value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              onChange={(e) => {
+                setForm({ ...form, password: e.target.value })
+                setError(null)
+              }}
               placeholder="••••••••"
               className="bg-[#141416] border border-white/10 rounded-md px-3 py-2.5 text-sm text-white outline-none focus:border-white/25 placeholder:text-zinc-600 transition-colors"
             />

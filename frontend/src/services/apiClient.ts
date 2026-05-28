@@ -15,14 +15,20 @@ apiClient.interceptors.request.use((config) => {
   return config
 })
 
-// Su 401 → clear auth + redirect login
+
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const url = error.config?.url ?? ''
+
+    
+    const isAuthRoute = url.includes('/api/auth/')
+
+    if (error.response?.status === 401 && !isAuthRoute) {
       useAuthStore.getState().clearAuth()
       window.location.href = '/login'
     }
+
     return Promise.reject(error)
   }
 )
