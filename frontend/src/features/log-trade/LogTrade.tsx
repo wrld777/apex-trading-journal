@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { useCreateTrade } from '../../hooks/useTrades'
+import type { Direction } from '../../types/trade'
 
-type Direction = 'long' | 'short'
+// ── Small UI helpers ──────────────────────────────────────────────────────────
 
 interface ChecklistItem {
   id: number
@@ -96,19 +98,82 @@ function FormCard({ children }: { children: React.ReactNode }) {
   )
 }
 
+// ── Default form state ────────────────────────────────────────────────────────
+
+const DEFAULT_FORM = {
+  symbol: '',
+  date: '',
+  time: '',
+  entryPrice: '',
+  stopLoss: '',
+  takeProfit: '',
+  exitPrice: '',
+  quantity: '',
+  session: 'New York Open (09:30)',
+  setup: 'Breaker Block',
+  htfBias: 'Bullish',
+  grade: 'A+ Setup',
+  rationale: '',
+  emotionalState: 'Calm & Focused',
+  mistakes: '',
+}
+
+const DEFAULT_CHECKLIST: ChecklistItem[] = [
+  { id: 1, label: 'HTF bias confirmed',          checked: false },
+  { id: 2, label: 'Killzone entry window',        checked: false },
+  { id: 3, label: 'PD array identified',          checked: false },
+  { id: 4, label: 'Liquidity taken before entry', checked: false },
+  { id: 5, label: 'Risk ≤ 0.5% of account',      checked: false },
+  { id: 6, label: 'News events checked',          checked: false },
+  { id: 7, label: 'Stop placed beyond OB',        checked: false },
+]
+
+// ── Toast component ───────────────────────────────────────────────────────────
+
+function Toast({ message, type }: { message: string; type: 'success' | 'error' }) {
+  return (
+    <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-lg border text-[13px] font-medium shadow-lg transition-all ${
+      type === 'success'
+        ? 'bg-green-500/10 border-green-500/25 text-green-400'
+        : 'bg-red-500/10 border-red-500/25 text-red-400'
+    }`}>
+      {type === 'success' ? (
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <polyline points="2,7 5.5,10.5 12,3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ) : (
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <line x1="3" y1="3" x2="11" y2="11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+          <line x1="11" y1="3" x2="3" y2="11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+        </svg>
+      )}
+      {message}
+    </div>
+  )
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
 export default function LogTrade() {
-  const [direction, setDirection] = useState<Direction>('long')
-  const [tags, setTags] = useState<string[]>(['fvg', 'london-session', 'breaker'])
+  const { mutate: createTrade, isPending } = useCreateTrade()
+
+  const [direction, setDirection] = useState<Direction>('Long')
+  const [form, setForm] = useState(DEFAULT_FORM)
+  const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
-  const [checklist, setChecklist] = useState<ChecklistItem[]>([
-    { id: 1, label: 'HTF bias confirmed',          checked: true  },
-    { id: 2, label: 'Killzone entry window',        checked: true  },
-    { id: 3, label: 'PD array identified',          checked: true  },
-    { id: 4, label: 'Liquidity taken before entry', checked: false },
-    { id: 5, label: 'Risk ≤ 0.5% of account',      checked: false },
-    { id: 6, label: 'News events checked',          checked: false },
-    { id: 7, label: 'Stop placed beyond OB',        checked: true  },
-  ])
+  const [checklist, setChecklist] = useState<ChecklistItem[]>(DEFAULT_CHECKLIST)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 4000)
+  }
+
+  const handleChange = (field: keyof typeof DEFAULT_FORM) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    setForm(prev => ({ ...prev, [field]: e.target.value }))
+  }
 
   const toggleCheck = (id: number) => {
     setChecklist(prev => prev.map(item => item.id === id ? { ...item, checked: !item.checked } : item))
@@ -129,8 +194,62 @@ export default function LogTrade() {
     return 'bg-[#1a1a1d] border-white/[0.07] text-zinc-400'
   }
 
+  const resetForm = () => {
+    setForm(DEFAULT_FORM)
+    setDirection('Long')
+    setTags([])
+    setTagInput('')
+    setChecklist(DEFAULT_CHECKLIST)
+  }
+
+  const handleSubmit = () => {
+    // Basic validation
+    if (!form.symbol || !form.date || !form.entryPrice || !form.stopLoss || !form.quantity) {
+      showToast('Please fill in all required fields.', 'error')
+      return
+    }
+
+    const entryTime = form.time
+      ? `${form.date}T${form.time}:00.000Z`
+      : `${form.date}T00:00:00.000Z`
+
+    createTrade(
+      {
+        symbol: form.symbol.toUpperCase(),
+        direction,
+        entryPrice: parseFloat(form.entryPrice),
+        stopLoss: parseFloat(form.stopLoss),
+        takeProfit: form.takeProfit ? parseFloat(form.takeProfit) : 0,
+        exitPrice: form.exitPrice ? parseFloat(form.exitPrice) : 0,
+        quantity: parseInt(form.quantity, 10),
+        entryTime,
+        session: form.session,
+        setup: form.setup,
+        htfBias: form.htfBias,
+        grade: form.grade,
+        rationale: form.rationale,
+        emotionalState: form.emotionalState,
+        mistakes: form.mistakes,
+        tags,
+      },
+      {
+        onSuccess: () => {
+          showToast('Trade logged successfully!', 'success')
+          resetForm()
+        },
+        onError: (err: unknown) => {
+          const message =
+            err instanceof Error ? err.message : 'Failed to log trade. Please try again.'
+          showToast(message, 'error')
+        },
+      }
+    )
+  }
+
   return (
     <div className="p-4 lg:p-7">
+
+      {toast && <Toast message={toast.message} type={toast.type} />}
 
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
@@ -139,8 +258,25 @@ export default function LogTrade() {
           <p className="text-xs text-zinc-600">New entry · Fill in all required fields</p>
         </div>
         <div className="flex gap-2">
-          <button className="px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all">Save Draft</button>
-          <button className="px-3 py-1.5 rounded-md text-xs font-medium bg-white text-black hover:bg-white/90 transition-all">Submit Trade</button>
+          <button
+            onClick={resetForm}
+            disabled={isPending}
+            className="px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-50"
+          >
+            Reset
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isPending}
+            className="px-3 py-1.5 rounded-md text-xs font-medium bg-white text-black hover:bg-white/90 transition-all disabled:opacity-60 flex items-center gap-1.5"
+          >
+            {isPending && (
+              <svg className="animate-spin" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="10"/>
+              </svg>
+            )}
+            {isPending ? 'Submitting…' : 'Submit Trade'}
+          </button>
         </div>
       </div>
 
@@ -155,17 +291,17 @@ export default function LogTrade() {
               <label className="text-[11px] text-zinc-600 tracking-[0.04em] block mb-1.5">Direction</label>
               <div className="flex gap-1.5">
                 <button
-                  onClick={() => setDirection('long')}
+                  onClick={() => setDirection('Long')}
                   className={`flex-1 py-2 rounded-md border text-xs font-medium tracking-[0.04em] transition-all ${
-                    direction === 'long'
+                    direction === 'Long'
                       ? 'bg-green-500/12 border-green-500/25 text-green-500'
                       : 'bg-[#141416] border-white/[0.07] text-zinc-600 hover:border-white/[0.11] hover:text-zinc-400'
                   }`}
                 >LONG</button>
                 <button
-                  onClick={() => setDirection('short')}
+                  onClick={() => setDirection('Short')}
                   className={`flex-1 py-2 rounded-md border text-xs font-medium tracking-[0.04em] transition-all ${
-                    direction === 'short'
+                    direction === 'Short'
                       ? 'bg-red-500/12 border-red-500/25 text-red-500'
                       : 'bg-[#141416] border-white/[0.07] text-zinc-600 hover:border-white/[0.11] hover:text-zinc-400'
                   }`}
@@ -174,16 +310,72 @@ export default function LogTrade() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3.5">
-              <Field label="Symbol *"><Input type="text" placeholder="NQ, ES…" defaultValue="NQ" /></Field>
-              <Field label="Date *"><Input type="date" defaultValue="2025-05-13" /></Field>
-              <Field label="Time"><Input type="time" defaultValue="09:47" /></Field>
-              <Field label="Entry Price *"><Input type="number" placeholder="0.00" defaultValue="18842.00" step="0.25" /></Field>
-              <Field label="Stop Loss *"><Input type="number" placeholder="0.00" defaultValue="18810.00" step="0.25" /></Field>
-              <Field label="Take Profit"><Input type="number" placeholder="0.00" defaultValue="18910.00" step="0.25" /></Field>
-              <Field label="Exit Price"><Input type="number" placeholder="0.00" defaultValue="18904.25" step="0.25" /></Field>
-              <Field label="Contracts / Qty"><Input type="number" placeholder="1" defaultValue="2" min="1" /></Field>
-              <Field label="P&L ($)">
-                <Input type="text" placeholder="Auto-calculated" defaultValue="+$1,240" className="text-green-500" readOnly />
+              <Field label="Symbol *">
+                <Input
+                  type="text"
+                  placeholder="NQ, ES…"
+                  value={form.symbol}
+                  onChange={handleChange('symbol')}
+                />
+              </Field>
+              <Field label="Date *">
+                <Input
+                  type="date"
+                  value={form.date}
+                  onChange={handleChange('date')}
+                />
+              </Field>
+              <Field label="Time">
+                <Input
+                  type="time"
+                  value={form.time}
+                  onChange={handleChange('time')}
+                />
+              </Field>
+              <Field label="Entry Price *">
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  value={form.entryPrice}
+                  onChange={handleChange('entryPrice')}
+                  step="0.25"
+                />
+              </Field>
+              <Field label="Stop Loss *">
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  value={form.stopLoss}
+                  onChange={handleChange('stopLoss')}
+                  step="0.25"
+                />
+              </Field>
+              <Field label="Take Profit">
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  value={form.takeProfit}
+                  onChange={handleChange('takeProfit')}
+                  step="0.25"
+                />
+              </Field>
+              <Field label="Exit Price">
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  value={form.exitPrice}
+                  onChange={handleChange('exitPrice')}
+                  step="0.25"
+                />
+              </Field>
+              <Field label="Contracts / Qty *">
+                <Input
+                  type="number"
+                  placeholder="1"
+                  value={form.quantity}
+                  onChange={handleChange('quantity')}
+                  min="1"
+                />
               </Field>
             </div>
           </FormCard>
@@ -192,7 +384,7 @@ export default function LogTrade() {
             <SectionTitle>Context</SectionTitle>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3.5">
               <Field label="Session">
-                <Select>
+                <Select value={form.session} onChange={handleChange('session')}>
                   <option>New York Open (09:30)</option>
                   <option>Silver Bullet (10:00)</option>
                   <option>London Open (02:00)</option>
@@ -201,7 +393,7 @@ export default function LogTrade() {
                 </Select>
               </Field>
               <Field label="Setup / Model">
-                <Select>
+                <Select value={form.setup} onChange={handleChange('setup')}>
                   <option>Breaker Block</option>
                   <option>ICT Order Block</option>
                   <option>Fair Value Gap</option>
@@ -211,10 +403,19 @@ export default function LogTrade() {
                 </Select>
               </Field>
               <Field label="HTF Bias">
-                <Select><option>Bullish</option><option>Bearish</option><option>Neutral</option></Select>
+                <Select value={form.htfBias} onChange={handleChange('htfBias')}>
+                  <option>Bullish</option>
+                  <option>Bearish</option>
+                  <option>Neutral</option>
+                </Select>
               </Field>
               <Field label="Confluence Grade">
-                <Select><option>A+ Setup</option><option>A Setup</option><option>B Setup</option><option>C Setup</option></Select>
+                <Select value={form.grade} onChange={handleChange('grade')}>
+                  <option>A+ Setup</option>
+                  <option>A Setup</option>
+                  <option>B Setup</option>
+                  <option>C Setup</option>
+                </Select>
               </Field>
             </div>
             <Field label="Tags">
@@ -290,10 +491,15 @@ export default function LogTrade() {
             <SectionTitle>Notes &amp; Psychology</SectionTitle>
             <div className="flex flex-col gap-3">
               <Field label="Trade Rationale">
-                <Textarea rows={3} placeholder="Describe the setup…" defaultValue="NY session open. Price swept Asian highs, confirmed bearish displacement into 4h OB. FVG + breaker alignment." />
+                <Textarea
+                  rows={3}
+                  placeholder="Describe the setup…"
+                  value={form.rationale}
+                  onChange={handleChange('rationale')}
+                />
               </Field>
               <Field label="Emotional State">
-                <Select>
+                <Select value={form.emotionalState} onChange={handleChange('emotionalState')}>
                   <option>Calm &amp; Focused</option>
                   <option>Confident</option>
                   <option>Anxious</option>
@@ -303,7 +509,12 @@ export default function LogTrade() {
                 </Select>
               </Field>
               <Field label="Mistakes / Lessons">
-                <Textarea rows={2} placeholder="What could have been done better?" />
+                <Textarea
+                  rows={2}
+                  placeholder="What could have been done better?"
+                  value={form.mistakes}
+                  onChange={handleChange('mistakes')}
+                />
               </Field>
             </div>
           </FormCard>
