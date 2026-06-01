@@ -6,4 +6,9 @@ export const tradeService = {
     const res = await apiClient.post<TradeDto>('/api/trade', { ...data, userId })
     return res.data
   },
+
+  getByUser: async (userId: string): Promise<TradeDto[]> => {
+    const res = await apiClient.get<TradeDto[]>('/api/trade', { params: { userId } })
+    return res.data
+  },
 }
