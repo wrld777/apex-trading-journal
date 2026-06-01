@@ -8,7 +8,7 @@ export const tradeService = {
   },
 
   getByUser: async (userId: string): Promise<TradeDto[]> => {
-    const res = await apiClient.get<TradeDto[]>(`/api/trade/${userId}`)
+    const res = await apiClient.get<TradeDto[]>('/api/trade', { params: { userId } })
     return res.data
   },
 }

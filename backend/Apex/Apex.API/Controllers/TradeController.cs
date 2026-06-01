@@ -21,8 +21,9 @@ public class TradeController : ControllerBase
         _mapper = mapper;
     }
 
-    [HttpGet("{userId}")]
-    public async Task<IActionResult> GetAll(Guid userId, CancellationToken ct)
+    // GET /api/trade?userId={userId}
+    [HttpGet]
+    public async Task<IActionResult> GetAll([FromQuery] Guid userId, CancellationToken ct)
     {
         var result = await _tradeService.GetAllAsync(userId, ct);
         if (!result.IsSuccess)
