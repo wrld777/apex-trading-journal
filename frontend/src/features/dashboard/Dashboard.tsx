@@ -1,6 +1,8 @@
 import KpiCard from '../../components/ui/KpiCard'
 import { useStats } from '../../hooks/useStats'
+import { useTrades } from '../../hooks/useTrades'
 import { useAuthStore } from '../../store/authStore'
+import type { TradeDto } from '../../types/trade'
 
 /* ── HEATMAP ── */
 function Heatmap() {
@@ -56,6 +58,65 @@ function SkeletonBlock({ className }: { className?: string }) {
   return <div className={`animate-pulse bg-white/[0.04] rounded ${className}`} />
 }
 
+/* ── RECENT TRADES TABLE ── */
+function StatusBadge({ status }: { status: TradeDto['status'] }) {
+  const map: Record<TradeDto['status'], string> = {
+    Win:       'bg-green-500/10 border-green-500/20 text-green-500',
+    Loss:      'bg-red-500/10 border-red-500/20 text-red-500',
+    BreakEven: 'bg-zinc-500/10 border-zinc-500/20 text-zinc-400',
+  }
+  return <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] border ${map[status]}`}>{status}</span>
+}
+
+function RecentTrades({ trades }: { trades: TradeDto[] }) {
+  if (trades.length === 0) {
+    return <div className="text-xs text-zinc-600 py-4 text-center">No trades logged yet.</div>
+  }
+
+  const rows = [...trades]
+    .sort((a, b) => new Date(b.entryTime).getTime() - new Date(a.entryTime).getTime())
+    .slice(0, 8)
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[560px] text-left">
+        <thead>
+          <tr className="text-[10px] text-zinc-700 uppercase tracking-[0.06em]">
+            <th className="font-medium pb-2 pr-3">Symbol</th>
+            <th className="font-medium pb-2 pr-3">Side</th>
+            <th className="font-medium pb-2 pr-3">Date</th>
+            <th className="font-medium pb-2 pr-3">Setup</th>
+            <th className="font-medium pb-2 pr-3 text-right">Qty</th>
+            <th className="font-medium pb-2 pr-3 text-right">P&L</th>
+            <th className="font-medium pb-2 text-right">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(t => (
+            <tr key={t.id} className="border-t border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+              <td className="py-2.5 pr-3 text-xs font-medium text-white">{t.symbol}</td>
+              <td className="py-2.5 pr-3">
+                <span className={`text-[11px] font-medium ${t.direction === 'Long' ? 'text-green-500' : 'text-red-500'}`}>
+                  {t.direction === 'Long' ? 'LONG' : 'SHORT'}
+                </span>
+              </td>
+              <td className="py-2.5 pr-3 text-[11px] text-zinc-500">
+                {new Date(t.entryTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </td>
+              <td className="py-2.5 pr-3 text-[11px] text-zinc-500">{t.setup}</td>
+              <td className="py-2.5 pr-3 text-[11px] text-zinc-500 text-right font-mono">{t.quantity}</td>
+              <td className={`py-2.5 pr-3 text-[11px] text-right font-mono ${t.pnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {fmtPnl(t.pnL)}
+              </td>
+              <td className="py-2.5 text-right"><StatusBadge status={t.status} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 /* ── HELPERS ── */
 function fmt(n: number, decimals = 0) {
   return n.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
@@ -69,6 +130,7 @@ function fmtPnl(n: number) {
 export default function Dashboard() {
   const name = useAuthStore((s) => s.name)
   const { data, isLoading, isError } = useStats()
+  const { data: trades, isLoading: tradesLoading, isError: tradesError } = useTrades()
 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
@@ -308,20 +370,20 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Trades — placeholder, will be connected in #39 */}
+      {/* Recent Trades */}
       <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] mb-3.5 hover:border-white/[0.07] transition-colors">
         <div className="flex items-center justify-between mb-4">
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Recent Trades</div>
           <button className="text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-white/[0.07] hover:text-zinc-400 transition-all">View All →</button>
         </div>
-        {isLoading ? (
+        {tradesLoading ? (
           <div className="flex flex-col gap-2">
             {Array.from({ length: 5 }).map((_, i) => <SkeletonBlock key={i} className="h-9 w-full" />)}
           </div>
+        ) : tradesError ? (
+          <div className="text-xs text-red-400 py-4 text-center">Failed to load trades.</div>
         ) : (
-          <div className="text-xs text-zinc-600 py-4 text-center">
-            Trade history coming in issue #39
-          </div>
+          <RecentTrades trades={trades ?? []} />
         )}
       </div>
 
