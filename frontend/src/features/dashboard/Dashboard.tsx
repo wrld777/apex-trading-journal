@@ -1,5 +1,7 @@
 import { Fragment } from 'react'
 import KpiCard from '../../components/ui/KpiCard'
+import { Skeleton, KpiCardSkeleton, TableSkeleton } from '../../components/ui/Skeleton'
+import EmptyState from '../../components/ui/EmptyState'
 import { useStats } from '../../hooks/useStats'
 import { useTrades } from '../../hooks/useTrades'
 import { useAuthStore } from '../../store/authStore'
@@ -138,11 +140,6 @@ function EquityCurve({ daily }: { daily: DailyPnLDto[] }) {
   )
 }
 
-/* ── SKELETON ── */
-function SkeletonBlock({ className }: { className?: string }) {
-  return <div className={`animate-pulse bg-white/[0.04] rounded ${className}`} />
-}
-
 /* ── RECENT TRADES TABLE ── */
 function StatusBadge({ status }: { status: TradeDto['status'] }) {
   const map: Record<TradeDto['status'], string> = {
@@ -155,7 +152,14 @@ function StatusBadge({ status }: { status: TradeDto['status'] }) {
 
 function RecentTrades({ trades }: { trades: TradeDto[] }) {
   if (trades.length === 0) {
-    return <div className="text-xs text-zinc-600 py-4 text-center">No trades logged yet.</div>
+    return (
+      <EmptyState
+        title="No trades logged yet"
+        description="Your most recent trades will show up here once you log one."
+        actionLabel="Log a Trade"
+        actionTo="/log-trade"
+      />
+    )
   }
 
   const rows = [...trades]
@@ -219,6 +223,9 @@ export default function Dashboard() {
 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
+  // No data once stats have loaded successfully with zero trades.
+  const noData = !isLoading && !isError && (data?.totalTrades ?? 0) === 0
+
   return (
     <div className="p-4 lg:p-7">
 
@@ -243,16 +250,21 @@ export default function Dashboard() {
         </div>
       )}
 
+      {noData ? (
+        <EmptyState
+          title="No trades yet"
+          description="Log your first trade to start tracking your performance, equity curve and analytics."
+          actionLabel="Log a Trade"
+          actionTo="/log-trade"
+          className="bg-[#111113] border border-white/[0.04] rounded-[10px]"
+        />
+      ) : (
+      <>
+
       {/* KPI Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-3.5 mb-3.5">
         {isLoading ? (
-          Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-[18px]">
-              <SkeletonBlock className="h-3 w-16 mb-4" />
-              <SkeletonBlock className="h-7 w-24 mb-2" />
-              <SkeletonBlock className="h-3 w-20" />
-            </div>
-          ))
+          Array.from({ length: 5 }).map((_, i) => <KpiCardSkeleton key={i} />)
         ) : (
           <>
             <KpiCard
@@ -346,7 +358,7 @@ export default function Dashboard() {
           </div>
         </div>
         {isLoading ? (
-          <SkeletonBlock className="h-[180px] w-full" />
+          <Skeleton className="h-[180px] w-full" />
         ) : (
           <EquityCurve daily={data?.dailyPnL ?? []} />
         )}
@@ -360,7 +372,7 @@ export default function Dashboard() {
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">Sessions</div>
           {isLoading ? (
             <div className="flex flex-col gap-2">
-              {Array.from({ length: 4 }).map((_, i) => <SkeletonBlock key={i} className="h-16 w-full" />)}
+              {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
@@ -387,7 +399,7 @@ export default function Dashboard() {
           </div>
           {isLoading ? (
             <div className="flex flex-col gap-2">
-              {Array.from({ length: 6 }).map((_, i) => <SkeletonBlock key={i} className="h-6 w-full" />)}
+              {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-6 w-full" />)}
             </div>
           ) : (
             <div className="flex flex-col">
@@ -417,7 +429,7 @@ export default function Dashboard() {
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">Statistics</div>
           {isLoading ? (
             <div className="grid grid-cols-2 gap-2">
-              {Array.from({ length: 6 }).map((_, i) => <SkeletonBlock key={i} className="h-12 w-full" />)}
+              {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
           ) : (
             <div className="grid grid-cols-2">
@@ -446,9 +458,7 @@ export default function Dashboard() {
           <button className="text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-white/[0.07] hover:text-zinc-400 transition-all">View All →</button>
         </div>
         {tradesLoading ? (
-          <div className="flex flex-col gap-2">
-            {Array.from({ length: 5 }).map((_, i) => <SkeletonBlock key={i} className="h-9 w-full" />)}
-          </div>
+          <TableSkeleton />
         ) : tradesError ? (
           <div className="text-xs text-red-400 py-4 text-center">Failed to load trades.</div>
         ) : (
@@ -474,6 +484,9 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      </>
+      )}
 
     </div>
   )
