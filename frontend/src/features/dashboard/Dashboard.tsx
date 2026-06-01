@@ -1,53 +1,138 @@
+import { Fragment } from 'react'
 import KpiCard from '../../components/ui/KpiCard'
 import { useStats } from '../../hooks/useStats'
 import { useAuthStore } from '../../store/authStore'
+import type { DailyPnLDto } from '../../types/stats'
+
+const HM_COLOR: Record<string, string> = {
+  'hm-0':  'bg-[#141416]',
+  'hm-1':  'bg-green-500/15',
+  'hm-2':  'bg-green-500/30',
+  'hm-3':  'bg-green-500/50',
+  'hm-4':  'bg-green-500/75',
+  'hm-n1': 'bg-red-500/15',
+  'hm-n2': 'bg-red-500/30',
+  'hm-n3': 'bg-red-500/50',
+}
 
 /* ── HEATMAP ── */
-function Heatmap() {
+function Heatmap({ daily }: { daily: DailyPnLDto[] }) {
   const days  = ['M', 'T', 'W', 'T', 'F']
   const weeks = 13
 
-  const seed = (n: number) => {
-    const x = Math.sin(n + 1) * 10000
-    return x - Math.floor(x)
-  }
+  // Index P&L by calendar day (YYYY-MM-DD)
+  const pnlByDate = new Map<string, number>()
+  for (const d of daily) pnlByDate.set(d.date.slice(0, 10), d.pnL)
 
-  const cellData: string[] = []
-  for (let i = 0; i < weeks * 5; i++) {
-    const r = seed(i)
-    if      (r < 0.35) cellData.push('hm-0')
-    else if (r < 0.50) cellData.push(`hm-n${Math.floor(seed(i * 3) * 3) + 1}`)
-    else               cellData.push(`hm-${Math.floor(seed(i * 7) * 4) + 1}`)
-  }
+  const maxAbs = daily.reduce((m, d) => Math.max(m, Math.abs(d.pnL)), 0)
 
-  const hmColor: Record<string, string> = {
-    'hm-0':  'bg-[#141416]',
-    'hm-1':  'bg-green-500/15',
-    'hm-2':  'bg-green-500/30',
-    'hm-3':  'bg-green-500/50',
-    'hm-4':  'bg-green-500/75',
-    'hm-n1': 'bg-red-500/15',
-    'hm-n2': 'bg-red-500/30',
-    'hm-n3': 'bg-red-500/50',
+  // Monday of the current week, then rewind 12 weeks → 13-week window
+  const today = new Date()
+  const daysFromMonday = (today.getDay() + 6) % 7
+  const startMonday = new Date(today)
+  startMonday.setDate(today.getDate() - daysFromMonday - (weeks - 1) * 7)
+
+  const keyOf = (dt: Date) =>
+    `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
+
+  const bucket = (pnl: number | undefined) => {
+    if (pnl === undefined || pnl === 0 || maxAbs === 0) return 'hm-0'
+    const ratio = Math.abs(pnl) / maxAbs
+    return pnl > 0
+      ? `hm-${Math.min(Math.ceil(ratio * 4), 4)}`
+      : `hm-n${Math.min(Math.ceil(ratio * 3), 3)}`
   }
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '26px repeat(13, 1fr)', gap: 2 }}>
       {days.map((day, di) => (
-        <>
-          <div key={`label-${di}`} className="text-[9px] text-zinc-700 flex items-center justify-end pr-1">{day}</div>
+        <Fragment key={`row-${di}`}>
+          <div className="text-[9px] text-zinc-700 flex items-center justify-end pr-1">{day}</div>
           {Array.from({ length: weeks }).map((_, w) => {
-            const cls = cellData[w * 5 + di]
+            const cellDate = new Date(startMonday)
+            cellDate.setDate(startMonday.getDate() + w * 7 + di)
+            const pnl = pnlByDate.get(keyOf(cellDate))
+            const cls = bucket(pnl)
+            const label = cellDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            const title = pnl !== undefined
+              ? `${label}: ${pnl >= 0 ? '+' : '-'}$${Math.abs(pnl).toLocaleString('en-US')}`
+              : `${label}: no trades`
             return (
               <div
                 key={`${di}-${w}`}
-                className={`aspect-square rounded-[2px] cursor-pointer hover:opacity-80 ${hmColor[cls] ?? 'bg-[#141416]'}`}
+                title={title}
+                className={`aspect-square rounded-[2px] cursor-pointer hover:opacity-80 ${HM_COLOR[cls]}`}
               />
             )
           })}
-        </>
+        </Fragment>
       ))}
     </div>
+  )
+}
+
+/* ── EQUITY CURVE ── */
+function EquityCurve({ daily }: { daily: DailyPnLDto[] }) {
+  if (daily.length === 0) {
+    return <div className="h-[180px] flex items-center justify-center text-xs text-zinc-600">No trades yet</div>
+  }
+
+  const W = 800, H = 180, pad = 16
+
+  // Cumulative equity (backend returns dailyPnL ascending by date)
+  const points: { date: string; value: number }[] = []
+  for (const d of daily) {
+    const prev = points.length ? points[points.length - 1].value : 0
+    points.push({ date: d.date, value: prev + d.pnL })
+  }
+  const values = points.map(p => p.value)
+  const n = points.length
+
+  const minV = Math.min(0, ...values)
+  const maxV = Math.max(0, ...values)
+  const range = maxV - minV || 1
+
+  const xOf = (i: number) => (n === 1 ? W : (i / (n - 1)) * W)
+  const yOf = (v: number) => pad + (1 - (v - minV) / range) * (H - 2 * pad)
+
+  const coords = points.map((p, i) => `${xOf(i).toFixed(1)},${yOf(p.value).toFixed(1)}`)
+  const flatY = yOf(values[0]).toFixed(1)
+  const line = n === 1 ? `0,${flatY} ${W},${flatY}` : coords.join(' ')
+  const area = `${n === 1 ? `0,${flatY} ${W},${flatY}` : coords.join(' ')} ${W},${H} 0,${H}`
+
+  const lastValue = values[n - 1]
+  const positive = lastValue >= 0
+  const stroke = positive ? '#22c55e' : '#ef4444'
+  const lastX = xOf(n - 1)
+  const lastY = yOf(lastValue)
+
+  // Up to 4 evenly spaced date labels
+  const idx = n === 1 ? [0] : [...new Set([0, Math.round((n - 1) / 3), Math.round((2 * (n - 1)) / 3), n - 1])]
+  const labels = idx.map(i => new Date(points[i].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))
+
+  return (
+    <>
+      <div style={{ height: H }}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: H }} preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="eq-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stopColor={positive ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)'} />
+              <stop offset="100%" stopColor={positive ? 'rgba(34,197,94,0)'    : 'rgba(239,68,68,0)'} />
+            </linearGradient>
+          </defs>
+          <line x1="0" y1="40"  x2={W} y2="40"  stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+          <line x1="0" y1="90"  x2={W} y2="90"  stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+          <line x1="0" y1="140" x2={W} y2="140" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+          <polygon points={area} fill="url(#eq-grad)" />
+          <polyline points={line} fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx={lastX} cy={lastY} r="4" fill={stroke} />
+          <circle cx={lastX} cy={lastY} r="8" fill={positive ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'} />
+        </svg>
+      </div>
+      <div className="flex justify-between mt-1">
+        {labels.map((d, i) => <span key={i} className="text-[10px] text-zinc-700">{d}</span>)}
+      </div>
+    </>
   )
 }
 
@@ -125,12 +210,12 @@ export default function Dashboard() {
 
             <KpiCard
               label="Win Rate"
-              value={data ? `${fmt(data.winRate * 100, 1)}%` : '—'}
+              value={data ? `${fmt(data.winRate, 1)}%` : '—'}
               delta={data ? `${data.winCount}W / ${data.lossCount}L` : undefined}
-              deltaUp={data ? data.winRate >= 0.5 : undefined}
+              deltaUp={data ? data.winRate >= 50 : undefined}
             >
               <div className="h-1 bg-[#1a1a1d] rounded-full overflow-hidden mt-2">
-                <div className="h-full bg-green-500 rounded-full" style={{ width: data ? `${data.winRate * 100}%` : '0%' }} />
+                <div className="h-full bg-green-500 rounded-full" style={{ width: data ? `${data.winRate}%` : '0%' }} />
               </div>
               <div className="text-[10px] text-zinc-700 mt-1.5">
                 {data ? `${data.breakEvenCount} B/E` : ''}
@@ -201,24 +286,8 @@ export default function Dashboard() {
         {isLoading ? (
           <SkeletonBlock className="h-[180px] w-full" />
         ) : (
-          <div style={{ height: 180 }}>
-            <svg viewBox="0 0 800 180" className="w-full" style={{ height: 180 }} preserveAspectRatio="none">
-              <defs><linearGradient id="eq-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="rgba(34,197,94,0.25)"/><stop offset="100%" stopColor="rgba(34,197,94,0)"/></linearGradient></defs>
-              <line x1="0" y1="40"  x2="800" y2="40"  stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
-              <line x1="0" y1="90"  x2="800" y2="90"  stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
-              <line x1="0" y1="140" x2="800" y2="140" stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
-              <polyline points="0,155 40,148 80,142 120,136 150,140 190,130 220,125 260,118 295,122 330,108 365,95 400,88 440,100 475,84 510,78 550,70 590,62 625,55 660,50 700,42 740,35 800,28" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <polygon points="0,155 40,148 80,142 120,136 150,140 190,130 220,125 260,118 295,122 330,108 365,95 400,88 440,100 475,84 510,78 550,70 590,62 625,55 660,50 700,42 740,35 800,28 800,180 0,180" fill="url(#eq-grad)"/>
-              <circle cx="800" cy="28" r="4" fill="#22c55e"/>
-              <circle cx="800" cy="28" r="8" fill="rgba(34,197,94,0.2)"/>
-            </svg>
-          </div>
+          <EquityCurve daily={data?.dailyPnL ?? []} />
         )}
-        <div className="flex justify-between mt-1">
-          {['Apr 1','Apr 15','May 1','May 13'].map(d => (
-            <span key={d} className="text-[10px] text-zinc-700">{d}</span>
-          ))}
-        </div>
       </div>
 
       {/* Sessions + Setups + Stats */}
@@ -240,7 +309,7 @@ export default function Dashboard() {
                     {fmtPnl(s.pnL)}
                   </div>
                   <div className="text-[10px] text-zinc-700">
-                    {s.totalTrades} trades · {fmt(s.winRate * 100, 0)}% WR
+                    {s.totalTrades} trades · {fmt(s.winRate, 0)}% WR
                   </div>
                 </div>
               ))}
@@ -266,10 +335,10 @@ export default function Dashboard() {
                   <div key={s.setup} className="flex items-center gap-2.5 py-2 border-b border-white/[0.04] last:border-0">
                     <div className="text-xs text-zinc-400 flex-1">{s.setup}</div>
                     <div className="flex-[2] h-[3px] bg-[#1a1a1d] rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${positive ? 'bg-green-500' : 'bg-amber-500'}`} style={{ width: `${s.winRate * 100}%` }} />
+                      <div className={`h-full rounded-full ${positive ? 'bg-green-500' : 'bg-amber-500'}`} style={{ width: `${s.winRate}%` }} />
                     </div>
                     <div className={`text-[11px] w-9 text-right ${positive ? 'text-green-500' : 'text-amber-500'}`}>
-                      {fmt(s.winRate * 100, 0)}%
+                      {fmt(s.winRate, 0)}%
                     </div>
                     <div className={`text-[11px] w-16 text-right font-mono ${positive ? 'text-green-500' : 'text-zinc-600'}`}>
                       {fmtPnl(s.pnL)}
@@ -339,7 +408,7 @@ export default function Dashboard() {
         </div>
         <div className="overflow-x-auto">
           <div className="min-w-[500px]">
-            <Heatmap />
+            <Heatmap daily={data?.dailyPnL ?? []} />
           </div>
         </div>
       </div>
