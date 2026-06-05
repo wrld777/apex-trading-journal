@@ -7,12 +7,13 @@ Autenticazione: **JWT Bearer richiesto** su tutti gli endpoint
 
 ---
 
-## GET /api/trade/{userId}
+## GET /api/trade?userId={userId}
 
 Ottieni tutti i trade di un utente.
 
-**Params:** `userId` (UUID nel path)  
-**Query:** nessuno
+**Query:** `userId` (UUID) — es. `GET /api/trade?userId=c746dce4-...`
+
+> 🐛 **Fix #40:** prima era `GET /api/trade/{userId}` ma andava in conflitto di routing con `GET /api/trade/{id:guid}` (un GUID matchava la rotta più specifica `{id:guid}` → GetById, mascherando la lista). Spostato a query param, coerente con `Stats API`.
 
 **Response 200:**
 ```json
@@ -91,6 +92,9 @@ Crea un nuovo trade.
 - `riskReward` — calcolato dal TradeService
 - `status` — determinato dal PnL
 
+> ⚠️ **Tech debt:** lo `userId` nel body **viene ignorato** — il controller usa un GUID **hardcoded** (`a000…0001`). Va sostituito con l'utente autenticato (claim JWT `NameIdentifier`). Vedi [[../06 - Roadmap/Backlog#Bug / Tech Debt]].
+> ⚠️ `entryTime` deve essere **UTC** (`...Z`): Postgres `timestamptz` rifiuta `DateTime` con `Kind=Unspecified`.
+
 **Response 201:** TradeDto completo con campi calcolati  
 **Errori:** `400` — validazione FluentValidation
 
@@ -151,13 +155,13 @@ Elimina un trade.
 ## Frontend — Hooks
 
 ```typescript
-// Leggi tutti i trade (da implementare in #40)
-useQuery({ queryKey: ['trades', userId], queryFn: () => tradeService.getAll(userId) })
+// Leggi tutti i trade (#40 ✅)
+useTrades() // → useQuery(['trades', userId], () => tradeService.getByUser(userId))
 
-// Crea trade (implementato in #39)
+// Crea trade (#39 ✅)
 const { mutate } = useCreateTrade()
-mutate({ userId, ...formData })
-// onSuccess: invalida cache 'stats' → Dashboard si aggiorna
+mutate(formData)
+// onSuccess: invalida cache 'stats' e 'trades' → Dashboard si aggiorna
 ```
 
 ---

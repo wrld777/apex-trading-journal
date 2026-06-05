@@ -8,6 +8,36 @@ Ordinato per priorità e dipendenze.
 
 ---
 
+## 🐛 Bug / Tech Debt
+> Emersi durante #40/#41 e il test con dati reali. Candidati a diventare task.
+
+### BE — `POST /api/trade` usa userId hardcoded
+**Severità:** Alta · **Effort:** S  
+Il controller ignora lo `userId` del body e usa `Guid.Parse("a000…0001")`. Ogni trade finisce sullo stesso utente fittizio. → Usare il claim JWT `NameIdentifier` (o lo userId del body finché non c'è `[Authorize]`).
+
+### BE — Endpoint Trade/Stats senza `[Authorize]`
+**Severità:** Media · **Effort:** S  
+I controller non hanno `[Authorize]`: gli endpoint sono pubblici (ho potuto seminare trade senza token). → Aggiungere protezione JWT e derivare lo userId dal token.
+
+### BE — `avgHoldMinutes` sempre 0
+**Severità:** Bassa · **Effort:** S  
+`POST` non valorizza `ExitTime` (solo `PUT`), quindi l'hold non è calcolabile. → Decidere il modello: trade creato già "chiuso" (set `ExitTime` al create) vs flusso open→close.
+
+### FE — Export CSV mancante (#40)
+**Severità:** Media · **Effort:** S  
+Bottone "Export CSV" in Analytics ancora placeholder. → Generare CSV da `useTrades()`.
+
+### FE — Trade Log come pagina dedicata
+**Severità:** Media · **Effort:** M  
+Oggi c'è solo "Recent Trades" (8 righe) in Dashboard. Manca una pagina `/trades` con tabella completa, sort, filtri, paginazione (vedi "Filtri Avanzati Trade Log").
+
+### FE — Minori
+- `LogTrade` usa un Toast locale → migrare al `toastStore` globale (#41).
+- Equity Curve: toggle `1D/1W/1M/3M` e badge "Live" sono decorativi (non funzionanti).
+- Header Dashboard ("May 2025 / Funded $150k") e capitale `150000`/limite DD `7500` sono hardcoded → derivare da profilo utente.
+
+---
+
 ## Priorità Alta
 
 ### Screenshot Upload
@@ -21,7 +51,7 @@ Ordinato per priorità e dipendenze.
 ---
 
 ### Filtri Avanzati Trade Log
-**Dipende da:** #40 (Analytics reale)  
+**Sbloccato:** #40 ✅ (richiede pagina Trade Log dedicata)  
 **Effort:** S
 
 - Filtro per: Setup, Session, Direction, Status, Date Range
@@ -32,7 +62,7 @@ Ordinato per priorità e dipendenze.
 ---
 
 ### Edit & Delete Trade
-**Dipende da:** #40  
+**Sbloccato:** #40 ✅ (endpoint `PUT`/`DELETE` già pronti lato BE)  
 **Effort:** S
 
 - Pulsanti Edit/Delete su ogni riga del Trade Log
@@ -42,10 +72,10 @@ Ordinato per priorità e dipendenze.
 ---
 
 ### Equity Curve Interattiva
-**Dipende da:** #40  
+**Sbloccato:** #40 ✅ (curva già data-driven, manca interattività)  
 **Effort:** M
 
-- Sostituire SVG statico con libreria chart (Recharts o Chart.js)
+- Sostituire SVG custom con libreria chart (Recharts o Chart.js)
 - Hover tooltip con data e PnL
 - Zoom/pan su range di date
 - Toggle 1D / 1W / 1M / 3M funzionante

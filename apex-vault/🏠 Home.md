@@ -26,14 +26,17 @@
 
 ```
 Backend  ████████████████████ 100% ✅
-Frontend ████████░░░░░░░░░░░░  40% 🔄
+Frontend ██████████████████░░  90% 🔄
 Deploy   ████░░░░░░░░░░░░░░░░  20% ⏳
 ```
 
-### Issue Aperte
-- [x] [[06 - Roadmap/Current Sprint#39 - Log Trade POST]] — `feature/39-log-trade-mutation` ✅ PR #47
-- [x] [[06 - Roadmap/Current Sprint#40 - Analytics dati reali]]
-- [ ] [[06 - Roadmap/Current Sprint#41 - Polish & Skeleton]]
+### US #5 — Frontend API Integration (quasi chiusa)
+- [x] #38 — Dashboard stats reali + charts → mergiato (PR #46 + #48)
+- [x] #39 — Log Trade POST → mergiato (PR #47)
+- [x] #40 — Analytics & Trade Log reali + filtri → mergiato (PR #49)
+- [x] #41 — Polish (skeleton, empty state, toast, env) → **PR #50 aperta, da mergiare**
+
+> Rimangono: mergiare PR #50, Export CSV (#40), e i tech-debt BE → vedi [[06 - Roadmap/Backlog#Bug / Tech Debt]]
 
 ---
 

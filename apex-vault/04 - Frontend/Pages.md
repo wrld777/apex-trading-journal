@@ -29,16 +29,17 @@ tags: #frontend #pages #react
 | Sezione | Dati | Stato |
 |---------|------|-------|
 | KPI Strip (5 cards) | `netPnL`, `winRate`, `avgRR`, `maxDrawdown`, `profitFactor` | ✅ reale |
-| Equity Curve (SVG) | `dailyPnL[]` | ⚠️ ancora SVG statico |
+| Equity Curve (SVG) | `dailyPnL[]` (cumulativo) | ✅ reale (#38) |
 | Sessions | `sessionStats[]` | ✅ reale |
 | Setup Performance | `setupStats[]` | ✅ reale |
 | Statistics (6 KPI) | `bestTrade`, `worstTrade`, `avgWin`, `avgLoss`, `bestStreak`, `totalTrades` | ✅ reale |
-| Recent Trades | `trades[]` | ⏳ da fare in #40 |
-| Activity Heatmap | — | ⚠️ mock (dati generati localmente) |
+| Recent Trades | `useTrades()` → tabella reale | ✅ reale (#40) |
+| Activity Heatmap | `dailyPnL[]` (13 settimane) | ✅ reale (#38) |
 
-### Loading & Error
-- **Skeleton loaders** su ogni sezione mentre `isLoading`
+### Loading / Error / Empty
+- **Skeleton** condivisi (`KpiCardSkeleton`, `TableSkeleton`) mentre `isLoading` (#41)
 - **Error banner** rosso in cima se `isError`
+- **Empty state** (`EmptyState`) con CTA "Log a Trade" se `totalTrades === 0` (#41)
 
 ---
 
@@ -91,22 +92,24 @@ tags: #frontend #pages #react
 ## Analytics
 
 **File:** `src/features/analytics/Analytics.tsx`  
-**Dati:** [[../03 - API/Stats API]] + [[../03 - API/Trade API]]  
-**Stato:** ⏳ da collegare (issue #40)
+**Dati:** [[../03 - API/Stats API]] via `useStats(from, to)`  
+**Stato:** ✅ collegata (issue #40) — skeleton/empty da #41
 
 ### Sezioni
 
 | Sezione | Dati necessari | Stato |
 |---------|---------------|-------|
-| KPI Bar (7 metriche) | `netPnL`, `winRate`, `avgRR`, `profitFactor`, `maxDrawdown`, `avgHoldMinutes`, `bestStreak` | ⏳ mock |
-| Cumulative P&L Chart | `dailyPnL[]` → calcolo cumulativo | ⏳ mock |
-| Drawdown Analysis | `dailyPnL[]` → drawdown cumulativo | ⏳ mock |
-| Day of Week Bars | `dayOfWeekStats[]` | ⏳ mock |
-| Win/Loss Donut | `winCount`, `lossCount`, `breakEvenCount` | ⏳ mock |
-| Key Stats Table | `avgWin`, `avgLoss`, `bestTrade`, `worstTrade`, `avgHoldMinutes`, `bestStreak`, `worstStreak` | ⏳ mock |
-| Monthly Calendar | `dailyPnL[]` → raggruppato per mese | ⏳ mock |
-| Export CSV | `trades[]` | ⏳ da implementare |
-| Date Range Filter | query params `from` / `to` | ⏳ da implementare |
+| KPI Bar (7 metriche) | `netPnL`, `winRate`, `avgRR`, `profitFactor`, `maxDrawdown`, `avgHoldMinutes`, `bestStreak` | ✅ reale |
+| Cumulative P&L Chart | `dailyPnL[]` → calcolo cumulativo | ✅ reale |
+| Drawdown Analysis | `dailyPnL[]` → drawdown cumulativo | ✅ reale |
+| Day of Week Bars | `dayOfWeekStats[]` | ✅ reale |
+| Win/Loss Donut | `winCount`, `lossCount` | ✅ reale |
+| Key Stats Table | `avgWin`, `avgLoss`, `bestTrade`, `worstTrade`, `avgHoldMinutes`, `bestStreak`, `worstStreak` | ✅ reale |
+| Monthly Calendar | `dailyPnL[]` → raggruppato per mese | ✅ reale |
+| Date Range Filter | query params `from` / `to` → `useStats` | ✅ reale |
+| Export CSV | `trades[]` | ⏳ **da implementare** → [[../06 - Roadmap/Backlog]] |
+
+> ⚠️ `avgHoldMinutes` mostra spesso **0**: il `POST` non setta `ExitTime` (solo il `PUT`), quindi l'hold non è calcolabile. Tech debt BE.
 
 ---
 

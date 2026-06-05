@@ -9,8 +9,12 @@ tags: #frontend #hooks #services #tanstack
 ### apiClient.ts
 ```typescript
 // Base URL: import.meta.env.VITE_API_URL  (es. https://localhost:7106)
+//   → warn in console se mancante
 // Request interceptor  → aggiunge header: Authorization: Bearer <token>
-// Response interceptor → su 401 chiama clearAuth() e redirige a /login
+// Response interceptor:
+//   - 401 (non auth route) → clearAuth() + redirect /login
+//   - errore di rete (no response) → toast globale "Network error…"   (#41)
+//   - 5xx → toast globale "Server error…"                              (#41)
 ```
 
 ### authService.ts
@@ -22,7 +26,7 @@ authService.register(data: RegisterRequest) → POST /api/auth/register → Auth
 ### tradeService.ts
 ```typescript
 tradeService.create(userId, data: CreateTradeRequest) → POST /api/trade → TradeDto
-// TODO (issue #40): aggiungere getAll(userId) → GET /api/trade/{userId}
+tradeService.getByUser(userId) → GET /api/trade?userId=...  → TradeDto[]   (#40 ✅)
 ```
 
 ### statsService.ts
@@ -60,10 +64,10 @@ export function useStats(from?: string, to?: string) {
 export function useCreateTrade() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ userId, ...data }) => tradeService.create(userId, data),
+    mutationFn: (data) => tradeService.create(userId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stats'] })
-      // invalida anche ['trades'] quando implementato
+      queryClient.invalidateQueries({ queryKey: ['trades'] }) // #40
     },
   })
 }
@@ -73,20 +77,35 @@ export function useCreateTrade() {
 
 ---
 
-### useTrades (da implementare — issue #40)
+### useTrades — `src/hooks/useTrades.ts`
+**Stato:** ✅ implementato (issue #40)
+
 ```typescript
 export function useTrades() {
   const userId = useAuthStore((s) => s.userId)
   return useQuery({
     queryKey: ['trades', userId],
-    queryFn: () => tradeService.getAll(userId!),
+    queryFn: () => tradeService.getByUser(userId!),
     enabled: !!userId,
-    staleTime: 60_000,
+    staleTime: 30_000,
   })
 }
 ```
 
-**Sarà usato in:** Analytics (Trade Log table), Dashboard (Recent Trades)
+**Usato in:** Dashboard (Recent Trades). Analytics usa solo `useStats`.
+
+---
+
+## UI Components condivisi (`src/components/ui/`)
+
+| Componente | File | Note |
+|-----------|------|------|
+| `Skeleton`, `KpiCardSkeleton`, `TableSkeleton` | `Skeleton.tsx` | Skeleton riutilizzabili (#41) |
+| `EmptyState` | `EmptyState.tsx` | icona + titolo + descrizione + CTA `<Link>` (#41) |
+| `Toaster` | `Toaster.tsx` | montato in `App`, legge `toastStore` (#41) |
+| `KpiCard` | `KpiCard.tsx` | card KPI Dashboard |
+
+**Toast globale:** `src/store/toastStore.ts` (Zustand) — `addToast(message, type)`; auto-dismiss 4s. Usato dall'`apiClient` per errori rete/5xx.
 
 ---
 
@@ -102,10 +121,12 @@ export function useTrades() {
 ## Environment Variables
 
 ```bash
-# frontend/.env
+# frontend/.env  → ignorato da git (#41)
 VITE_API_URL=https://localhost:7106   # dev locale
-VITE_API_URL=https://api.apexjournal.com  # produzione (da configurare)
+# frontend/.env.example → tracciato in git (template)
+# produzione: VITE_API_URL=https://api.apexjournal.com (da configurare)
 ```
+`.gitignore`: `.env` / `.env.*` ignorati, `!.env.example` tracciato. `apiClient` logga un warning se `VITE_API_URL` è assente.
 
 ---
 
