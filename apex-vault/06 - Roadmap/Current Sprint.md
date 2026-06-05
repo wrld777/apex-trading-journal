@@ -52,7 +52,7 @@ tags: #roadmap #sprint #frontend
 
 ### ✅ #41 — Polish — Skeleton loaders, empty states, env vars
 **Branch:** `feature/AJ-41` — PR [#50](https://github.com/wrld777/apex-trading-journal/pull/50)  
-**Stato:** ✅ Completato — **PR #50 APERTA (da revisionare/mergiare)**
+**Stato:** ✅ Completato e **mergiato in `develop`**
 
 - [x] Skeleton riutilizzabili: `Skeleton`, `KpiCardSkeleton`, `TableSkeleton` (usati in Dashboard + Analytics)
 - [x] `EmptyState` component → Dashboard (0 trade, con CTA "Log a Trade") + Recent Trades
@@ -64,10 +64,32 @@ tags: #roadmap #sprint #frontend
 ## Ordine di Esecuzione
 
 ```
-#38 ✅ → #39 ✅ → #40 ✅ → #41 ✅ (PR #50 da mergiare) → chiudi #34
+#38 ✅ → #39 ✅ → #40 ✅ → #41 ✅ → US #5 (#34) ✅ COMPLETATA
 ```
 
-> **Prossimo passo immediato:** mergiare PR #50, poi chiudere la User Story #34.
+> ✅ **US #5 completata** — tutti i task mergiati in `develop`. La issue #34 può essere chiusa.
+
+---
+
+## 🚀 Prossimo Sprint — nuove User Story
+
+Create dai Bug / Tech Debt emersi (vedi [[Backlog#🐛 Bug / Tech Debt]]).
+
+### [US #59 — Auth & Security Hardening](https://github.com/wrld777/apex-trading-journal/issues/59) `BE`
+- [ ] [#51](https://github.com/wrld777/apex-trading-journal/issues/51) — POST /api/trade usa utente autenticato (no userId hardcoded) 🐛
+- [ ] [#52](https://github.com/wrld777/apex-trading-journal/issues/52) — `[Authorize]` su Trade/Stats
+
+### [US #60 — Trade Management](https://github.com/wrld777/apex-trading-journal/issues/60) `FE`
+- [ ] [#55](https://github.com/wrld777/apex-trading-journal/issues/55) — Pagina Trade Log dedicata (`/trades`) con filtri e sort
+- [ ] [#56](https://github.com/wrld777/apex-trading-journal/issues/56) — Edit & Delete trade
+- [ ] [#54](https://github.com/wrld777/apex-trading-journal/issues/54) — Export CSV in Analytics
+
+### [US #61 — Data Accuracy & UX Polish](https://github.com/wrld777/apex-trading-journal/issues/61)
+- [ ] [#53](https://github.com/wrld777/apex-trading-journal/issues/53) — avgHoldMinutes: ExitTime al create `BE`
+- [ ] [#57](https://github.com/wrld777/apex-trading-journal/issues/57) — Migrare LogTrade al toast globale `FE`
+- [ ] [#58](https://github.com/wrld777/apex-trading-journal/issues/58) — Profilo utente + valori account dinamici `FE/BE`
+
+> **Consigliato iniziare da #51** (sblocca il flusso multi-utente, elimina l'hardcode).
 
 ---
 

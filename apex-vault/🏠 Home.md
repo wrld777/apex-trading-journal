@@ -26,17 +26,22 @@
 
 ```
 Backend  ████████████████████ 100% ✅
-Frontend ██████████████████░░  90% 🔄
+Frontend ███████████████████░  95% 🔄
 Deploy   ████░░░░░░░░░░░░░░░░  20% ⏳
 ```
 
-### US #5 — Frontend API Integration (quasi chiusa)
-- [x] #38 — Dashboard stats reali + charts → mergiato (PR #46 + #48)
-- [x] #39 — Log Trade POST → mergiato (PR #47)
-- [x] #40 — Analytics & Trade Log reali + filtri → mergiato (PR #49)
-- [x] #41 — Polish (skeleton, empty state, toast, env) → **PR #50 aperta, da mergiare**
+### ✅ US #5 — Frontend API Integration (COMPLETATA)
+- [x] #38 — Dashboard stats reali + charts (PR #46 + #48)
+- [x] #39 — Log Trade POST (PR #47)
+- [x] #40 — Analytics & Trade Log reali + filtri (PR #49)
+- [x] #41 — Polish: skeleton, empty state, toast, env (PR #50)
 
-> Rimangono: mergiare PR #50, Export CSV (#40), e i tech-debt BE → vedi [[06 - Roadmap/Backlog#Bug / Tech Debt]]
+### 🚀 Prossime User Story
+- [ ] [US #59 — Auth & Security Hardening](https://github.com/wrld777/apex-trading-journal/issues/59) `BE` → #51, #52
+- [ ] [US #60 — Trade Management](https://github.com/wrld777/apex-trading-journal/issues/60) `FE` → #54, #55, #56
+- [ ] [US #61 — Data Accuracy & UX Polish](https://github.com/wrld777/apex-trading-journal/issues/61) → #53, #57, #58
+
+> Dettaglio in [[06 - Roadmap/Current Sprint]] · Tech debt in [[06 - Roadmap/Backlog#🐛 Bug / Tech Debt]]
 
 ---
 
