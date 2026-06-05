@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Skeleton } from '../../components/ui/Skeleton'
 import { useStats } from '../../hooks/useStats'
 import type { DailyPnLDto, DayOfWeekStatsDto, StatsDto } from '../../types/stats'
 
@@ -39,10 +40,6 @@ const DOW_SHORT: Record<string, string> = {
 const CAPITAL = 150_000
 const DD_LIMIT = CAPITAL * 0.05 // $7,500
 
-/* ── SKELETON ── */
-function SkeletonBlock({ className }: { className?: string }) {
-  return <div className={`animate-pulse bg-white/[0.04] rounded ${className}`} />
-}
 function EmptyChart({ height = 180 }: { height?: number }) {
   return <div style={{ height }} className="flex items-center justify-center text-xs text-zinc-600">No data for this range</div>
 }
@@ -340,7 +337,7 @@ export default function Analytics() {
         {isLoading || !data ? (
           <div className="flex flex-wrap gap-6">
             {Array.from({ length: 7 }).map((_, i) => (
-              <div key={i} className="flex flex-col gap-1.5"><SkeletonBlock className="h-5 w-16" /><SkeletonBlock className="h-2.5 w-12" /></div>
+              <div key={i} className="flex flex-col gap-1.5"><Skeleton className="h-5 w-16" /><Skeleton className="h-2.5 w-12" /></div>
             ))}
           </div>
         ) : (
@@ -372,12 +369,12 @@ export default function Analytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 mb-3.5">
         <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">Cumulative P&L</div>
-          {isLoading ? <SkeletonBlock className="h-[180px] w-full" /> : <CumulativePnLChart daily={data?.dailyPnL ?? []} />}
+          {isLoading ? <Skeleton className="h-[180px] w-full" /> : <CumulativePnLChart daily={data?.dailyPnL ?? []} />}
         </div>
 
         <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">Drawdown Analysis</div>
-          {isLoading ? <SkeletonBlock className="h-[180px] w-full" /> : <DrawdownChart daily={data?.dailyPnL ?? []} />}
+          {isLoading ? <Skeleton className="h-[180px] w-full" /> : <DrawdownChart daily={data?.dailyPnL ?? []} />}
         </div>
       </div>
 
@@ -385,13 +382,13 @@ export default function Analytics() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mb-3.5">
         <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">P&L by Day of Week</div>
-          {isLoading ? <SkeletonBlock className="h-[100px] w-full" /> : <DayOfWeekChart dow={data?.dayOfWeekStats ?? []} />}
+          {isLoading ? <Skeleton className="h-[100px] w-full" /> : <DayOfWeekChart dow={data?.dayOfWeekStats ?? []} />}
         </div>
 
         <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-2">Win / Loss Split</div>
           {isLoading || !data ? (
-            <div className="flex items-center justify-center py-2"><SkeletonBlock className="h-[90px] w-[90px] rounded-full" /></div>
+            <div className="flex items-center justify-center py-2"><Skeleton className="h-[90px] w-[90px] rounded-full" /></div>
           ) : (
             <WinLossDonut winCount={data.winCount} lossCount={data.lossCount} winRate={data.winRate} />
           )}
@@ -400,7 +397,7 @@ export default function Analytics() {
         <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors sm:col-span-2 lg:col-span-1">
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-3">Key Stats</div>
           {isLoading || !data ? (
-            <div className="flex flex-col gap-2">{Array.from({ length: 7 }).map((_, i) => <SkeletonBlock key={i} className="h-6 w-full" />)}</div>
+            <div className="flex flex-col gap-2">{Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-6 w-full" />)}</div>
           ) : (
             <div className="flex flex-col">
               {keyStats(data).map(s => (
@@ -424,7 +421,7 @@ export default function Analytics() {
             {fmtPnl(mtd)} MTD
           </span>
         </div>
-        {isLoading ? <SkeletonBlock className="h-[200px] w-full" /> : <Calendar daily={data?.dailyPnL ?? []} refDate={refDate} />}
+        {isLoading ? <Skeleton className="h-[200px] w-full" /> : <Calendar daily={data?.dailyPnL ?? []} refDate={refDate} />}
       </div>
 
     </div>
