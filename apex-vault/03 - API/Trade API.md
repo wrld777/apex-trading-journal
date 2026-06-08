@@ -7,13 +7,13 @@ Autenticazione: **JWT Bearer richiesto** su tutti gli endpoint
 
 ---
 
-## GET /api/trade?userId={userId}
+## GET /api/trade
 
-Ottieni tutti i trade di un utente.
+Ottieni tutti i trade dell'**utente autenticato**.
 
-**Query:** `userId` (UUID) — es. `GET /api/trade?userId=c746dce4-...`
+**Auth:** `[Authorize]` — lo `userId` viene dal **token JWT** (claim `NameIdentifier`). Nessun parametro (#52).
 
-> 🐛 **Fix #40:** prima era `GET /api/trade/{userId}` ma andava in conflitto di routing con `GET /api/trade/{id:guid}` (un GUID matchava la rotta più specifica `{id:guid}` → GetById, mascherando la lista). Spostato a query param, coerente con `Stats API`.
+> 🐛 **Storia:** in #40 era `GET /api/trade?userId=` (per evitare il conflitto di routing con `GET /api/trade/{id:guid}`). In #52 il query param è stato rimosso: lo userId arriva dal token, così non puoi leggere i trade di un altro utente.
 
 **Response 200:**
 ```json
@@ -92,8 +92,9 @@ Crea un nuovo trade.
 - `riskReward` — calcolato dal TradeService
 - `status` — determinato dal PnL
 
-> ⚠️ **Tech debt:** lo `userId` nel body **viene ignorato** — il controller usa un GUID **hardcoded** (`a000…0001`). Va sostituito con l'utente autenticato (claim JWT `NameIdentifier`). Vedi [[../06 - Roadmap/Backlog#Bug / Tech Debt]].
+> ✅ **#51/#52:** `[Authorize]` + lo `userId` viene dal **claim JWT** (non dal body). Non inviare `userId`.
 > ⚠️ `entryTime` deve essere **UTC** (`...Z`): Postgres `timestamptz` rifiuta `DateTime` con `Kind=Unspecified`.
+> 🟠 `GetById`/`Update`/`Delete` hanno `[Authorize]` ma non verificano l'ownership → [#68](https://github.com/wrld777/apex-trading-journal/issues/68).
 
 **Response 201:** TradeDto completo con campi calcolati  
 **Errori:** `400` — validazione FluentValidation
@@ -155,12 +156,12 @@ Elimina un trade.
 ## Frontend — Hooks
 
 ```typescript
-// Leggi tutti i trade (#40 ✅)
-useTrades() // → useQuery(['trades', userId], () => tradeService.getByUser(userId))
+// Leggi i propri trade (#40 ✅, userId dal token dopo #52)
+useTrades() // → useQuery(['trades', userId], () => tradeService.getMine())
 
 // Crea trade (#39 ✅)
 const { mutate } = useCreateTrade()
-mutate(formData)
+mutate(formData)        // tradeService.create(data) — niente userId nel body
 // onSuccess: invalida cache 'stats' e 'trades' → Dashboard si aggiorna
 ```
 

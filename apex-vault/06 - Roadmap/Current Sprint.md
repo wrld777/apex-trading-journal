@@ -46,7 +46,7 @@ tags: #roadmap #sprint #frontend
 - [x] Filtro date-range (from/to) → `GET /api/stats`
 - [x] 🐛 Fix rotta BE: `GET /api/trade/{userId}` era in conflitto con `/{id:guid}` → cambiata in **`GET /api/trade?userId=`**
 - [x] 🐛 Fix `src/types/auth.ts` vuoto che rompeva il build
-- [ ] ⚠️ **Export CSV** — NON ancora fatto (bottone placeholder) → vedi [[Backlog]]
+- [x] **Export CSV** — fatto poi in #54 ✅
 
 ---
 
@@ -71,25 +71,28 @@ tags: #roadmap #sprint #frontend
 
 ---
 
-## 🚀 Prossimo Sprint — nuove User Story
+## 🚀 Sprint 2 — User Story post US #5
 
 Create dai Bug / Tech Debt emersi (vedi [[Backlog#🐛 Bug / Tech Debt]]).
 
-### [US #59 — Auth & Security Hardening](https://github.com/wrld777/apex-trading-journal/issues/59) `BE`
-- [ ] [#51](https://github.com/wrld777/apex-trading-journal/issues/51) — POST /api/trade usa utente autenticato (no userId hardcoded) 🐛
-- [ ] [#52](https://github.com/wrld777/apex-trading-journal/issues/52) — `[Authorize]` su Trade/Stats
+### ✅ [US #59 — Auth & Security Hardening](https://github.com/wrld777/apex-trading-journal/issues/59) `BE` — COMPLETATA
+- [x] [#51](https://github.com/wrld777/apex-trading-journal/issues/51) — POST /api/trade usa utente autenticato (no userId hardcoded) ✅
+- [x] [#52](https://github.com/wrld777/apex-trading-journal/issues/52) — `[Authorize]` su Trade/Stats + `userId` dal token (PR #67/#69) ✅
+- ↳ inoltre: refactor auth (service solo DTO, token nel controller, register senza auto-login) ✅
+- ⚠️ follow-up aperto: [#68](https://github.com/wrld777/apex-trading-journal/issues/68) — ownership su GetById/Update/Delete (IDOR)
+> La issue #59 può essere **chiusa** (entrambi i task fatti).
 
-### [US #60 — Trade Management](https://github.com/wrld777/apex-trading-journal/issues/60) `FE`
-- [ ] [#55](https://github.com/wrld777/apex-trading-journal/issues/55) — Pagina Trade Log dedicata (`/trades`) con filtri e sort
-- [ ] [#56](https://github.com/wrld777/apex-trading-journal/issues/56) — Edit & Delete trade
-- [ ] [#54](https://github.com/wrld777/apex-trading-journal/issues/54) — Export CSV in Analytics
+### 🔄 [US #60 — Trade Management](https://github.com/wrld777/apex-trading-journal/issues/60) `FE` — in corso
+- [x] [#54](https://github.com/wrld777/apex-trading-journal/issues/54) — Export CSV in Analytics ✅ (PR #62)
+- [x] [#55](https://github.com/wrld777/apex-trading-journal/issues/55) — Pagina Trade Log dedicata (`/trades`) con filtri e sort ✅ (PR #65)
+- [ ] [#56](https://github.com/wrld777/apex-trading-journal/issues/56) — Edit & Delete trade ← **prossimo FE**
 
-### [US #61 — Data Accuracy & UX Polish](https://github.com/wrld777/apex-trading-journal/issues/61)
+### ⏳ [US #61 — Data Accuracy & UX Polish](https://github.com/wrld777/apex-trading-journal/issues/61) — da fare
 - [ ] [#53](https://github.com/wrld777/apex-trading-journal/issues/53) — avgHoldMinutes: ExitTime al create `BE`
 - [ ] [#57](https://github.com/wrld777/apex-trading-journal/issues/57) — Migrare LogTrade al toast globale `FE`
 - [ ] [#58](https://github.com/wrld777/apex-trading-journal/issues/58) — Profilo utente + valori account dinamici `FE/BE`
 
-> **Consigliato iniziare da #51** (sblocca il flusso multi-utente, elimina l'hardcode).
+> **Prossimi:** #56 (Edit/Delete, FE), #68 (ownership, BE), poi US #61.
 
 ---
 

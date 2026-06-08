@@ -19,19 +19,19 @@ tags: #frontend #hooks #services #tanstack
 
 ### authService.ts
 ```typescript
-authService.login(data: LoginRequest)     → POST /api/auth/login   → AuthResponse
-authService.register(data: RegisterRequest) → POST /api/auth/register → AuthResponse
+authService.login(data: LoginRequest)       → POST /api/auth/login    → AuthResponse (token)
+authService.register(data: RegisterRequest) → POST /api/auth/register → RegisterResponse (no token)
 ```
 
-### tradeService.ts
+### tradeService.ts  — userId dal token (#52), non più nei parametri
 ```typescript
-tradeService.create(userId, data: CreateTradeRequest) → POST /api/trade → TradeDto
-tradeService.getByUser(userId) → GET /api/trade?userId=...  → TradeDto[]   (#40 ✅)
+tradeService.create(data: CreateTradeRequest) → POST /api/trade → TradeDto
+tradeService.getMine()                        → GET  /api/trade → TradeDto[]
 ```
 
 ### statsService.ts
 ```typescript
-statsService.get({ userId, from?, to? }) → GET /api/stats?userId=...  → StatsDto
+statsService.get({ from?, to? }) → GET /api/stats → StatsDto   // userId dal token
 ```
 
 ---
@@ -46,14 +46,14 @@ export function useStats(from?: string, to?: string) {
   const userId = useAuthStore((s) => s.userId)
   return useQuery({
     queryKey: ['stats', userId, from, to],
-    queryFn: () => statsService.get({ userId: userId!, from, to }),
+    queryFn: () => statsService.get({ from, to }), // userId dal token (#52)
     enabled: !!userId,
     staleTime: 30_000,
   })
 }
 ```
 
-**Usato in:** Dashboard, Analytics (da collegare in #40)
+**Usato in:** Dashboard, Analytics
 
 ---
 
@@ -85,7 +85,7 @@ export function useTrades() {
   const userId = useAuthStore((s) => s.userId)
   return useQuery({
     queryKey: ['trades', userId],
-    queryFn: () => tradeService.getByUser(userId!),
+    queryFn: () => tradeService.getMine(), // userId dal token (#52)
     enabled: !!userId,
     staleTime: 30_000,
   })

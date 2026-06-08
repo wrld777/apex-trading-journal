@@ -20,13 +20,12 @@ Registra un nuovo utente.
 }
 ```
 
-**Response 200:**
+**Response 200** — ⚠️ **niente token**: l'utente deve poi fare login.
 ```json
 {
+  "message": "Registrazione completata. Effettua il login per continuare.",
   "userId": "uuid-...",
-  "name": "Ahmed",
-  "email": "ahmed@example.com",
-  "token": "eyJhbGci..."
+  "email": "ahmed@example.com"
 }
 ```
 
@@ -38,8 +37,8 @@ Registra un nuovo utente.
 1. Verifica che `email` non esista già (IUserRepository.GetByEmailAsync)
 2. Hash della password con `BCrypt.Net.BCrypt.HashPassword`
 3. Salva `User` nel DB
-4. Genera JWT con claims: `NameIdentifier`, `Email`, `Name`
-5. Ritorna `AuthResponse`
+4. Ritorna `Result<UserDto>` (**no token**) → il controller risponde col messaggio
+> (Futuro: email di conferma alla registrazione.)
 
 ---
 
@@ -61,7 +60,8 @@ Autentica un utente esistente.
   "userId": "uuid-...",
   "name": "Ahmed",
   "email": "ahmed@example.com",
-  "token": "eyJhbGci..."
+  "token": "eyJhbGci...",
+  "expirationDate": "2026-06-08T20:08:20Z"
 }
 ```
 
@@ -70,10 +70,9 @@ Autentica un utente esistente.
 - `400` — Validazione fallita
 
 **Cosa fa internamente:**
-1. Trova utente per email
+1. `AuthService.LoginAsync(email, password)` valida le credenziali e ritorna `Result<UserDto>` (**solo DTO**, niente token nel service)
 2. Verifica password con `BCrypt.Net.BCrypt.Verify`
-3. Se valida → genera JWT token
-4. Ritorna `AuthResponse`
+3. Il **controller** genera il token via `IManageTokenService.GenerateTokenAsync(userDto)` e assembla l'`AuthResponse`
 
 ---
 
@@ -94,19 +93,23 @@ Il token contiene i claims:
 - `Email` = email utente
 - `Name` = nome utente
 
-**Scadenza:** 7 giorni  
-**Uso:** Header `Authorization: Bearer <token>` su tutte le chiamate protette
+**Scadenza:** ⚠️ **30 minuti** — `ManageTokenService` usa `AddMinutes(30)` hardcoded e **ignora `JwtSettings.ExpiryDays` (7)**: incongruenza da sistemare.  
+**Generazione:** estratta in `ManageTokenService` (`IManageTokenService`), chiamato dal controller.  
+**Uso:** Header `Authorization: Bearer <token>` — `Trade` e `Stats` sono `[Authorize]`, lo `userId` viene dal claim (#52).
 
 ---
 
 ## Frontend — Flow Auth
 
 ```typescript
-// 1. Login
+// REGISTER → niente auto-login
+await authService.register({ name, email, password })
+navigate('/login', { state: { registered: true } })  // LoginPage mostra un banner
+
+// LOGIN
 const res = await authService.login({ email, password })
-// 2. Salva in Zustand + localStorage
 useAuthStore.getState().setAuth(res.token, res.userId, res.name, res.email)
-// 3. Navigate to /
+navigate('/')
 ```
 
 Il token viene aggiunto automaticamente a ogni richiesta Axios dall'`apiClient` (request interceptor).  

@@ -11,17 +11,18 @@ Autenticazione: **JWT Bearer richiesto**
 
 Calcola e ritorna tutte le statistiche di un utente.
 
+**Auth:** `[Authorize]` — lo `userId` viene dal **token JWT** (claim `NameIdentifier`), non più da query param (#52).
+
 **Query params:**
 | Param | Tipo | Obbligatorio | Descrizione |
 |-------|------|-------------|-------------|
-| `userId` | UUID | ✅ | ID utente |
 | `from` | ISO 8601 date | ❌ | Data inizio range |
 | `to` | ISO 8601 date | ❌ | Data fine range |
 
-**Esempi:**
+**Esempi** (con header `Authorization: Bearer <token>`):
 ```
-GET /api/stats?userId=uuid-...
-GET /api/stats?userId=uuid-...&from=2025-05-01&to=2025-05-31
+GET /api/stats
+GET /api/stats?from=2025-05-01&to=2025-05-31
 ```
 
 **Response 200:**
@@ -70,7 +71,7 @@ GET /api/stats?userId=uuid-...&from=2025-05-01&to=2025-05-31
 | Campo | Formula | Interpretazione |
 |-------|---------|-----------------|
 | `netPnL` | Σ PnL di tutti i trade | Profitto netto totale |
-| `winRate` | WinCount / TotalTrades | Range 0–1 (es. 0.638 = 63.8%) |
+| `winRate` | WinCount / TotalTrades × 100 | ⚠️ **Percentuale 0–100** (es. `63.8`) — vale anche per `sessionStats`/`setupStats`. Il FE NON rimoltiplica ×100. |
 | `avgRR` | Media di RiskReward | > 1.5 è buono |
 | `profitFactor` | AvgWin / \|AvgLoss\| | > 2 = eccellente, < 1 = edge negativo |
 | `maxDrawdown` | Peggior calo cumulativo | Valore negativo |
@@ -95,12 +96,12 @@ Array di ogni giorno con PnL e numero trade. Usato per l'Equity Curve e il Calen
 ```typescript
 // src/hooks/useStats.ts
 export function useStats(from?: string, to?: string) {
-  const userId = useAuthStore((s) => s.userId)
+  const userId = useAuthStore((s) => s.userId)   // solo per queryKey + enabled
   return useQuery({
     queryKey: ['stats', userId, from, to],
-    queryFn: () => statsService.get({ userId: userId!, from, to }),
+    queryFn: () => statsService.get({ from, to }),  // userId dal token (#52)
     enabled: !!userId,
-    staleTime: 30_000,   // cache 30 secondi
+    staleTime: 30_000,
   })
 }
 ```

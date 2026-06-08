@@ -9,27 +9,27 @@ Ordinato per priorità e dipendenze.
 ---
 
 ## 🐛 Bug / Tech Debt
-> Emersi durante #40/#41 e il test con dati reali. **Ora tracciati come issue** e raggruppati nelle US [#59](https://github.com/wrld777/apex-trading-journal/issues/59) / [#60](https://github.com/wrld777/apex-trading-journal/issues/60) / [#61](https://github.com/wrld777/apex-trading-journal/issues/61).
+> Emersi durante #40/#41 e il test con dati reali. Tracciati come issue, raggruppati nelle US [#59](https://github.com/wrld777/apex-trading-journal/issues/59) / [#60](https://github.com/wrld777/apex-trading-journal/issues/60) / [#61](https://github.com/wrld777/apex-trading-journal/issues/61).
 
-### BE — `POST /api/trade` usa userId hardcoded → [#51](https://github.com/wrld777/apex-trading-journal/issues/51)
-**Severità:** Alta · **Effort:** S  
-Il controller ignora lo `userId` del body e usa `Guid.Parse("a000…0001")`. Ogni trade finisce sullo stesso utente fittizio. → Usare il claim JWT `NameIdentifier` (o lo userId del body finché non c'è `[Authorize]`).
+### ✅ BE — `POST /api/trade` usa userId hardcoded → [#51](https://github.com/wrld777/apex-trading-journal/issues/51) — FATTO
+Risolto: userId dal claim JWT `NameIdentifier` (merged).
 
-### BE — Endpoint Trade/Stats senza `[Authorize]` → [#52](https://github.com/wrld777/apex-trading-journal/issues/52)
-**Severità:** Media · **Effort:** S  
-I controller non hanno `[Authorize]`: gli endpoint sono pubblici (ho potuto seminare trade senza token). → Aggiungere protezione JWT e derivare lo userId dal token.
+### ✅ BE — Endpoint Trade/Stats senza `[Authorize]` → [#52](https://github.com/wrld777/apex-trading-journal/issues/52) — FATTO
+Risolto: `[Authorize]` su Trade/Stats + `userId` dal token (GET non prende più il query param). FE allineato (PR #69).
 
 ### BE — `avgHoldMinutes` sempre 0 → [#53](https://github.com/wrld777/apex-trading-journal/issues/53)
 **Severità:** Bassa · **Effort:** S  
 `POST` non valorizza `ExitTime` (solo `PUT`), quindi l'hold non è calcolabile. → Decidere il modello: trade creato già "chiuso" (set `ExitTime` al create) vs flusso open→close.
 
-### FE — Export CSV mancante → [#54](https://github.com/wrld777/apex-trading-journal/issues/54)
-**Severità:** Media · **Effort:** S  
-Bottone "Export CSV" in Analytics ancora placeholder. → Generare CSV da `useTrades()`.
+### ✅ FE — Export CSV → [#54](https://github.com/wrld777/apex-trading-journal/issues/54) — FATTO
+Bottone Export CSV in Analytics, filtrato per date range (merged).
 
-### FE — Trade Log come pagina dedicata → [#55](https://github.com/wrld777/apex-trading-journal/issues/55)
-**Severità:** Media · **Effort:** M  
-Oggi c'è solo "Recent Trades" (8 righe) in Dashboard. Manca una pagina `/trades` con tabella completa, sort, filtri, paginazione (vedi "Filtri Avanzati Trade Log").
+### ✅ FE — Trade Log pagina dedicata → [#55](https://github.com/wrld777/apex-trading-journal/issues/55) — FATTO
+Pagina `/trades` con tabella, filtri, sort, paginazione (merged).
+
+### 🟠 BE — Ownership su GetById/Update/Delete → [#68](https://github.com/wrld777/apex-trading-journal/issues/68)
+**Severità:** Media · **Effort:** S  
+Hanno `[Authorize]` ma non verificano che il trade sia dell'utente loggato (IDOR). → Confrontare `Trade.UserId` col claim, `404/403` altrimenti.
 
 ### FE — Minori
 - `LogTrade` usa un Toast locale → migrare al `toastStore` globale → [#57](https://github.com/wrld777/apex-trading-journal/issues/57)
