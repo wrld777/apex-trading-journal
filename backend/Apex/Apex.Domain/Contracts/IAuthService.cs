@@ -6,8 +6,8 @@ namespace Apex.Domain.Contracts
 {
     public interface IAuthService
     {
-        // Services return DTOs only. Token issuing happens in the controller.
+
         Task<Result<UserDto>> RegisterAsync(RegisterRequest request, CancellationToken ct);
-        Task<Result<UserDto>> LoginAsync(LoginRequest request, CancellationToken ct);
+        Task<Result<UserDto>> LoginAsync(string email, string password, CancellationToken ct);
     }
 }
