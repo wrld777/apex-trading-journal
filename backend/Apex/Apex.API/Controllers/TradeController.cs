@@ -1,4 +1,5 @@
-﻿using Apex.Domain.Common;
+﻿using System.Security.Claims;
+using Apex.Domain.Common;
 using Apex.Domain.Contracts;
 using Apex.Domain.DTOs;
 using Apex.Domain.Requests;
@@ -45,8 +46,11 @@ public class TradeController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTradeRequest request, CancellationToken ct)
     {
-
-        var userId = Guid.Parse("a0000000-0000-0000-0000-000000000001");
+        // Derive the owner from the authenticated user (JWT NameIdentifier claim).
+        // No [Authorize] yet (tracked in #52) — reject manually if the token is missing/invalid.
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
 
         var dto = _mapper.Map<TradeDto>(request);
         var result = await _tradeService.CreateAsync(dto, userId, ct);
