@@ -5,6 +5,7 @@ using Apex.Domain.DTOs;
 using Apex.Domain.Requests;
 using Apex.Domain.Responses;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Apex.API.Controllers;
@@ -22,10 +23,16 @@ public class TradeController : ControllerBase
         _mapper = mapper;
     }
 
+
     // GET /api/trade?userId={userId}
+    [Authorize]
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] Guid userId, CancellationToken ct)
+    
+    public async Task<IActionResult> GetAll(CancellationToken ct)
     {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
         var result = await _tradeService.GetAllAsync(userId, ct);
         if (!result.IsSuccess)
             return BadRequest(result.Error);
@@ -33,6 +40,7 @@ public class TradeController : ControllerBase
         return Ok(_mapper.Map<List<TradeResponse>>(result.Value));
     }
 
+    [Authorize]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
@@ -43,11 +51,12 @@ public class TradeController : ControllerBase
         return Ok(_mapper.Map<TradeResponse>(result.Value));
     }
 
+
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTradeRequest request, CancellationToken ct)
     {
-        // Derive the owner from the authenticated user (JWT NameIdentifier claim).
-        // No [Authorize] yet (tracked in #52) — reject manually if the token is missing/invalid.
+
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!Guid.TryParse(userIdClaim, out var userId))
             return Unauthorized();
@@ -62,6 +71,8 @@ public class TradeController : ControllerBase
             _mapper.Map<TradeResponse>(result.Value));
     }
 
+
+    [Authorize]
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateTradeRequest request, CancellationToken ct)
     {
@@ -73,6 +84,7 @@ public class TradeController : ControllerBase
         return Ok(_mapper.Map<TradeResponse>(result.Value));
     }
 
+    [Authorize]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {

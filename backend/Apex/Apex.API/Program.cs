@@ -54,6 +54,7 @@ builder.Services.AddScoped<IManageTokenService, ManageTokenService>();
 builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddProfile<TradeProfile>();
+    cfg.AddProfile<UserProfile>();
 });
 
 // Database
