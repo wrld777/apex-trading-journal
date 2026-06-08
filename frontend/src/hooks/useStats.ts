@@ -7,7 +7,7 @@ export function useStats(from?: string, to?: string) {
 
   return useQuery({
     queryKey: ['stats', userId, from, to],
-    queryFn: () => statsService.get({ userId: userId!, from, to }),
+    queryFn: () => statsService.get({ from, to }),
     enabled: !!userId,
     staleTime: 30_000,
   })
