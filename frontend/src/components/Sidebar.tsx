@@ -85,6 +85,21 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             </svg>
             Log Trade
           </NavLink>
+
+          <NavLink to="/trades" onClick={onClose} className={({ isActive }) =>
+            `flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[13px] transition-all border ${
+              isActive
+                ? 'bg-[#141416] text-white border-white/[0.07]'
+                : 'text-zinc-600 border-transparent hover:bg-[#1a1a1d] hover:text-zinc-400'
+            }`
+          }>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <line x1="2" y1="4" x2="14" y2="4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              <line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              <line x1="2" y1="12" x2="14" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+            </svg>
+            Trade Log
+          </NavLink>
         </div>
 
         {/* User */}
