@@ -1,11 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { authService } from '../../services/authService'
-import { useAuthStore } from '../../store/authStore'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
-  const setAuth = useAuthStore((s) => s.setAuth)
 
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [error, setError] = useState<string | null>(null)
@@ -16,9 +14,9 @@ export default function RegisterPage() {
     setError(null)
     setLoading(true)
     try {
-      const res = await authService.register(form)
-      setAuth(res.token, res.userId, res.name, res.email)
-      navigate('/')
+      await authService.register(form)
+      // No auto-login: send the user to login with a success notice.
+      navigate('/login', { state: { registered: true } })
     } catch {
       setError('Registrazione fallita. Riprova.')
     } finally {

@@ -48,6 +48,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITradeService, TradeService>();
 builder.Services.AddScoped<IStatsService, StatsService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IManageTokenService, ManageTokenService>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(cfg =>
@@ -62,6 +63,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // JWT
 builder.Services.Configure<JwtSettings>(
     builder.Configuration.GetSection("JwtSettings"));
+
+// ManageTokenService consuma JwtSettings direttamente (non via IOptions)
+builder.Services.AddSingleton(
+    builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!);
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
