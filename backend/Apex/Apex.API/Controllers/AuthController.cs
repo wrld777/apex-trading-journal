@@ -45,7 +45,7 @@ public class AuthController : ControllerBase
         [FromBody] LoginRequest request,
         CancellationToken ct)
     {
-        var loginResult = await _authService.LoginAsync(request, ct);
+        var loginResult = await _authService.LoginAsync(request.Email, request.Password, ct);
         if (!loginResult.IsSuccess)
             return Unauthorized(loginResult.Error);
 

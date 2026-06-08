@@ -1,7 +1,9 @@
 ﻿using Apex.Domain.Contracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Security.Claims;
 
 namespace Apex.API.Controllers
 {
@@ -19,22 +21,26 @@ namespace Apex.API.Controllers
 
         // GET /api/stats?userId={userId}
         // GET /api/stats?userId={userId}&from={from}&to={to}
-
+        [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetStatsAsyncù(
-            [FromQuery] Guid userId,
+        public async Task<IActionResult> GetStatsAsync(
             [FromQuery] DateTime? from,
             [FromQuery] DateTime? to,
             CancellationToken ct
             )
         {
-            if(from.HasValue && to.HasValue)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            if (from.HasValue && to.HasValue)
             {
                 var rangeResult = await _statsService.GetStatsByDateRangeAsync(userId, from.Value, to.Value, ct);
                 if (!rangeResult.IsSuccess)
                     return BadRequest(rangeResult.Error);
                 return Ok(rangeResult.Value);
             }
+
 
             var result = await _statsService.GetStatsByUserAsync(userId, ct);
             if (!result.IsSuccess)
