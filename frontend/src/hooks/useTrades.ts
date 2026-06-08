@@ -8,7 +8,7 @@ export function useTrades() {
 
   return useQuery({
     queryKey: ['trades', userId],
-    queryFn: () => tradeService.getByUser(userId!),
+    queryFn: () => tradeService.getMine(),
     enabled: !!userId,
     staleTime: 30_000,
   })
@@ -16,13 +16,9 @@ export function useTrades() {
 
 export function useCreateTrade() {
   const queryClient = useQueryClient()
-  const userId = useAuthStore((s) => s.userId)
 
   return useMutation({
-    mutationFn: (data: CreateTradeRequest) => {
-      if (!userId) throw new Error('User not authenticated')
-      return tradeService.create(userId, data)
-    },
+    mutationFn: (data: CreateTradeRequest) => tradeService.create(data),
     onSuccess: () => {
       // Invalidate stats and the trades list so the UI reflects the new trade
       queryClient.invalidateQueries({ queryKey: ['stats'] })

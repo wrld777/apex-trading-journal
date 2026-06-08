@@ -2,13 +2,14 @@ import apiClient from './apiClient'
 import type { CreateTradeRequest, TradeDto } from '../types/trade'
 
 export const tradeService = {
-  create: async (userId: string, data: CreateTradeRequest): Promise<TradeDto> => {
-    const res = await apiClient.post<TradeDto>('/api/trade', { ...data, userId })
+  // userId is derived server-side from the JWT (Authorization header).
+  create: async (data: CreateTradeRequest): Promise<TradeDto> => {
+    const res = await apiClient.post<TradeDto>('/api/trade', data)
     return res.data
   },
 
-  getByUser: async (userId: string): Promise<TradeDto[]> => {
-    const res = await apiClient.get<TradeDto[]>('/api/trade', { params: { userId } })
+  getMine: async (): Promise<TradeDto[]> => {
+    const res = await apiClient.get<TradeDto[]>('/api/trade')
     return res.data
   },
 }
