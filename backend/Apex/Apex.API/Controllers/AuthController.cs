@@ -39,7 +39,7 @@ public class AuthController : ControllerBase
         });
     }
 
-    // POST /api/auth/login — validates credentials (service) then issues the token (here).
+    // POST /api/auth/login — validates credentials (service) 
     [HttpPost("login")]
     public async Task<IActionResult> Login(
         [FromBody] LoginRequest request,

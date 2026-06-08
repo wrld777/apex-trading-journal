@@ -4,15 +4,18 @@ using Apex.Domain.DTO;
 using Apex.Domain.Entities;
 using Apex.Domain.Repositories;
 using Apex.Domain.Request.User;
+using AutoMapper;
 
 namespace Apex.Domain.Services;
 
 public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IMapper _mapper;
 
-    public AuthService(IUserRepository userRepository)
+    public AuthService(IUserRepository userRepository, IMapper mapper)
     {
+        _mapper = mapper;
         _userRepository = userRepository;
     }
 
@@ -40,28 +43,21 @@ public class AuthService : IAuthService
         };
 
         var created = await _userRepository.CreateUserAsync(user, ct);
-        return Result<UserDto>.Success(ToDto(created));
+        return Result<UserDto>.Success(_mapper.Map<UserDto>(created));
     }
 
-    public async Task<Result<UserDto>> LoginAsync(LoginRequest request, CancellationToken ct)
+    public async Task<Result<UserDto>> LoginAsync(string email, string password, CancellationToken ct)
     {
-        var user = await _userRepository.GetByEmailAsync(request.Email, ct);
+        var user = await _userRepository.GetByEmailAsync(email, ct);
         if (user is null)
             return Result<UserDto>.Failure(Error.FromAuthError(AuthErrors.InvalidCredentials));
 
-        var validPassword = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+        var validPassword = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
         if (!validPassword)
             return Result<UserDto>.Failure(Error.FromAuthError(AuthErrors.InvalidCredentials));
 
-        // No token here — the controller issues it via IManageTokenService.
-        return Result<UserDto>.Success(ToDto(user));
+
+        return Result<UserDto>.Success(_mapper.Map<UserDto>(user));
     }
 
-    private static UserDto ToDto(User user) => new()
-    {
-        Id = user.Id,
-        Name = user.Name,
-        Email = user.Email,
-        PasswordHash = user.PasswordHash,
-    };
 }
