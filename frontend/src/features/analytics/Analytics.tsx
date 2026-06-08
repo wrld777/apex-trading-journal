@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react'
 import { Skeleton } from '../../components/ui/Skeleton'
 import { useStats } from '../../hooks/useStats'
+import { useTrades } from '../../hooks/useTrades'
 import type { DailyPnLDto, DayOfWeekStatsDto, StatsDto } from '../../types/stats'
+import type { TradeDto } from '../../types/trade'
 
 /* ── HELPERS ── */
 function fmt(n: number, decimals = 0) {
@@ -9,6 +11,42 @@ function fmt(n: number, decimals = 0) {
 }
 function fmtPnl(n: number) {
   return n >= 0 ? `+$${fmt(n)}` : `-$${fmt(Math.abs(n))}`
+}
+
+/* ── CSV EXPORT ── */
+const CSV_COLUMNS: { label: string; value: (t: TradeDto) => string | number }[] = [
+  { label: 'Date',      value: t => new Date(t.entryTime).toISOString() },
+  { label: 'Symbol',    value: t => t.symbol },
+  { label: 'Direction', value: t => t.direction },
+  { label: 'Entry',     value: t => t.entryPrice },
+  { label: 'Exit',      value: t => t.exitPrice },
+  { label: 'Qty',       value: t => t.quantity },
+  { label: 'PnL',       value: t => t.pnL },
+  { label: 'RR',        value: t => t.riskReward },
+  { label: 'Status',    value: t => t.status },
+  { label: 'Session',   value: t => t.session },
+  { label: 'Setup',     value: t => t.setup },
+]
+
+function csvEscape(v: string | number): string {
+  const s = String(v)
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+}
+
+function tradesToCsv(trades: TradeDto[]): string {
+  const header = CSV_COLUMNS.map(c => c.label).join(',')
+  const rows = trades.map(t => CSV_COLUMNS.map(c => csvEscape(c.value(t))).join(','))
+  return [header, ...rows].join('\n')
+}
+
+function downloadCsv(filename: string, content: string) {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 /** Cumulative equity values from daily P&L (backend returns ascending by date). */
@@ -283,6 +321,25 @@ export default function Analytics() {
     from || undefined,
     to ? `${to}T23:59:59` : undefined,
   )
+  const { data: trades } = useTrades()
+
+  // Trades within the active date range (UTC bounds), oldest first — for CSV export.
+  const exportRows = useMemo(() => {
+    const fromT = from ? Date.parse(`${from}T00:00:00Z`) : -Infinity
+    const toT = to ? Date.parse(`${to}T23:59:59.999Z`) : Infinity
+    return (trades ?? [])
+      .filter(t => {
+        const e = new Date(t.entryTime).getTime()
+        return e >= fromT && e <= toT
+      })
+      .sort((a, b) => new Date(a.entryTime).getTime() - new Date(b.entryTime).getTime())
+  }, [trades, from, to])
+
+  const handleExport = () => {
+    if (exportRows.length === 0) return
+    const stamp = new Date().toISOString().slice(0, 10)
+    downloadCsv(`apex-trades-${stamp}.csv`, tradesToCsv(exportRows))
+  }
 
   const refDate = useMemo(() => {
     if (to) return new Date(to)
@@ -311,6 +368,14 @@ export default function Analytics() {
           <p className="text-xs text-zinc-600">Deep performance analysis · {data?.totalTrades ?? 0} trades</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handleExport}
+            disabled={exportRows.length === 0}
+            title={exportRows.length === 0 ? 'No trades to export' : `Export ${exportRows.length} trades`}
+            className="px-3 py-1.5 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Export CSV
+          </button>
           <input type="date" value={from} max={to || undefined} onChange={e => setFrom(e.target.value)} className={dateInput} aria-label="From date" />
           <span className="text-zinc-700 text-xs">→</span>
           <input type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} className={dateInput} aria-label="To date" />
