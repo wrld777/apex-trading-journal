@@ -11,10 +11,28 @@
             "id": "46c60e05b9690e2d",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Vista grafo"
+              "type": "markdown",
+              "state": {
+                "file": "🏠 Home.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "🏠 Home"
+            }
+          },
+          {
+            "id": "ded0b17c0b18cfdd",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "🏠 Home.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "🏠 Home"
             }
           }
         ]
@@ -181,11 +199,13 @@
   },
   "active": "46c60e05b9690e2d",
   "lastOpenFiles": [
-    "🏠 Home.md",
+    "2026-06-25.md",
     "06 - Roadmap/Current Sprint.md",
     "06 - Roadmap/Backlog.md",
-    "04 - Frontend/State.md",
+    "06 - Roadmap/Current Sprint.md.tmp.13496.0d18f0a871e1",
+    "🏠 Home.md",
     "01 - Architecture/Overview.md",
+    "04 - Frontend/State.md",
     "04 - Frontend/Hooks & Services.md",
     "04 - Frontend/Pages.md",
     "05 - Deploy/Infrastructure.md",

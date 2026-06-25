@@ -82,17 +82,36 @@ Create dai Bug / Tech Debt emersi (vedi [[Backlog#🐛 Bug / Tech Debt]]).
 - ⚠️ follow-up aperto: [#68](https://github.com/wrld777/apex-trading-journal/issues/68) — ownership su GetById/Update/Delete (IDOR)
 > La issue #59 può essere **chiusa** (entrambi i task fatti).
 
-### 🔄 [US #60 — Trade Management](https://github.com/wrld777/apex-trading-journal/issues/60) `FE` — in corso
+### ✅ [US #60 — Trade Management](https://github.com/wrld777/apex-trading-journal/issues/60) `FE` — COMPLETATA
 - [x] [#54](https://github.com/wrld777/apex-trading-journal/issues/54) — Export CSV in Analytics ✅ (PR #62)
 - [x] [#55](https://github.com/wrld777/apex-trading-journal/issues/55) — Pagina Trade Log dedicata (`/trades`) con filtri e sort ✅ (PR #65)
-- [ ] [#56](https://github.com/wrld777/apex-trading-journal/issues/56) — Edit & Delete trade ← **prossimo FE**
+- [x] [#56](https://github.com/wrld777/apex-trading-journal/issues/56) — Edit & Delete trade ✅ (PR #74) — modale Edit, conferma Delete, hook update/delete, componente `Modal` riutilizzabile
 
-### ⏳ [US #61 — Data Accuracy & UX Polish](https://github.com/wrld777/apex-trading-journal/issues/61) — da fare
-- [ ] [#53](https://github.com/wrld777/apex-trading-journal/issues/53) — avgHoldMinutes: ExitTime al create `BE`
-- [ ] [#57](https://github.com/wrld777/apex-trading-journal/issues/57) — Migrare LogTrade al toast globale `FE`
-- [ ] [#58](https://github.com/wrld777/apex-trading-journal/issues/58) — Profilo utente + valori account dinamici `FE/BE`
+### ✅ [US #61 — Data Accuracy & UX Polish](https://github.com/wrld777/apex-trading-journal/issues/61) — COMPLETATA
+- [x] [#53](https://github.com/wrld777/apex-trading-journal/issues/53) — avgHoldMinutes: ExitTime al create `BE` ✅ (PR #72)
+- [x] [#57](https://github.com/wrld777/apex-trading-journal/issues/57) — Migrare LogTrade al toast globale `FE` ✅ (PR #73)
+- [x] [#58](https://github.com/wrld777/apex-trading-journal/issues/58) — Profilo utente + valori account dinamici `FE/BE` ✅ (PR #75) — pagina `/profile`, account size dinamico in Dashboard
 
-> **Prossimi:** #56 (Edit/Delete, FE), #68 (ownership, BE), poi US #61.
+> ⚠️ Ordine di merge consigliato (branch impilati): **#72 → #73 → #74 → #75**.
+
+---
+
+## 🚀 Sprint 3 — Prossime funzionalità
+
+Concordate il 25/06. Issue create su GitHub.
+
+### 🔒 [#68 — Ownership trade su GetById/Update/Delete](https://github.com/wrld777/apex-trading-journal/issues/68) `BE` — **RIAPERTA**
+- Buco IDOR ancora presente: i metodi del service non verificano `userId`. Urgente ora che #56 espone Edit/Delete dal FE.
+- Fix: propagare `userId` dal token e verificare `trade.UserId == userId` → `Forbidden`/`NotFound`.
+
+### 📸 [#76 — Screenshot trade (upload su disco locale)](https://github.com/wrld777/apex-trading-journal/issues/76) `FE/BE`
+- Entità `Trade.Screenshots` e `TradeErrors` già pronti; manca il wiring end-to-end.
+- Storage deciso: **disco locale** (`wwwroot/uploads/...`), DB tiene il path. Endpoint upload/delete + dropzone reale + preview.
+
+### 🗓️ [#77 — Filtri + paginazione server-side su GET /api/trade](https://github.com/wrld777/apex-trading-journal/issues/77) `BE/FE`
+- Oggi il Trade Log filtra/pagina client-side. Spostare a query param server-side (`from,to,symbol,setup,session,direction,status,page,pageSize,sort`) con response paginata.
+
+> **Prossimi:** #68 (ownership, BE — priorità) → #77 (filtri) → #76 (screenshot).
 
 ---
 
