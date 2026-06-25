@@ -36,6 +36,9 @@ public class TradeErrors
     public static readonly TradeErrors InvalidEntryTime =
         new("Entry time is required.");
 
+    public static readonly TradeErrors MissingExitTime =
+        new("ExitTime is required.");
+
     public static readonly TradeErrors ExitTimeBeforeEntry =
         new("Exit time cannot be before entry time.");
 

@@ -28,6 +28,10 @@ public class CreateTradeRequestValidator : AbstractValidator<CreateTradeRequest>
         RuleFor(x => x.EntryTime)
             .NotEmpty().WithMessage(TradeErrors.InvalidEntryTime.Message);
 
+        RuleFor(x => x.ExitTime)
+            .NotEmpty().WithMessage(TradeErrors.MissingExitTime.Message)
+            .GreaterThanOrEqualTo(x => x.EntryTime).WithMessage(TradeErrors.ExitTimeBeforeEntry.Message);
+
         RuleFor(x => x.Session)
             .NotEmpty().WithMessage(TradeErrors.MissingSession.Message);
 
