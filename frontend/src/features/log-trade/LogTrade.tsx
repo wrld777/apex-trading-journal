@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useCreateTrade } from '../../hooks/useTrades'
+import { useToastStore } from '../../store/toastStore'
 import type { Direction } from '../../types/trade'
 
 // ── Small UI helpers ──────────────────────────────────────────────────────────
@@ -128,46 +129,17 @@ const DEFAULT_CHECKLIST: ChecklistItem[] = [
   { id: 7, label: 'Stop placed beyond OB',        checked: false },
 ]
 
-// ── Toast component ───────────────────────────────────────────────────────────
-
-function Toast({ message, type }: { message: string; type: 'success' | 'error' }) {
-  return (
-    <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-lg border text-[13px] font-medium shadow-lg transition-all ${
-      type === 'success'
-        ? 'bg-green-500/10 border-green-500/25 text-green-400'
-        : 'bg-red-500/10 border-red-500/25 text-red-400'
-    }`}>
-      {type === 'success' ? (
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <polyline points="2,7 5.5,10.5 12,3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      ) : (
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <line x1="3" y1="3" x2="11" y2="11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-          <line x1="11" y1="3" x2="3" y2="11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-        </svg>
-      )}
-      {message}
-    </div>
-  )
-}
-
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function LogTrade() {
   const { mutate: createTrade, isPending } = useCreateTrade()
+  const addToast = useToastStore((s) => s.addToast)
 
   const [direction, setDirection] = useState<Direction>('Long')
   const [form, setForm] = useState(DEFAULT_FORM)
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
   const [checklist, setChecklist] = useState<ChecklistItem[]>(DEFAULT_CHECKLIST)
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type })
-    setTimeout(() => setToast(null), 4000)
-  }
 
   const handleChange = (field: keyof typeof DEFAULT_FORM) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -205,7 +177,7 @@ export default function LogTrade() {
   const handleSubmit = () => {
     // Basic validation
     if (!form.symbol || !form.date || !form.entryPrice || !form.stopLoss || !form.quantity) {
-      showToast('Please fill in all required fields.', 'error')
+      addToast('Please fill in all required fields.', 'error')
       return
     }
 
@@ -234,13 +206,13 @@ export default function LogTrade() {
       },
       {
         onSuccess: () => {
-          showToast('Trade logged successfully!', 'success')
+          addToast('Trade logged successfully!', 'success')
           resetForm()
         },
         onError: (err: unknown) => {
           const message =
             err instanceof Error ? err.message : 'Failed to log trade. Please try again.'
-          showToast(message, 'error')
+          addToast(message, 'error')
         },
       }
     )
@@ -248,8 +220,6 @@ export default function LogTrade() {
 
   return (
     <div className="p-4 lg:p-7">
-
-      {toast && <Toast message={toast.message} type={toast.type} />}
 
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
