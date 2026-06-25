@@ -12,6 +12,7 @@ public class CreateTradeRequest
     public decimal ExitPrice { get; set; }
     public int Quantity { get; set; }
     public DateTime EntryTime { get; set; }
+    public DateTime ExitTime { get; set; }
     public string Session { get; set; } = string.Empty;
     public string Setup { get; set; } = string.Empty;
     public string HTFBias { get; set; } = string.Empty;
