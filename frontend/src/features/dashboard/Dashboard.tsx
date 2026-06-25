@@ -4,6 +4,7 @@ import { Skeleton, KpiCardSkeleton, TableSkeleton } from '../../components/ui/Sk
 import EmptyState from '../../components/ui/EmptyState'
 import { useStats } from '../../hooks/useStats'
 import { useTrades } from '../../hooks/useTrades'
+import { useProfile } from '../../hooks/useProfile'
 import { useAuthStore } from '../../store/authStore'
 import type { TradeDto } from '../../types/trade'
 import type { DailyPnLDto } from '../../types/stats'
@@ -220,6 +221,13 @@ export default function Dashboard() {
   const name = useAuthStore((s) => s.name)
   const { data, isLoading, isError } = useStats()
   const { data: trades, isLoading: tradesLoading, isError: tradesError } = useTrades()
+  const { data: profile } = useProfile()
+
+  // Account size drives "% of capital" figures. Fall back to a sane default
+  // until the user sets it in their profile.
+  const accountSize = profile?.accountSize && profile.accountSize > 0 ? profile.accountSize : 150000
+  const instrument = profile?.instrument || 'NQ Futures'
+  const drawdownLimit = accountSize * 0.05
 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
@@ -235,7 +243,7 @@ export default function Dashboard() {
           <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">
             Good morning, {name ?? 'Trader'}.
           </h1>
-          <p className="text-xs text-zinc-600">{today} · NQ Futures · Funded $150k</p>
+          <p className="text-xs text-zinc-600">{today} · {instrument} · Funded ${fmt(accountSize)}</p>
         </div>
         <div className="flex gap-2">
           <button className="px-3 py-1.5 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all">May 2025</button>
@@ -270,7 +278,7 @@ export default function Dashboard() {
             <KpiCard
               label="Net P&L"
               value={data ? `$${fmt(data.netPnL)}` : '—'}
-              delta={data ? `${data.netPnL >= 0 ? '+' : ''}${fmt(data.netPnL / 150000 * 100, 1)}% of capital` : undefined}
+              delta={data ? `${data.netPnL >= 0 ? '+' : ''}${fmt(data.netPnL / accountSize * 100, 1)}% of capital` : undefined}
               deltaUp={data ? data.netPnL >= 0 : undefined}
             >
               <div className="h-7 mt-2">
@@ -312,13 +320,13 @@ export default function Dashboard() {
             <KpiCard
               label="Max Drawdown"
               value={data ? `-$${fmt(Math.abs(data.maxDrawdown))}` : '—'}
-              delta={data ? `${fmt(Math.abs(data.maxDrawdown) / 150000 * 100, 2)}% of capital` : undefined}
+              delta={data ? `${fmt(Math.abs(data.maxDrawdown) / accountSize * 100, 2)}% of capital` : undefined}
               deltaUp={false}
             >
               <div className="h-1 bg-[#1a1a1d] rounded-full overflow-hidden mt-2">
-                <div className="h-full bg-red-500 rounded-full" style={{ width: data ? `${Math.min(Math.abs(data.maxDrawdown) / 7500 * 100, 100)}%` : '0%' }} />
+                <div className="h-full bg-red-500 rounded-full" style={{ width: data ? `${Math.min(Math.abs(data.maxDrawdown) / drawdownLimit * 100, 100)}%` : '0%' }} />
               </div>
-              <div className="text-[10px] text-zinc-700 mt-1.5">Limit 5% ($7,500)</div>
+              <div className="text-[10px] text-zinc-700 mt-1.5">Limit 5% (${fmt(drawdownLimit)})</div>
             </KpiCard>
 
             <KpiCard

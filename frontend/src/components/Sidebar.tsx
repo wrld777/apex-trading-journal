@@ -1,11 +1,22 @@
 import { NavLink } from 'react-router-dom'
+import { useAuthStore } from '../store/authStore'
+import { useProfile } from '../hooks/useProfile'
 
 interface SidebarProps {
   open: boolean
   onClose: () => void
 }
 
+function initials(name: string | null): string {
+  if (!name) return 'AB'
+  const parts = name.trim().split(/\s+/)
+  return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || 'AB'
+}
+
 export default function Sidebar({ open, onClose }: SidebarProps) {
+  const name = useAuthStore((s) => s.name)
+  const { data: profile } = useProfile()
+
   return (
     <>
       {/* Overlay mobile */}
@@ -104,14 +115,18 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
         {/* User */}
         <div className="mt-auto p-3 border-t border-white/[0.04]">
-          <div className="flex items-center gap-2.5 p-2 rounded-md hover:bg-[#1a1a1d] cursor-pointer transition-all">
-            <div className="w-[30px] h-[30px] rounded-full bg-gradient-to-br from-blue-700 to-violet-700 flex items-center justify-center text-[11px] font-bold shrink-0">AB</div>
+          <NavLink to="/profile" onClick={onClose} className={({ isActive }) =>
+            `flex items-center gap-2.5 p-2 rounded-md cursor-pointer transition-all ${
+              isActive ? 'bg-[#141416]' : 'hover:bg-[#1a1a1d]'
+            }`
+          }>
+            <div className="w-[30px] h-[30px] rounded-full bg-gradient-to-br from-blue-700 to-violet-700 flex items-center justify-center text-[11px] font-bold shrink-0">{initials(name)}</div>
             <div className="flex-1 min-w-0">
-              <div className="text-xs text-white truncate">Ahmed B.</div>
-              <div className="text-[10px] text-zinc-600">NQ / NAS100</div>
+              <div className="text-xs text-white truncate">{name ?? 'Trader'}</div>
+              <div className="text-[10px] text-zinc-600 truncate">{profile?.instrument || '—'}</div>
             </div>
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-          </div>
+          </NavLink>
         </div>
 
       </aside>
