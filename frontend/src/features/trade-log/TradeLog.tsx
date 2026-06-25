@@ -1,7 +1,10 @@
 import { useMemo, useState } from 'react'
-import { useTrades } from '../../hooks/useTrades'
+import { useTrades, useDeleteTrade } from '../../hooks/useTrades'
 import { TableSkeleton } from '../../components/ui/Skeleton'
 import EmptyState from '../../components/ui/EmptyState'
+import Modal from '../../components/ui/Modal'
+import { useToastStore } from '../../store/toastStore'
+import EditTradeModal from './EditTradeModal'
 import type { TradeDto } from '../../types/trade'
 
 /* ── helpers ── */
@@ -49,6 +52,25 @@ function SortHeader({ label, col, sort, onSort, align = 'left' }: {
 
 export default function TradeLog() {
   const { data: trades, isLoading, isError } = useTrades()
+  const { mutate: deleteTrade, isPending: isDeleting } = useDeleteTrade()
+  const addToast = useToastStore((s) => s.addToast)
+
+  const [editTrade, setEditTrade] = useState<TradeDto | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<TradeDto | null>(null)
+
+  const confirmDelete = () => {
+    if (!pendingDelete) return
+    deleteTrade(pendingDelete.id, {
+      onSuccess: () => {
+        addToast('Trade deleted.', 'success')
+        setPendingDelete(null)
+      },
+      onError: (err: unknown) => {
+        const message = err instanceof Error ? err.message : 'Failed to delete trade.'
+        addToast(message, 'error')
+      },
+    })
+  }
 
   const [symbol, setSymbol] = useState('')
   const [setup, setSetup] = useState('')
@@ -171,7 +193,7 @@ export default function TradeLog() {
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[860px] text-left">
+              <table className="w-full min-w-[940px] text-left">
                 <thead>
                   <tr className="text-[10px] text-zinc-700 uppercase tracking-[0.06em] border-b border-white/[0.04]">
                     <SortHeader label="Date" col="date" sort={sort} onSort={onSort} />
@@ -185,6 +207,7 @@ export default function TradeLog() {
                     <SortHeader label="P&L" col="pnl" sort={sort} onSort={onSort} align="right" />
                     <SortHeader label="RR" col="rr" sort={sort} onSort={onSort} align="right" />
                     <th className="font-medium pb-2 px-3 text-right">Status</th>
+                    <th className="font-medium pb-2 px-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -205,6 +228,30 @@ export default function TradeLog() {
                       <td className={`py-2.5 px-3 text-[11px] text-right font-mono ${t.pnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>{fmtPnl(t.pnL)}</td>
                       <td className="py-2.5 px-3 text-[11px] text-zinc-400 text-right font-mono">{fmtNum(t.riskReward, 2)}</td>
                       <td className="py-2.5 px-3 text-right"><StatusBadge status={t.status} /></td>
+                      <td className="py-2.5 px-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => setEditTrade(t)}
+                            aria-label="Edit trade"
+                            title="Edit"
+                            className="p-1.5 rounded-md text-zinc-500 hover:text-white hover:bg-white/[0.06] transition-all"
+                          >
+                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                              <path d="M9.5 2.5l2 2L5 11l-2.5.5L3 9l6.5-6.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => setPendingDelete(t)}
+                            aria-label="Delete trade"
+                            title="Delete"
+                            className="p-1.5 rounded-md text-zinc-500 hover:text-red-400 hover:bg-red-500/[0.08] transition-all"
+                          >
+                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                              <path d="M2.5 3.5h9M5.5 3.5V2.3h3v1.2M3.5 3.5l.5 8h6l.5-8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -236,6 +283,50 @@ export default function TradeLog() {
           </>
         )}
       </div>
+
+      {/* Edit modal */}
+      <EditTradeModal
+        trade={editTrade}
+        open={editTrade !== null}
+        onClose={() => setEditTrade(null)}
+      />
+
+      {/* Delete confirmation */}
+      <Modal
+        open={pendingDelete !== null}
+        onClose={() => { if (!isDeleting) setPendingDelete(null) }}
+        title="Delete trade?"
+        maxWidth="max-w-sm"
+        footer={
+          <>
+            <button
+              onClick={() => setPendingDelete(null)}
+              disabled={isDeleting}
+              className="px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="px-3 py-1.5 rounded-md text-xs font-medium bg-red-500 text-white hover:bg-red-500/90 transition-all disabled:opacity-60 flex items-center gap-1.5"
+            >
+              {isDeleting && (
+                <svg className="animate-spin" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="10"/>
+                </svg>
+              )}
+              {isDeleting ? 'Deleting…' : 'Delete'}
+            </button>
+          </>
+        }
+      >
+        <p className="text-[13px] text-zinc-400 leading-relaxed">
+          {pendingDelete && (
+            <>This will permanently delete the <span className="text-white font-medium">{pendingDelete.symbol}</span> {pendingDelete.direction} trade from {fmtDate(pendingDelete.entryTime)}. This action cannot be undone.</>
+          )}
+        </p>
+      </Modal>
     </div>
   )
 }

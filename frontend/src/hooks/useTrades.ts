@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { tradeService } from '../services/tradeService'
 import { useAuthStore } from '../store/authStore'
-import type { CreateTradeRequest } from '../types/trade'
+import type { CreateTradeRequest, UpdateTradeRequest } from '../types/trade'
 
 export function useTrades() {
   const userId = useAuthStore((s) => s.userId)
@@ -21,6 +21,31 @@ export function useCreateTrade() {
     mutationFn: (data: CreateTradeRequest) => tradeService.create(data),
     onSuccess: () => {
       // Invalidate stats and the trades list so the UI reflects the new trade
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
+      queryClient.invalidateQueries({ queryKey: ['trades'] })
+    },
+  })
+}
+
+export function useUpdateTrade() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateTradeRequest }) =>
+      tradeService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
+      queryClient.invalidateQueries({ queryKey: ['trades'] })
+    },
+  })
+}
+
+export function useDeleteTrade() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => tradeService.remove(id),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stats'] })
       queryClient.invalidateQueries({ queryKey: ['trades'] })
     },
