@@ -168,6 +168,7 @@ mutate(formData)        // tradeService.create(data) — niente userId nel body
 ---
 
 ## Link Correlati
+- [[../01 - Architecture/Services/TradeService]] — service che implementa questi endpoint
 - [[Stats API]] — statistiche aggregate sui trade
 - [[../02 - Database/Schema#TRADES]] — struttura tabella Trades
 - [[../04 - Frontend/Hooks & Services]] — useCreateTrade, tradeService

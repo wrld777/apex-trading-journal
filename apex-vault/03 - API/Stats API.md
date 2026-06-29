@@ -125,6 +125,7 @@ Questa cache viene invalidata automaticamente quando si crea un nuovo trade (`us
 ---
 
 ## Link Correlati
+- [[../01 - Architecture/Services/StatsService]] — service che calcola queste statistiche
 - [[Trade API]] — i trade da cui vengono calcolate le stats
 - [[../04 - Frontend/Hooks & Services#useStats]] — hook React
 - [[../04 - Frontend/Pages#Dashboard]] — dove le stats appaiono
