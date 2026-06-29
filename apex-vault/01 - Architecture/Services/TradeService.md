@@ -44,8 +44,8 @@ Status = PnL > 0 → Win · PnL < 0 → Loss · else BreakEven
 - **[[StatsService]]** — non c'è dipendenza DI diretta, ma **dipendenza implicita sui dati**: StatsService aggrega proprio i campi `PnL`/`RiskReward`/`Status` che *questo* service calcola in scrittura. Se cambia la formula qui, cambiano le statistiche là.
 - Condivide `ITradeRepository` con [[StatsService]].
 
-## ⚠️ Rischi
-- **IDOR** (issue **#68**): `GetByIdAsync/UpdateAsync/DeleteAsync` filtrano solo per `Id`, non per `userId` → accesso cross-utente. Vedi [[../Components#5. ⚠️ Rischi & debito architetturale]] e [[../../06 - Roadmap/Current Sprint]].
+## Sicurezza
+- ✅ **IDOR risolto (#68)**: `GetByIdAsync/UpdateAsync/DeleteAsync` ricevono lo `userId` dal token e trattano un trade di un altro utente come `NotFound` (non ne rivelano l'esistenza). `CreateAsync` forza già `UserId` dal token. Vedi [[../Components#5. ⚠️ Rischi & debito architetturale]] e [[../../06 - Roadmap/Current Sprint]].
 
 ## Link Correlati
 - [[../../03 - API/Trade API]] · [[../../02 - Database/Schema]] · [[StatsService]] · [[../Components]]

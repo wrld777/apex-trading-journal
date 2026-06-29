@@ -186,7 +186,7 @@ stato lavori ──► [[../06 - Roadmap/Current Sprint]] · [[../06 - Roadmap/B
 
 | Tema | Dettaglio | Riferimento |
 |------|-----------|-------------|
-| **IDOR** | `GetByIdAsync/UpdateAsync/DeleteAsync` filtrano solo per `Id`, **non** per `userId`: un utente autenticato può leggere/modificare/eliminare trade altrui. | issue **#68** — [[../06 - Roadmap/Backlog#🐛 Bug / Tech Debt]] |
+| ~~**IDOR**~~ ✅ | **Risolto (#68):** `GetByIdAsync/UpdateAsync/DeleteAsync` ricevono lo `userId` dal token e trattano un trade altrui come `NotFound`. | issue **#68** — [[../06 - Roadmap/Backlog#🐛 Bug / Tech Debt]] |
 | **Scadenza JWT** | `ManageTokenService` usa `AddMinutes(30)` hardcoded e **ignora `JwtSettings.ExpiryDays` (7)**. | [[../03 - API/Auth API#JWT Token]] |
 | **Layer Application vuoto** | `Apex.Application` non contiene logica; valutare se rimuoverlo o spostarvi i Service. | [[Overview]] |
 | **Repo non sfruttati** | `GetBySetupAsync/GetBySessionAsync` esistono ma non sono esposti. | — |
