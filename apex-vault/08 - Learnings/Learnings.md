@@ -20,6 +20,7 @@ tags: #learning #skill #index
 
 | Nota | Tema | Contesto |
 |------|------|----------|
+| [[Validare un URL immagine (incolla link)]] | Validazione URL immagine (formato + caricamento) | [#76](https://github.com/wrld777/apex-trading-journal/issues/76) FE |
 | [[File upload in ASP.NET Core (IFormFile)]] | Upload file, static files, validazione | [#76](https://github.com/wrld777/apex-trading-journal/issues/76) BE |
 
 ---
