@@ -44,7 +44,11 @@ public class TradeController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
-        var result = await _tradeService.GetByIdAsync(id, ct);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+
+        var result = await _tradeService.GetByIdAsync(id, userId, ct);
         if (!result.IsSuccess)
             return NotFound(result.Error);
 
@@ -76,8 +80,12 @@ public class TradeController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateTradeRequest request, CancellationToken ct)
     {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+
         var dto = _mapper.Map<TradeDto>(request);
-        var result = await _tradeService.UpdateAsync(id, dto, ct);
+        var result = await _tradeService.UpdateAsync(id, dto, userId, ct);
         if (!result.IsSuccess)
             return NotFound(result.Error);
 
@@ -88,7 +96,11 @@ public class TradeController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
-        var result = await _tradeService.DeleteAsync(id, ct);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+
+        var result = await _tradeService.DeleteAsync(id, userId, ct);
         if (!result.IsSuccess)
             return NotFound(result.Error);
 
