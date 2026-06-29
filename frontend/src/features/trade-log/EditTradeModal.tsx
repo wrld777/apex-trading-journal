@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Modal from '../../components/ui/Modal'
+import ScreenshotInput from '../../components/ui/ScreenshotInput'
 import { useUpdateTrade } from '../../hooks/useTrades'
 import { useToastStore } from '../../store/toastStore'
 import type { TradeDto, UpdateTradeRequest } from '../../types/trade'
@@ -41,6 +42,7 @@ export default function EditTradeModal({ trade, open, onClose }: {
   const [mistakes, setMistakes] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
+  const [screenshots, setScreenshots] = useState<string[]>([])
 
   // Re-seed the form whenever a different trade is opened.
   const [seededId, setSeededId] = useState<string | null>(null)
@@ -53,6 +55,7 @@ export default function EditTradeModal({ trade, open, onClose }: {
     setMistakes(trade.mistakes ?? '')
     setTags(trade.tags ?? [])
     setTagInput('')
+    setScreenshots(trade.screenshots ?? [])
   }
 
   const addTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -74,6 +77,7 @@ export default function EditTradeModal({ trade, open, onClose }: {
       emotionalState,
       mistakes,
       tags,
+      screenshots,
     }
 
     updateTrade(
@@ -152,6 +156,11 @@ export default function EditTradeModal({ trade, open, onClose }: {
           <span className="text-[11px] text-zinc-600 tracking-[0.04em]">Mistakes / Lessons</span>
           <textarea rows={2} placeholder="What could have been done better?" value={mistakes} onChange={(e) => setMistakes(e.target.value)} className={`${FIELD} resize-y`} />
         </label>
+
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[11px] text-zinc-600 tracking-[0.04em]">Screenshots</span>
+          <ScreenshotInput value={screenshots} onChange={setScreenshots} />
+        </div>
 
         <div className="flex flex-col gap-1.5">
           <span className="text-[11px] text-zinc-600 tracking-[0.04em]">Tags</span>
