@@ -23,6 +23,7 @@ export interface TradeDto {
   emotionalState: string
   mistakes: string
   tags: string[]
+  screenshots: string[]
   createdAt: string
 }
 
@@ -43,6 +44,7 @@ export interface CreateTradeRequest {
   emotionalState: string
   mistakes: string
   tags: string[]
+  screenshots: string[]
 }
 
 export interface UpdateTradeRequest {
@@ -52,4 +54,5 @@ export interface UpdateTradeRequest {
   emotionalState: string
   mistakes: string
   tags: string[]
+  screenshots: string[]
 }

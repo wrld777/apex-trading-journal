@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useCreateTrade } from '../../hooks/useTrades'
 import { useToastStore } from '../../store/toastStore'
+import ScreenshotInput from '../../components/ui/ScreenshotInput'
 import type { Direction } from '../../types/trade'
 
 // ── Small UI helpers ──────────────────────────────────────────────────────────
@@ -139,6 +140,7 @@ export default function LogTrade() {
   const [form, setForm] = useState(DEFAULT_FORM)
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
+  const [screenshots, setScreenshots] = useState<string[]>([])
   const [checklist, setChecklist] = useState<ChecklistItem[]>(DEFAULT_CHECKLIST)
 
   const handleChange = (field: keyof typeof DEFAULT_FORM) => (
@@ -171,6 +173,7 @@ export default function LogTrade() {
     setDirection('Long')
     setTags([])
     setTagInput('')
+    setScreenshots([])
     setChecklist(DEFAULT_CHECKLIST)
   }
 
@@ -203,6 +206,7 @@ export default function LogTrade() {
         emotionalState: form.emotionalState,
         mistakes: form.mistakes,
         tags,
+        screenshots,
       },
       {
         onSuccess: () => {
@@ -417,28 +421,7 @@ export default function LogTrade() {
 
           <FormCard>
             <SectionTitle>Screenshot</SectionTitle>
-            <div className="border border-dashed border-white/[0.11] rounded-[10px] p-6 lg:p-8 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-white/[0.18] hover:bg-[#1a1a1d] transition-all text-center mb-2">
-              <div className="text-zinc-600 mb-1">
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                  <rect x="3" y="6" width="26" height="20" rx="3" stroke="currentColor" strokeWidth="1.5"/>
-                  <circle cx="11" cy="13" r="2.5" stroke="currentColor" strokeWidth="1.5"/>
-                  <polyline points="3,23 10,16 15,21 20,15 29,23" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <div className="text-[13px] text-zinc-400">Drop chart screenshot</div>
-              <div className="text-[11px] text-zinc-700">PNG, JPG, WebP · Max 10MB</div>
-              <button className="mt-2 px-3 py-1.5 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#141416] transition-all">Browse Files</button>
-            </div>
-            <div className="grid grid-cols-2 gap-1.5">
-              <div className="aspect-video bg-[#141416] border border-white/[0.07] rounded-md flex items-center justify-center cursor-pointer hover:border-white/[0.11] transition-all" />
-              <div className="aspect-video bg-[#141416] border border-dashed border-white/[0.07] rounded-md flex items-center justify-center cursor-pointer hover:border-white/[0.11] transition-all">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.15)" strokeWidth="1.2"/>
-                  <line x1="8" y1="5" x2="8" y2="11" stroke="rgba(255,255,255,0.15)" strokeWidth="1.2" strokeLinecap="round"/>
-                  <line x1="5" y1="8" x2="11" y2="8" stroke="rgba(255,255,255,0.15)" strokeWidth="1.2" strokeLinecap="round"/>
-                </svg>
-              </div>
-            </div>
+            <ScreenshotInput value={screenshots} onChange={setScreenshots} />
           </FormCard>
 
           <FormCard>
