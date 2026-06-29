@@ -1,4 +1,3 @@
-c
 # Backlog — Funzionalità Future
 
 tags: #roadmap #backlog
@@ -35,6 +34,24 @@ Hanno `[Authorize]` ma non verificano che il trade sia dell'utente loggato (IDOR
 - `LogTrade` usa un Toast locale → migrare al `toastStore` globale → [#57](https://github.com/wrld777/apex-trading-journal/issues/57)
 - Header Dashboard + capitale `150000`/limite DD `7500` hardcoded → profilo utente → [#58](https://github.com/wrld777/apex-trading-journal/issues/58)
 - Equity Curve: toggle `1D/1W/1M/3M` e badge "Live" sono decorativi (non funzionanti) → _da tracciare_
+
+### 🧪 Emersi dal test del 29/06 — flusso LogTrade
+> Da test manuale. _Da aprire come issue._
+
+1. **FE — LogTrade non chiede l'Exit Time** `FE`
+   Il form non ha il campo Exit Time, quindi al create `ExitTime` resta vuoto e `avgHoldMinutes` non è calcolabile (collegato a [#53](https://github.com/wrld777/apex-trading-journal/issues/53)). → Aggiungere campo data/ora di uscita (UTC `Z`, coerente con `entryTime`).
+
+2. **FE/BE — Esito invece di Exit Price** `FE/BE` · **Effort:** M
+   In creazione l'utente **non inserisce l'exit price**: sceglie l'**esito** del trade. L'exit price si deriva:
+   | Esito | exitPrice derivato |
+   |-------|--------------------|
+   | **Stop** (SL colpito) | `stopLoss` |
+   | **TP** (target colpito) | `takeProfit` |
+   | **BE** (break-even) | `entryPrice` |
+   | **Parziale** | ⚠️ **da decidere** (serve un prezzo di uscita manuale o una %?) |
+   - Il PnL/Status li calcola già il BE da `exitPrice`, quindi basta passare l'`exitPrice` derivato.
+   - Sostituire l'input "Exit Price" in `LogTrade` con un selettore Stop/TP/BE/Parziale.
+   - ❓ **Domanda aperta:** come gestiamo il **Parziale** (uscita a prezzo custom / percentuale della size)?
 
 ---
 
