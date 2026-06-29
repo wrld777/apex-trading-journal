@@ -52,5 +52,12 @@ public class CreateTradeRequestValidator : AbstractValidator<CreateTradeRequest>
             if (request.Direction == Domain.Enums.Direction.Short && request.TakeProfit >= request.EntryPrice)
                 context.AddFailure(TradeErrors.TakeProfitAboveEntryForShort.Message);
         });
+
+        RuleForEach(x => x.Screenshots).Must(BeHttpUrl)
+            .WithMessage(TradeErrors.InvalidUrl.Message);
     }
+
+    private static bool BeHttpUrl(string url) =>
+    Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+    (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
 }

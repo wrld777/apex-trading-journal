@@ -21,6 +21,8 @@
 | [[05 - Deploy/Infrastructure]] | Deploy | Docker, env vars, CI/CD |
 | [[06 - Roadmap/Current Sprint]] | Sprint Attivo | Issue aperte, in corso, completate |
 | [[06 - Roadmap/Backlog]] | Backlog | Funzionalità future, idee |
+| [[07 - Decisions/Decisions]] | Decision Log | ADR: il *perché* delle scelte architetturali |
+| [[08 - Learnings/Learnings]] | Learnings | Diario skill: tecniche nuove implementate |
 
 ---
 

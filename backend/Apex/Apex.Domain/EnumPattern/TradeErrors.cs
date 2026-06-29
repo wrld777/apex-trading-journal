@@ -21,6 +21,8 @@ public class TradeErrors
         new("You do not have permission to perform this action on the trade.");
 
     // ── Validation ──
+    public static readonly TradeErrors InvalidUrl =
+        new("Link not valid.");
     public static readonly TradeErrors InvalidRisk =
         new("Stop loss must be different from entry price.");
 

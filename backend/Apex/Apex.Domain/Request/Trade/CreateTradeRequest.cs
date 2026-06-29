@@ -21,4 +21,5 @@ public class CreateTradeRequest
     public string EmotionalState { get; set; } = string.Empty;
     public string Mistakes { get; set; } = string.Empty;
     public List<string> Tags { get; set; } = new();
+    public List<string> Screenshots { get; set; } = new();
 }
