@@ -79,7 +79,7 @@ Create dai Bug / Tech Debt emersi (vedi [[Backlog#🐛 Bug / Tech Debt]]).
 - [x] [#51](https://github.com/wrld777/apex-trading-journal/issues/51) — POST /api/trade usa utente autenticato (no userId hardcoded) ✅
 - [x] [#52](https://github.com/wrld777/apex-trading-journal/issues/52) — `[Authorize]` su Trade/Stats + `userId` dal token (PR #67/#69) ✅
 - ↳ inoltre: refactor auth (service solo DTO, token nel controller, register senza auto-login) ✅
-- ⚠️ follow-up aperto: [#68](https://github.com/wrld777/apex-trading-journal/issues/68) — ownership su GetById/Update/Delete (IDOR)
+- [x] [#68](https://github.com/wrld777/apex-trading-journal/issues/68) — ownership su GetById/Update/Delete (IDOR) ✅ (branch `feature/AJ-68`)
 > La issue #59 può essere **chiusa** (entrambi i task fatti).
 
 ### 🔄 [US #60 — Trade Management](https://github.com/wrld777/apex-trading-journal/issues/60) `FE` — in corso
@@ -92,7 +92,7 @@ Create dai Bug / Tech Debt emersi (vedi [[Backlog#🐛 Bug / Tech Debt]]).
 - [ ] [#57](https://github.com/wrld777/apex-trading-journal/issues/57) — Migrare LogTrade al toast globale `FE`
 - [ ] [#58](https://github.com/wrld777/apex-trading-journal/issues/58) — Profilo utente + valori account dinamici `FE/BE`
 
-> **Prossimi:** #56 (Edit/Delete, FE), #68 (ownership, BE), poi US #61.
+> **Prossimi:** #56 (Edit/Delete, FE), poi US #61. (#68 ownership BE ✅ fatto)
 
 ---
 
