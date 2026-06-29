@@ -4,6 +4,7 @@ import Dashboard from '../features/dashboard/Dashboard'
 import LogTrade from '../features/log-trade/LogTrade'
 import Analytics from '../features/analytics/Analytics'
 import TradeLog from '../features/trade-log/TradeLog'
+import Profile from '../features/profile/Profile'
 import LoginPage from '../features/auth/LoginPage'
 import RegisterPage from '../features/auth/RegisterPage'
 import ProtectedRoute from '../components/ProtectedRoute'
@@ -33,6 +34,7 @@ export const router = createBrowserRouter([
       { path: 'log-trade', element: <LogTrade /> },
       { path: 'trades', element: <TradeLog /> },
       { path: 'analytics', element: <Analytics /> },
+      { path: 'profile', element: <Profile /> },
     ],
   },
 ])

@@ -1,5 +1,6 @@
 using Apex.Domain.DTO;
 using Apex.Domain.Entities;
+using Apex.Domain.Response.User;
 using AutoMapper;
 
 namespace Apex.Domain.AutoMapperProfile
@@ -9,6 +10,7 @@ namespace Apex.Domain.AutoMapperProfile
         public UserProfile()
         {
             CreateMap<User, UserDto>().ReverseMap();
+            CreateMap<User, ProfileResponse>();
         }
     }
 }
