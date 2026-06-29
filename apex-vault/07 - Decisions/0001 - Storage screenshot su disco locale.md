@@ -2,8 +2,10 @@
 
 tags: #decision #adr #backend #storage #screenshot
 
-**Stato:** ✅ Accettata
+**Stato:** ♻️ **Superata da** [[0002 - Screenshot come URL incollato dall'utente]]
 **Data:** 2026-06-29 · **Ambito:** BE · Storage · **Issue:** [#76](https://github.com/wrld777/apex-trading-journal/issues/76)
+
+> ♻️ **Decisione superata.** Non implementeremo (per ora) l'upload su disco: l'utente **incolla un URL** di immagine e lo salviamo come stringa. Vedi [[0002 - Screenshot come URL incollato dall'utente]]. Questa nota resta per storia e perché l'upload su disco è il naturale **passo 2** (ibrido).
 
 ---
 

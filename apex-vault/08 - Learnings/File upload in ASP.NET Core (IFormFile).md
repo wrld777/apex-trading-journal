@@ -5,6 +5,8 @@ tags: #learning #skill #backend #aspnetcore #screenshot
 **Data:** 2026-06-29 · **Contesto:** [#76](https://github.com/wrld777/apex-trading-journal/issues/76) BE · **Area:** BE
 **Decisione collegata:** [[../07 - Decisions/0001 - Storage screenshot su disco locale]]
 
+> ℹ️ **Nota:** per la #76 abbiamo poi scelto gli **URL incollati** ([[../07 - Decisions/0002 - Screenshot come URL incollato dall'utente|ADR 0002]]), quindi questa tecnica **non** è usata ora. La nota resta come skill riutilizzabile (avatar, allegati, import) e come **passo 2 ibrido** della #76.
+
 ---
 
 ## In una riga
