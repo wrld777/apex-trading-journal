@@ -16,6 +16,9 @@ backend/**/appsettings.Development.json
 # ── Docker ──
 .env
 
+# ── Obsidian ──
+apex-vault/.obsidian/
+
 # ── OS ──
 .DS_Store
 Thumbs.db

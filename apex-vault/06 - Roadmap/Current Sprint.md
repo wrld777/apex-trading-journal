@@ -79,7 +79,7 @@ Create dai Bug / Tech Debt emersi (vedi [[Backlog#🐛 Bug / Tech Debt]]).
 - [x] [#51](https://github.com/wrld777/apex-trading-journal/issues/51) — POST /api/trade usa utente autenticato (no userId hardcoded) ✅
 - [x] [#52](https://github.com/wrld777/apex-trading-journal/issues/52) — `[Authorize]` su Trade/Stats + `userId` dal token (PR #67/#69) ✅
 - ↳ inoltre: refactor auth (service solo DTO, token nel controller, register senza auto-login) ✅
-- ⚠️ follow-up aperto: [#68](https://github.com/wrld777/apex-trading-journal/issues/68) — ownership su GetById/Update/Delete (IDOR)
+- [x] [#68](https://github.com/wrld777/apex-trading-journal/issues/68) — ownership su GetById/Update/Delete (IDOR) ✅ (branch `feature/AJ-68`)
 > La issue #59 può essere **chiusa** (entrambi i task fatti).
 
 ### ✅ [US #60 — Trade Management](https://github.com/wrld777/apex-trading-journal/issues/60) `FE` — COMPLETATA
@@ -92,26 +92,23 @@ Create dai Bug / Tech Debt emersi (vedi [[Backlog#🐛 Bug / Tech Debt]]).
 - [x] [#57](https://github.com/wrld777/apex-trading-journal/issues/57) — Migrare LogTrade al toast globale `FE` ✅ (PR #73)
 - [x] [#58](https://github.com/wrld777/apex-trading-journal/issues/58) — Profilo utente + valori account dinamici `FE/BE` ✅ (PR #75) — pagina `/profile`, account size dinamico in Dashboard
 
-> ⚠️ Ordine di merge consigliato (branch impilati): **#72 → #73 → #74 → #75**.
-
 ---
 
 ## 🚀 Sprint 3 — Prossime funzionalità
 
 Concordate il 25/06. Issue create su GitHub.
 
-### 🔒 [#68 — Ownership trade su GetById/Update/Delete](https://github.com/wrld777/apex-trading-journal/issues/68) `BE` — **RIAPERTA**
-- Buco IDOR ancora presente: i metodi del service non verificano `userId`. Urgente ora che #56 espone Edit/Delete dal FE.
-- Fix: propagare `userId` dal token e verificare `trade.UserId == userId` → `Forbidden`/`NotFound`.
+### ✅ [#68 — Ownership trade su GetById/Update/Delete](https://github.com/wrld777/apex-trading-journal/issues/68) `BE` — COMPLETATA
+- Buco IDOR chiuso: i metodi del service ricevono lo `userId` dal token e trattano un trade altrui come `NotFound` (no information leak). ✅ (PR #78)
 
-### 📸 [#76 — Screenshot trade (upload su disco locale)](https://github.com/wrld777/apex-trading-journal/issues/76) `FE/BE`
-- Entità `Trade.Screenshots` e `TradeErrors` già pronti; manca il wiring end-to-end.
+### 📸 [#76 — Screenshot trade (upload su disco locale)](https://github.com/wrld777/apex-trading-journal/issues/76) `FE/BE` — da fare
+- Entità `Trade.Screenshots` e `TradeErrors` già pronti; manca il wiring end-to-end (solo placeholder UI in LogTrade).
 - Storage deciso: **disco locale** (`wwwroot/uploads/...`), DB tiene il path. Endpoint upload/delete + dropzone reale + preview.
 
-### 🗓️ [#77 — Filtri + paginazione server-side su GET /api/trade](https://github.com/wrld777/apex-trading-journal/issues/77) `BE/FE`
+### 🗓️ [#77 — Filtri + paginazione server-side su GET /api/trade](https://github.com/wrld777/apex-trading-journal/issues/77) `BE/FE` — da fare
 - Oggi il Trade Log filtra/pagina client-side. Spostare a query param server-side (`from,to,symbol,setup,session,direction,status,page,pageSize,sort`) con response paginata.
 
-> **Prossimi:** #68 (ownership, BE — priorità) → #77 (filtri) → #76 (screenshot).
+> **Prossimi:** #77 (filtri/paginazione) → #76 (screenshot). (#68 ✅ fatto)
 
 ---
 

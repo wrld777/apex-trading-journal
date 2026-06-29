@@ -42,7 +42,7 @@ Gestisce **fetch, cache, invalidazione e re-fetch** dei dati dal backend.
 ```typescript
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { retry: 1, refetchOnWindowFocus: false }
+    queries: { retry: 1, staleTime: 1000 * 30 } // default 30s
   }
 })
 // Wrappa l'app con <QueryClientProvider client={queryClient}>
@@ -53,10 +53,10 @@ const queryClient = new QueryClient({
 | Query Key | TTL (staleTime) | Dati |
 |-----------|----------------|------|
 | `['stats', userId, from, to]` | 30s | StatsDto |
-| `['trades', userId]` | 60s | TradeDto[] |
+| `['trades', userId]` | 30s (`enabled: !!userId`) | TradeDto[] |
 
 ### Invalidazione
-Quando si crea un trade → `invalidateQueries(['stats'])` forza il re-fetch delle stats → la Dashboard si aggiorna senza reload.
+Quando si crea un trade (`useCreateTrade`) → `invalidateQueries(['stats'])` **e** `invalidateQueries(['trades'])` forzano il re-fetch → Dashboard, Analytics e Trade Log si aggiornano senza reload.
 
 ---
 

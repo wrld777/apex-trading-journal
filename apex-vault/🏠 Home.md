@@ -9,6 +9,8 @@
 | Area | Note | Descrizione |
 |------|------|-------------|
 | [[01 - Architecture/Overview]] | Architettura | Clean Architecture, stack, flusso dati |
+| [[01 - Architecture/Components]] | Componenti | Deep-dive componenti, ciclo richiesta, rischi |
+| [[01 - Architecture/Services/Services]] | Service Map | Service di dominio + dipendenze reciproche |
 | [[02 - Database/Schema]] | Database | Tabelle, relazioni, indici |
 | [[03 - API/Auth API]] | API Auth | Register, Login, JWT |
 | [[03 - API/Trade API]] | API Trade | CRUD trade, calcoli automatici |

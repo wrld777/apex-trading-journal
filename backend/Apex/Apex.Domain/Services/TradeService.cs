@@ -25,10 +25,10 @@ public class TradeService : ITradeService
         return Result<List<TradeDto>>.Success(_mapper.Map<List<TradeDto>>(trades));
     }
 
-    public async Task<Result<TradeDto>> GetByIdAsync(Guid id, CancellationToken ct)
+    public async Task<Result<TradeDto>> GetByIdAsync(Guid id, Guid userId, CancellationToken ct)
     {
         var trade = await _tradeRepository.GetByIdAsync(id, ct);
-        if (trade is null)
+        if (trade is null || trade.UserId != userId)
             return Result<TradeDto>.Failure(Error.FromTradeError(TradeErrors.NotFound(id)));
 
         return Result<TradeDto>.Success(_mapper.Map<TradeDto>(trade));
@@ -46,10 +46,10 @@ public class TradeService : ITradeService
         return Result<TradeDto>.Success(_mapper.Map<TradeDto>(created));
     }
 
-    public async Task<Result<TradeDto>> UpdateAsync(Guid id, TradeDto dto, CancellationToken ct)
+    public async Task<Result<TradeDto>> UpdateAsync(Guid id, TradeDto dto, Guid userId, CancellationToken ct)
     {
         var trade = await _tradeRepository.GetByIdAsync(id, ct);
-        if (trade is null)
+        if (trade is null || trade.UserId != userId)
             return Result<TradeDto>.Failure(Error.FromTradeError(TradeErrors.NotFound(id)));
 
         trade.ExitPrice = dto.ExitPrice;
@@ -66,10 +66,10 @@ public class TradeService : ITradeService
         return Result<TradeDto>.Success(_mapper.Map<TradeDto>(updated));
     }
 
-    public async Task<Result<bool>> DeleteAsync(Guid id, CancellationToken ct)
+    public async Task<Result<bool>> DeleteAsync(Guid id, Guid userId, CancellationToken ct)
     {
         var trade = await _tradeRepository.GetByIdAsync(id, ct);
-        if (trade is null)
+        if (trade is null || trade.UserId != userId)
             return Result<bool>.Failure(Error.FromTradeError(TradeErrors.NotFound(id)));
 
         await _tradeRepository.DeleteAsync(trade, ct);

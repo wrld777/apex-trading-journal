@@ -118,6 +118,8 @@ Se la risposta è `401`, il `apiClient` chiama `clearAuth()` e redirige al login
 ---
 
 ## Link Correlati
+- [[../01 - Architecture/Services/AuthService]] — service di registrazione/login
+- [[../01 - Architecture/Services/ManageTokenService]] — emissione del JWT
 - [[../04 - Frontend/State]] — authStore Zustand
 - [[Trade API]] — endpoint protetti che richiedono JWT
 - [[../02 - Database/Schema#USERS]] — tabella utenti

@@ -4,24 +4,25 @@ tags: #architecture #backend #frontend
 
 ---
 
-## Pattern: Clean Architecture (4 layer)
+## Pattern: Clean Architecture
 
 ```
 ┌─────────────────────────────────────┐
-│         Apex.API (Presentation)     │  ← Controllers, HTTP, Swagger
+│         Apex.API (Presentation)     │  ← Controllers, HTTP, Swagger, JWT
 ├─────────────────────────────────────┤
-│         Apex.Domain (Business)      │  ← Services, Entities, DTOs, Enums
-├─────────────────────────────────────┤
-│       Apex.Application (Use Cases)  │  ← IApplicationService, orchestration
+│         Apex.Domain (Business)      │  ← Services, Entities, DTO, Enums, Result<T>
 ├─────────────────────────────────────┤
 │      Apex.Infrastructure (Data)     │  ← DbContext, Repositories, Migrations
 └─────────────────────────────────────┘
+        (Apex.Application — vuoto, vedi nota)
 ```
 
 ### Regola delle dipendenze
 - Ogni layer dipende **solo** dal layer sotto di lui
-- `API` → `Domain` → `Application` → `Infrastructure`
+- Flusso **reale**: `API` → `Domain` → `Infrastructure`
 - `Infrastructure` non conosce `API`
+
+> ⚠️ **Stato reale del codice:** il progetto `Apex.Application` esiste nella solution ma contiene solo `Class1.cs` (nessuna logica). I Service vivono in **`Apex.Domain/Services`** e `Apex.API` referenzia direttamente `Domain` e `Infrastructure`. Debito da risolvere: rimuovere `Application` oppure spostarvi i Service. Dettaglio componenti in [[Components]].
 
 ---
 
@@ -116,6 +117,8 @@ React Component (re-render)
 ---
 
 ## Link Correlati
+- [[Components]] — deep-dive sui componenti e ciclo di vita di una richiesta
 - [[../02 - Database/Schema]] — struttura DB
 - [[../03 - API/Auth API]] — endpoint auth
 - [[../04 - Frontend/State]] — state management
+- [[../06 - Roadmap/Current Sprint]] — stato di implementazione
