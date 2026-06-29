@@ -58,6 +58,7 @@ public class TradeService : ITradeService
         trade.EmotionalState = dto.EmotionalState;
         trade.Mistakes = dto.Mistakes;
         trade.Tags = dto.Tags;
+        trade.Screenshots = dto.Screenshots;
         trade.PnL = CalculatePnL(trade);
         trade.RiskReward = CalculateRR(trade);
         trade.Status = DetermineStatus(trade);
