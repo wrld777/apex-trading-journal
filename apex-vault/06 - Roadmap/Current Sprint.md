@@ -101,9 +101,10 @@ Concordate il 25/06. Issue create su GitHub.
 ### ✅ [#68 — Ownership trade su GetById/Update/Delete](https://github.com/wrld777/apex-trading-journal/issues/68) `BE` — COMPLETATA
 - Buco IDOR chiuso: i metodi del service ricevono lo `userId` dal token e trattano un trade altrui come `NotFound` (no information leak). ✅ (PR #78)
 
-### 📸 [#76 — Screenshot trade (upload su disco locale)](https://github.com/wrld777/apex-trading-journal/issues/76) `FE/BE` — da fare
-- Entità `Trade.Screenshots` e `TradeErrors` già pronti; manca il wiring end-to-end (solo placeholder UI in LogTrade).
-- Storage deciso: **disco locale** (`wwwroot/uploads/...`), DB tiene il path. Endpoint upload/delete + dropzone reale + preview.
+### ✅ [#76 — Screenshot trade](https://github.com/wrld777/apex-trading-journal/issues/76) `FE/BE` — COMPLETATA
+**BE:** PR [#79](https://github.com/wrld777/apex-trading-journal/pull/79) · **FE:** PR [#80](https://github.com/wrld777/apex-trading-journal/pull/80) (mergiate)
+- Approccio finale: **URL incollato dall'utente** con anteprima, **non** upload su disco. → [[../07 - Decisions/0002 - Screenshot come URL incollato dall'utente]] supera lo [[../07 - Decisions/0001 - Storage screenshot su disco locale|0001]].
+- BE valida solo il **formato URL** (`Uri.TryCreate` + scheme http/https, no SSRF); FE valida formato + caricamento in `<img>`. → [[../08 - Learnings/Validare un URL immagine (incolla link)]]
 
 ### ✅ [#77 — Filtri + paginazione server-side su GET /api/trade](https://github.com/wrld777/apex-trading-journal/issues/77) `BE/FE` — COMPLETATA
 **BE:** PR [#81](https://github.com/wrld777/apex-trading-journal/pull/81) (mergiata in `develop`) · **FE:** PR [#82](https://github.com/wrld777/apex-trading-journal/pull/82)
@@ -115,7 +116,7 @@ Concordate il 25/06. Issue create su GitHub.
 1. `FE` Dropdown Setup/Session in TradeLog: opzioni dai 100 trade più recenti → serve un endpoint `GET /api/trade/facets` (valori distinti) per completezza.
 2. `FE` Export CSV Analytics limitato a 100 trade/range (cap `pageSize` del BE) → iterare le pagine per export grandi.
 
-> **Prossimi:** #76 (screenshot). (#68 ✅, #77 ✅)
+> **Prossimi:** in valutazione la feature **Strategie** (registro strategie + checklist dinamica per strategia + analytics per strategia) — vedi [[../Excalidraw/Valutazione]]. Follow-up #77 aperti: endpoint `facets`, cap export. (#68 ✅, #76 ✅, #77 ✅)
 
 ---
 
