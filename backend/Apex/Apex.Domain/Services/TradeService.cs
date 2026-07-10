@@ -5,6 +5,7 @@ using Apex.Domain.DTOs;
 using Apex.Domain.Entities;
 using Apex.Domain.Enums;
 using Apex.Domain.Repositories;
+using Apex.Domain.Request.Trade;
 
 namespace Apex.Domain.Services;
 
@@ -19,10 +20,23 @@ public class TradeService : ITradeService
         _mapper = mapper;
     }
 
-    public async Task<Result<List<TradeDto>>> GetAllAsync(Guid userId, CancellationToken ct)
+    public async Task<Result<PagedList<TradeDto>>> GetPagedAsync(Guid userId, TradeQuery query, CancellationToken ct)
     {
-        var trades = await _tradeRepository.GetAllAsync(userId, ct);
-        return Result<List<TradeDto>>.Success(_mapper.Map<List<TradeDto>>(trades));
+        // clamp: il client non può chiedere pagine invalide o pageSize fuori scala
+        query.Page = query.Page < 1 ? 1 : query.Page;
+        query.PageSize = query.PageSize is < 1 or > 100 ? 25 : query.PageSize;
+
+        var (items, total) = await _tradeRepository.GetPagedAsync(userId, query, ct);
+
+        var result = new PagedList<TradeDto>
+        {
+            Items = _mapper.Map<List<TradeDto>>(items),
+            Page = query.Page,
+            PageSize = query.PageSize,
+            Total = total
+        };
+
+        return Result<PagedList<TradeDto>>.Success(result);
     }
 
     public async Task<Result<TradeDto>> GetByIdAsync(Guid id, Guid userId, CancellationToken ct)

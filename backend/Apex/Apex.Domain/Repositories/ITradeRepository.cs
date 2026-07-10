@@ -1,4 +1,5 @@
 ﻿using Apex.Domain.Entities;
+using Apex.Domain.Request.Trade;
 
 namespace Apex.Domain.Repositories;
 
@@ -10,6 +11,5 @@ public interface ITradeRepository
     Task<Trade> UpdateAsync(Trade trade, CancellationToken ct);
     Task DeleteAsync(Trade trade, CancellationToken ct);
     Task<List<Trade>> GetByDateRangeAsync(Guid userId, DateTime startDate, DateTime endDate, CancellationToken ct);
-    Task<List<Trade>> GetBySetupAsync(string setup, CancellationToken ct);
-    Task<List<Trade>> GetBySessionAsync(string session, CancellationToken ct);
+    Task<(List<Trade> items, int total)> GetPagedAsync(Guid userId, TradeQuery q, CancellationToken ct);
 }
