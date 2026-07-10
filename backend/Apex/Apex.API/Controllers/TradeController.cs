@@ -2,6 +2,7 @@
 using Apex.Domain.Common;
 using Apex.Domain.Contracts;
 using Apex.Domain.DTOs;
+using Apex.Domain.Request.Trade;
 using Apex.Domain.Requests;
 using Apex.Domain.Responses;
 using AutoMapper;
@@ -24,20 +25,29 @@ public class TradeController : ControllerBase
     }
 
 
-    // GET /api/trade?userId={userId}
+    // GET /api/trade?from=&to=&symbol=&setup=&session=&direction=&status=&page=&pageSize=&sort=&sortDir=
     [Authorize]
     [HttpGet]
-    
-    public async Task<IActionResult> GetAll(CancellationToken ct)
+    public async Task<IActionResult> GetAll([FromQuery] TradeQuery query, CancellationToken ct)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!Guid.TryParse(userIdClaim, out var userId))
             return Unauthorized();
-        var result = await _tradeService.GetAllAsync(userId, ct);
+
+        var result = await _tradeService.GetPagedAsync(userId, query, ct);
         if (!result.IsSuccess)
             return BadRequest(result.Error);
 
-        return Ok(_mapper.Map<List<TradeResponse>>(result.Value));
+        var paged = result.Value!;
+        var response = new PagedList<TradeResponse>
+        {
+            Items = _mapper.Map<List<TradeResponse>>(paged.Items),
+            Page = paged.Page,
+            PageSize = paged.PageSize,
+            Total = paged.Total
+        };
+
+        return Ok(response);
     }
 
     [Authorize]
