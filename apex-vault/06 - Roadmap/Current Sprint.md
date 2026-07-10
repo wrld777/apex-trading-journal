@@ -105,10 +105,17 @@ Concordate il 25/06. Issue create su GitHub.
 - Entità `Trade.Screenshots` e `TradeErrors` già pronti; manca il wiring end-to-end (solo placeholder UI in LogTrade).
 - Storage deciso: **disco locale** (`wwwroot/uploads/...`), DB tiene il path. Endpoint upload/delete + dropzone reale + preview.
 
-### 🗓️ [#77 — Filtri + paginazione server-side su GET /api/trade](https://github.com/wrld777/apex-trading-journal/issues/77) `BE/FE` — da fare
-- Oggi il Trade Log filtra/pagina client-side. Spostare a query param server-side (`from,to,symbol,setup,session,direction,status,page,pageSize,sort`) con response paginata.
+### ✅ [#77 — Filtri + paginazione server-side su GET /api/trade](https://github.com/wrld777/apex-trading-journal/issues/77) `BE/FE` — COMPLETATA
+**BE:** PR [#81](https://github.com/wrld777/apex-trading-journal/pull/81) (mergiata in `develop`) · **FE:** PR [#82](https://github.com/wrld777/apex-trading-journal/pull/82)
+- **BE** (`GetPagedAsync` in repo/service/controller): query param `from,to,symbol,setup,session,direction,status,page,pageSize,sort,sortDir`, response `PagedList<TradeResponse>`; clamp su `page`/`pageSize`; rimossi `GetBySetupAsync`/`GetBySessionAsync`.
+- 🐛 **Fix bug filtro date** trovato in verifica: `?from=2026-04-01` (data secca) → **500** per `Kind=Unspecified` → risolto con `SpecifyKind(..., Utc)`. → [[../08 - Learnings/DateTime UTC e Npgsql timestamptz (filtri data)]]
+- **FE**: `getMine(query)` ritorna `PagedList`, `useTrades(query)` con `keepPreviousData`; TradeLog delega filtri/sort/paginazione al server (rimossa la logica client); Dashboard `pageSize:8`, Analytics `pageSize:100` per l'export. `to` reso inclusivo (+1 giorno). Verificato nel browser (login reale).
 
-> **Prossimi:** #77 (filtri/paginazione) → #76 (screenshot). (#68 ✅ fatto)
+**Follow-up emersi (da tracciare come issue):**
+1. `FE` Dropdown Setup/Session in TradeLog: opzioni dai 100 trade più recenti → serve un endpoint `GET /api/trade/facets` (valori distinti) per completezza.
+2. `FE` Export CSV Analytics limitato a 100 trade/range (cap `pageSize` del BE) → iterare le pagine per export grandi.
+
+> **Prossimi:** #76 (screenshot). (#68 ✅, #77 ✅)
 
 ---
 

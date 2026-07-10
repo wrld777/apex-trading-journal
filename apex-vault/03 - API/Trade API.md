@@ -9,43 +9,39 @@ Autenticazione: **JWT Bearer richiesto** su tutti gli endpoint
 
 ## GET /api/trade
 
-Ottieni tutti i trade dell'**utente autenticato**.
+Ottieni i trade dell'**utente autenticato**, **filtrati, ordinati e paginati lato server** (#77).
 
-**Auth:** `[Authorize]` — lo `userId` viene dal **token JWT** (claim `NameIdentifier`). Nessun parametro (#52).
+**Auth:** `[Authorize]` — lo `userId` viene dal **token JWT** (claim `NameIdentifier`).
 
-> 🐛 **Storia:** in #40 era `GET /api/trade?userId=` (per evitare il conflitto di routing con `GET /api/trade/{id:guid}`). In #52 il query param è stato rimosso: lo userId arriva dal token, così non puoi leggere i trade di un altro utente.
+> 🐛 **Storia:** #40 → `?userId=` · #52 → userId dal token (nessun param) · **#77 → query param di filtro/sort/paginazione + response `PagedList`** (prima era un array piatto).
 
-**Response 200:**
+**Query param** (tutti opzionali):
+
+| Param | Tipo | Default | Note |
+|-------|------|---------|------|
+| `from` / `to` | date | — | range su `EntryTime`. ⚠️ normalizzati a UTC lato BE ([[../08 - Learnings/DateTime UTC e Npgsql timestamptz (filtri data)]]) |
+| `symbol` | string | — | match **parziale** (`Contains`) |
+| `setup` / `session` | string | — | match **esatto** |
+| `direction` | enum | — | `Long` / `Short` (bind per nome) |
+| `status` | enum | — | `Win` / `Loss` / `BreakEven` |
+| `page` | int | `1` | clamp: `< 1 → 1` |
+| `pageSize` | int | `25` | clamp: fuori `1..100 → 25` |
+| `sort` | string | `entryTime` | `entryTime` / `pnl` / `riskReward` / `symbol` |
+| `sortDir` | string | `desc` | `asc` / `desc` |
+
+> ⚠️ Non mandare param **vuoti**: `sort=`/`sortDir=`/`direction=` vuoti danno **400** (campo required / enum non parsabile). Il FE invia solo i param valorizzati.
+
+**Response 200** — `PagedList<TradeResponse>`:
 ```json
-[
-  {
-    "id": "uuid",
-    "symbol": "NQ",
-    "direction": "Long",
-    "entryPrice": 18842.00,
-    "stopLoss": 18800.00,
-    "takeProfit": 18950.00,
-    "exitPrice": 18904.25,
-    "quantity": 1,
-    "pnL": 62.25,
-    "riskReward": 2.4,
-    "entryTime": "2025-05-13T09:30:00Z",
-    "exitTime": "2025-05-13T10:15:00Z",
-    "status": "Win",
-    "session": "New York Open",
-    "setup": "Breaker Block",
-    "htfBias": "Bullish",
-    "grade": "A+",
-    "rationale": "HTF FVG sweep con OB reazione",
-    "emotionalState": "Calm & Focused",
-    "mistakes": "",
-    "tags": ["breaker", "fvg"],
-    "createdAt": "2025-05-13T11:00:00Z"
-  }
-]
+{
+  "items": [ { "id": "uuid", "symbol": "NQ", "direction": "Long", "pnL": 62.25, "status": "Win", "entryTime": "2025-05-13T09:30:00Z", "...": "resto del TradeDto" } ],
+  "page": 1,
+  "pageSize": 25,
+  "total": 137
+}
 ```
 
-Ordinati per `EntryTime` DESC (più recenti prima).
+`total` è il conteggio **globale** dei trade che matchano i filtri (indipendente dalla pagina). Default sort: `EntryTime` DESC.
 
 ---
 

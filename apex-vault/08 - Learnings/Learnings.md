@@ -20,6 +20,7 @@ tags: #learning #skill #index
 
 | Nota | Tema | Contesto |
 |------|------|----------|
+| [[DateTime UTC e Npgsql timestamptz (filtri data)]] | `Kind=Utc` obbligatorio su `timestamptz`, `SpecifyKind` | [#77](https://github.com/wrld777/apex-trading-journal/issues/77) BE |
 | [[Validare un URL immagine (incolla link)]] | Validazione URL immagine (formato + caricamento) | [#76](https://github.com/wrld777/apex-trading-journal/issues/76) FE |
 | [[File upload in ASP.NET Core (IFormFile)]] | Upload file, static files, validazione | [#76](https://github.com/wrld777/apex-trading-journal/issues/76) BE |
 
