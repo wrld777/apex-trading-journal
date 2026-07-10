@@ -5,7 +5,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import Modal from '../../components/ui/Modal'
 import { useToastStore } from '../../store/toastStore'
 import EditTradeModal from './EditTradeModal'
-import type { TradeDto } from '../../types/trade'
+import type { Direction, TradeDto, TradeQuery, TradeStatus } from '../../types/trade'
 
 /* ── helpers ── */
 function fmtNum(n: number, d = 0) {
@@ -51,7 +51,6 @@ function SortHeader({ label, col, sort, onSort, align = 'left' }: {
 }
 
 export default function TradeLog() {
-  const { data: trades, isLoading, isError } = useTrades()
   const { mutate: deleteTrade, isPending: isDeleting } = useDeleteTrade()
   const addToast = useToastStore((s) => s.addToast)
 
@@ -82,34 +81,7 @@ export default function TradeLog() {
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'date', dir: 'desc' })
   const [page, setPage] = useState(1)
 
-  const setups = useMemo(() => [...new Set((trades ?? []).map(t => t.setup))].sort(), [trades])
-  const sessions = useMemo(() => [...new Set((trades ?? []).map(t => t.session))].sort(), [trades])
-
   const hasFilters = !!(symbol || setup || session || direction || status || from || to)
-
-  const filtered = useMemo(() => {
-    const fromT = from ? Date.parse(`${from}T00:00:00Z`) : -Infinity
-    const toT = to ? Date.parse(`${to}T23:59:59.999Z`) : Infinity
-    const sym = symbol.trim().toLowerCase()
-
-    const rows = (trades ?? []).filter(t => {
-      if (sym && !t.symbol.toLowerCase().includes(sym)) return false
-      if (setup && t.setup !== setup) return false
-      if (session && t.session !== session) return false
-      if (direction && t.direction !== direction) return false
-      if (status && t.status !== status) return false
-      const e = new Date(t.entryTime).getTime()
-      return e >= fromT && e <= toT
-    })
-
-    return [...rows].sort((a, b) => {
-      const cmp =
-        sort.key === 'date' ? new Date(a.entryTime).getTime() - new Date(b.entryTime).getTime()
-        : sort.key === 'pnl' ? a.pnL - b.pnL
-        : a.riskReward - b.riskReward
-      return sort.dir === 'asc' ? cmp : -cmp
-    })
-  }, [trades, symbol, setup, session, direction, status, from, to, sort])
 
   // Reset to first page when filters/sort change (adjust state during render).
   const filterKey = `${symbol}|${setup}|${session}|${direction}|${status}|${from}|${to}|${sort.key}|${sort.dir}`
@@ -119,9 +91,46 @@ export default function TradeLog() {
     setPage(1)
   }
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const pageClamped = Math.min(page, totalPages)
-  const pageRows = filtered.slice((pageClamped - 1) * PAGE_SIZE, pageClamped * PAGE_SIZE)
+  // Map the table's sort keys onto the API's sort fields.
+  const sortField: TradeQuery['sort'] =
+    sort.key === 'date' ? 'entryTime' : sort.key === 'pnl' ? 'pnl' : 'riskReward'
+  // `to` is made inclusive of the end day (+1 day): the API compares against UTC midnight.
+  const toExclusive = to
+    ? new Date(new Date(`${to}T00:00:00Z`).getTime() + 86_400_000).toISOString().slice(0, 10)
+    : undefined
+
+  const query: TradeQuery = {
+    symbol: symbol.trim() || undefined,
+    setup: setup || undefined,
+    session: session || undefined,
+    direction: (direction || undefined) as Direction | undefined,
+    status: (status || undefined) as TradeStatus | undefined,
+    from: from || undefined,
+    to: toExclusive,
+    sort: sortField,
+    sortDir: sort.dir,
+    page,
+    pageSize: PAGE_SIZE,
+  }
+
+  const { data, isLoading, isError } = useTrades(query)
+  const rows = data?.items ?? []
+  const total = data?.total ?? 0
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+
+  // A delete on the last page can leave us past the end: snap back into range.
+  if (data && page > totalPages) setPage(totalPages)
+
+  // Distinct setups/sessions for the filter dropdowns (from the 100 most recent trades).
+  const { data: optionsPage } = useTrades({ pageSize: 100 })
+  const setups = useMemo(
+    () => [...new Set((optionsPage?.items ?? []).map(t => t.setup))].filter(Boolean).sort(),
+    [optionsPage],
+  )
+  const sessions = useMemo(
+    () => [...new Set((optionsPage?.items ?? []).map(t => t.session))].filter(Boolean).sort(),
+    [optionsPage],
+  )
 
   const onSort = (key: SortKey) =>
     setSort(s => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'desc' }))
@@ -138,7 +147,7 @@ export default function TradeLog() {
         <div>
           <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">Trade Log</h1>
           <p className="text-xs text-zinc-600">
-            {isLoading ? 'Loading…' : `${filtered.length} di ${trades?.length ?? 0} trade`}
+            {isLoading ? 'Loading…' : `${total} trade${hasFilters ? ' (filtrati)' : ''}`}
           </p>
         </div>
       </div>
@@ -181,14 +190,14 @@ export default function TradeLog() {
           <TableSkeleton rows={10} />
         ) : isError ? (
           <div className="text-xs text-red-400 py-6 text-center">Failed to load trades.</div>
-        ) : (trades?.length ?? 0) === 0 ? (
+        ) : total === 0 && !hasFilters ? (
           <EmptyState
             title="No trades logged yet"
             description="Log your first trade to populate your trade log."
             actionLabel="Log a Trade"
             actionTo="/log-trade"
           />
-        ) : filtered.length === 0 ? (
+        ) : total === 0 ? (
           <div className="text-xs text-zinc-600 py-8 text-center">Nessun trade corrisponde ai filtri.</div>
         ) : (
           <>
@@ -211,7 +220,7 @@ export default function TradeLog() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pageRows.map(t => (
+                  {rows.map(t => (
                     <tr key={t.id} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02] transition-colors">
                       <td className="py-2.5 px-3 text-[11px] text-zinc-500 whitespace-nowrap">{fmtDate(t.entryTime)}</td>
                       <td className="py-2.5 px-3 text-xs font-medium text-white">{t.symbol}</td>
@@ -261,19 +270,19 @@ export default function TradeLog() {
             {/* Pagination */}
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/[0.04]">
               <span className="text-[11px] text-zinc-600">
-                Pagina {pageClamped} di {totalPages}
+                Pagina {page} di {totalPages}
               </span>
               <div className="flex gap-1.5">
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={pageClamped <= 1}
+                  disabled={page <= 1}
                   className="px-2.5 py-1 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   ← Prec
                 </button>
                 <button
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={pageClamped >= totalPages}
+                  disabled={page >= totalPages}
                   className="px-2.5 py-1 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Succ →

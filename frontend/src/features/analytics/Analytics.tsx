@@ -321,7 +321,14 @@ export default function Analytics() {
     from || undefined,
     to ? `${to}T23:59:59` : undefined,
   )
-  const { data: trades } = useTrades()
+  // For CSV export only: narrow the server fetch to the active range, then the
+  // client-side exportRows below applies the exact inclusive bounds. `to` is
+  // bumped +1 day so trades on the end day aren't dropped by the server.
+  const toExclusive = to
+    ? new Date(new Date(`${to}T00:00:00Z`).getTime() + 86_400_000).toISOString().slice(0, 10)
+    : undefined
+  const { data: tradesPage } = useTrades({ from: from || undefined, to: toExclusive, pageSize: 100 })
+  const trades = tradesPage?.items
 
   // Trades within the active date range (UTC bounds), oldest first — for CSV export.
   const exportRows = useMemo(() => {
