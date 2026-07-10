@@ -1,16 +1,19 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { tradeService } from '../services/tradeService'
 import { useAuthStore } from '../store/authStore'
-import type { CreateTradeRequest, UpdateTradeRequest } from '../types/trade'
+import type { CreateTradeRequest, TradeQuery, UpdateTradeRequest } from '../types/trade'
 
-export function useTrades() {
+// Returns a PagedList<TradeDto>: { items, page, pageSize, total }.
+export function useTrades(query: TradeQuery = {}) {
   const userId = useAuthStore((s) => s.userId)
 
   return useQuery({
-    queryKey: ['trades', userId],
-    queryFn: () => tradeService.getMine(),
+    queryKey: ['trades', userId, query],
+    queryFn: () => tradeService.getMine(query),
     enabled: !!userId,
     staleTime: 30_000,
+    // Keep the current page visible while the next one loads (no flash).
+    placeholderData: keepPreviousData,
   })
 }
 

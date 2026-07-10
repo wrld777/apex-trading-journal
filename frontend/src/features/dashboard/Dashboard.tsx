@@ -220,7 +220,9 @@ function fmtPnl(n: number) {
 export default function Dashboard() {
   const name = useAuthStore((s) => s.name)
   const { data, isLoading, isError } = useStats()
-  const { data: trades, isLoading: tradesLoading, isError: tradesError } = useTrades()
+  // RecentTrades only needs the latest few; page 1 (default sort: entryTime desc) covers it.
+  const { data: tradesPage, isLoading: tradesLoading, isError: tradesError } = useTrades({ pageSize: 8 })
+  const trades = tradesPage?.items
   const { data: profile } = useProfile()
 
   // Account size drives "% of capital" figures. Fall back to a sane default

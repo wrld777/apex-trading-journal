@@ -1,6 +1,29 @@
 export type Direction = 'Long' | 'Short'
 export type TradeStatus = 'Win' | 'Loss' | 'BreakEven'
 
+// Server-side paged response wrapper (GET /api/trade).
+export interface PagedList<T> {
+  items: T[]
+  page: number
+  pageSize: number
+  total: number
+}
+
+// Query params accepted by GET /api/trade. Only set fields are sent.
+export interface TradeQuery {
+  from?: string
+  to?: string
+  symbol?: string
+  setup?: string
+  session?: string
+  direction?: Direction
+  status?: TradeStatus
+  page?: number
+  pageSize?: number
+  sort?: 'entryTime' | 'pnl' | 'riskReward' | 'symbol'
+  sortDir?: 'asc' | 'desc'
+}
+
 export interface TradeDto {
   id: string
   symbol: string

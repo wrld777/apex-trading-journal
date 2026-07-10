@@ -1,5 +1,21 @@
 import apiClient from './apiClient'
-import type { CreateTradeRequest, TradeDto, UpdateTradeRequest } from '../types/trade'
+import type {
+  CreateTradeRequest,
+  PagedList,
+  TradeDto,
+  TradeQuery,
+  UpdateTradeRequest,
+} from '../types/trade'
+
+// Drop empty/undefined values: the API rejects blank enum/date/sort params.
+function toParams(query: TradeQuery): Record<string, string | number> {
+  const params: Record<string, string | number> = {}
+  for (const [key, value] of Object.entries(query)) {
+    if (value === undefined || value === null || value === '') continue
+    params[key] = value as string | number
+  }
+  return params
+}
 
 export const tradeService = {
   // userId is derived server-side from the JWT (Authorization header).
@@ -8,8 +24,11 @@ export const tradeService = {
     return res.data
   },
 
-  getMine: async (): Promise<TradeDto[]> => {
-    const res = await apiClient.get<TradeDto[]>('/api/trade')
+  // GET /api/trade — server-side filtered, sorted and paginated.
+  getMine: async (query: TradeQuery = {}): Promise<PagedList<TradeDto>> => {
+    const res = await apiClient.get<PagedList<TradeDto>>('/api/trade', {
+      params: toParams(query),
+    })
     return res.data
   },
 
