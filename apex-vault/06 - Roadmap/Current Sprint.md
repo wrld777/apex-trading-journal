@@ -116,7 +116,19 @@ Concordate il 25/06. Issue create su GitHub.
 1. `FE` Dropdown Setup/Session in TradeLog: opzioni dai 100 trade più recenti → serve un endpoint `GET /api/trade/facets` (valori distinti) per completezza.
 2. `FE` Export CSV Analytics limitato a 100 trade/range (cap `pageSize` del BE) → iterare le pagine per export grandi.
 
-> **Prossimi:** in valutazione la feature **Strategie** (registro strategie + checklist dinamica per strategia + analytics per strategia) — vedi [[../Excalidraw/Valutazione]]. Follow-up #77 aperti: endpoint `facets`, cap export. (#68 ✅, #76 ✅, #77 ✅)
+> **Prossimi:** feature **Strategie** → [US #83](https://github.com/wrld777/apex-trading-journal/issues/83). Follow-up #77 aperti: endpoint `facets`, cap export. (#68 ✅, #76 ✅, #77 ✅)
+
+---
+
+## 🚀 Sprint 4 — Strategie
+
+[US #83 — Strategie: unità di analisi con checklist di regole oggettive](https://github.com/wrld777/apex-trading-journal/issues/83) · decisione: [[../07 - Decisions/0003 - Strategie con checklist di regole oggettive e aderenza per-trade]]
+
+- [ ] [#84](https://github.com/wrld777/apex-trading-journal/issues/84) — **Fase 1** `BE+FE`: entità `Strategy`/`StrategyRule` + CRUD + pagina `/strategies`
+- [ ] [#85](https://github.com/wrld777/apex-trading-journal/issues/85) — **Fase 2** `FE+BE`: Log Trade selettore strategia + checklist dinamica + aderenza (`TradeRuleCheck`)
+- [ ] [#86](https://github.com/wrld777/apex-trading-journal/issues/86) — **Fase 3** `BE+FE`: analytics per strategia / per-regola / disciplina
+
+> **Idea chiave:** registrare l'**aderenza** (quali regole rispettate per trade) separa "strategia debole" da "esecuzione indisciplinata".
 
 ---
 
