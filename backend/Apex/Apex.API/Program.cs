@@ -43,9 +43,11 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateTradeRequestValidator
 // Repository
 builder.Services.AddScoped<ITradeRepository, TradeRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IStrategyRepository, StrategyRepository>();
 
 // Service
 builder.Services.AddScoped<ITradeService, TradeService>();
+builder.Services.AddScoped<IStrategyService, StrategyService>();
 builder.Services.AddScoped<IStatsService, StatsService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -56,6 +58,7 @@ builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddProfile<TradeProfile>();
     cfg.AddProfile<UserProfile>();
+    cfg.AddProfile<StrategyProfile>();
 });
 
 // Database
