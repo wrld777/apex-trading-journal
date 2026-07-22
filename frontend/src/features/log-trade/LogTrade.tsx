@@ -1,39 +1,50 @@
 import { useState } from 'react'
 import { useCreateTrade } from '../../hooks/useTrades'
+import { useStrategies } from '../../hooks/useStrategies'
 import { useToastStore } from '../../store/toastStore'
 import ScreenshotInput from '../../components/ui/ScreenshotInput'
 import type { Direction } from '../../types/trade'
+import type { StrategyRuleDto } from '../../types/strategy'
 
 // ── Small UI helpers ──────────────────────────────────────────────────────────
 
-interface ChecklistItem {
-  id: number
-  label: string
+// A single strategy rule rendered as an adherence checkbox (ADR 0003):
+// the trader records whether the objective entry condition was met on this trade.
+function RuleCheckItem({
+  rule,
+  checked,
+  onToggle,
+}: {
+  rule: StrategyRuleDto
   checked: boolean
-}
-
-function CheckItem({ item, onToggle }: { item: ChecklistItem; onToggle: (id: number) => void }) {
+  onToggle: (id: string) => void
+}) {
   return (
     <div
       className="flex items-center gap-2.5 py-2 border-b border-white/[0.04] last:border-0 cursor-pointer select-none group"
-      onClick={() => onToggle(item.id)}
+      onClick={() => onToggle(rule.id)}
       role="checkbox"
-      aria-checked={item.checked}
+      aria-checked={checked}
       tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onToggle(item.id) }}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onToggle(rule.id) }}
     >
       <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all ${
-        item.checked ? 'bg-green-500 border-green-500' : 'border-white/[0.11] group-hover:border-white/[0.18]'
+        checked ? 'bg-green-500 border-green-500' : 'border-white/[0.11] group-hover:border-white/[0.18]'
       }`}>
-        {item.checked && (
+        {checked && (
           <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
             <polyline points="1.5,4.5 3.5,6.5 7.5,2.5" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         )}
       </div>
-      <span className={`text-xs transition-colors ${item.checked ? 'text-zinc-600 line-through' : 'text-zinc-400'}`}>
-        {item.label}
+      <span className={`text-xs transition-colors ${checked ? 'text-zinc-600 line-through' : 'text-zinc-400'}`}>
+        {rule.label}
       </span>
+      {rule.required && (
+        <span className="ml-auto shrink-0 text-[9px] font-medium tracking-[0.08em] px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-500/90">
+          OBBL.
+        </span>
+      )}
     </div>
   )
 }
@@ -120,20 +131,11 @@ const DEFAULT_FORM = {
   mistakes: '',
 }
 
-const DEFAULT_CHECKLIST: ChecklistItem[] = [
-  { id: 1, label: 'HTF bias confirmed',          checked: false },
-  { id: 2, label: 'Killzone entry window',        checked: false },
-  { id: 3, label: 'PD array identified',          checked: false },
-  { id: 4, label: 'Liquidity taken before entry', checked: false },
-  { id: 5, label: 'Risk ≤ 0.5% of account',      checked: false },
-  { id: 6, label: 'News events checked',          checked: false },
-  { id: 7, label: 'Stop placed beyond OB',        checked: false },
-]
-
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function LogTrade() {
   const { mutate: createTrade, isPending } = useCreateTrade()
+  const { data: strategies = [] } = useStrategies()
   const addToast = useToastStore((s) => s.addToast)
 
   const [direction, setDirection] = useState<Direction>('Long')
@@ -141,7 +143,14 @@ export default function LogTrade() {
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
   const [screenshots, setScreenshots] = useState<string[]>([])
-  const [checklist, setChecklist] = useState<ChecklistItem[]>(DEFAULT_CHECKLIST)
+  const [strategyId, setStrategyId] = useState('')
+  // Adherence keyed by StrategyRule id → whether the rule was followed on this trade.
+  const [ruleChecks, setRuleChecks] = useState<Record<string, boolean>>({})
+
+  const selectedStrategy = strategies.find((s) => s.id === strategyId) ?? null
+  const checkedCount = selectedStrategy
+    ? selectedStrategy.rules.filter((r) => ruleChecks[r.id]).length
+    : 0
 
   const handleChange = (field: keyof typeof DEFAULT_FORM) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -149,8 +158,15 @@ export default function LogTrade() {
     setForm(prev => ({ ...prev, [field]: e.target.value }))
   }
 
-  const toggleCheck = (id: number) => {
-    setChecklist(prev => prev.map(item => item.id === id ? { ...item, checked: !item.checked } : item))
+  const selectStrategy = (id: string) => {
+    setStrategyId(id)
+    const s = strategies.find((x) => x.id === id)
+    // Reset adherence to the chosen strategy's rules, all unchecked.
+    setRuleChecks(s ? Object.fromEntries(s.rules.map((r) => [r.id, false])) : {})
+  }
+
+  const toggleRule = (id: string) => {
+    setRuleChecks(prev => ({ ...prev, [id]: !prev[id] }))
   }
 
   const addTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -174,7 +190,8 @@ export default function LogTrade() {
     setTags([])
     setTagInput('')
     setScreenshots([])
-    setChecklist(DEFAULT_CHECKLIST)
+    setStrategyId('')
+    setRuleChecks({})
   }
 
   const handleSubmit = () => {
@@ -207,6 +224,10 @@ export default function LogTrade() {
         mistakes: form.mistakes,
         tags,
         screenshots,
+        strategyId: strategyId || null,
+        ruleChecks: selectedStrategy
+          ? selectedStrategy.rules.map((r) => ({ strategyRuleId: r.id, checked: !!ruleChecks[r.id] }))
+          : [],
       },
       {
         onSuccess: () => {
@@ -425,19 +446,47 @@ export default function LogTrade() {
           </FormCard>
 
           <FormCard>
-            <SectionTitle>Pre-Trade Checklist</SectionTitle>
-            <div role="list">
-              {checklist.map(item => <CheckItem key={item.id} item={item} onToggle={toggleCheck} />)}
-            </div>
-            <div className="mt-3 pt-3 border-t border-white/[0.04] flex items-center justify-between">
-              <span className="text-[11px] text-zinc-700">{checklist.filter(i => i.checked).length}/{checklist.length} completed</span>
-              <div className="flex-1 mx-3 h-1 bg-[#1a1a1d] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-green-500 rounded-full transition-all duration-500"
-                  style={{ width: `${(checklist.filter(i => i.checked).length / checklist.length) * 100}%` }}
-                />
-              </div>
-            </div>
+            <SectionTitle>Strategy &amp; Adherence</SectionTitle>
+            <Field label="Strategy">
+              <Select value={strategyId} onChange={(e) => selectStrategy(e.target.value)}>
+                <option value="">— No strategy —</option>
+                {strategies.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </Select>
+            </Field>
+
+            {selectedStrategy ? (
+              selectedStrategy.rules.length > 0 ? (
+                <div className="mt-3.5">
+                  <div role="list">
+                    {selectedStrategy.rules.map((rule) => (
+                      <RuleCheckItem
+                        key={rule.id}
+                        rule={rule}
+                        checked={!!ruleChecks[rule.id]}
+                        onToggle={toggleRule}
+                      />
+                    ))}
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-white/[0.04] flex items-center justify-between">
+                    <span className="text-[11px] text-zinc-700">{checkedCount}/{selectedStrategy.rules.length} followed</span>
+                    <div className="flex-1 mx-3 h-1 bg-[#1a1a1d] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-green-500 rounded-full transition-all duration-500"
+                        style={{ width: `${(checkedCount / selectedStrategy.rules.length) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-[11px] text-zinc-600 mt-3.5">This strategy has no rules yet.</p>
+              )
+            ) : (
+              <p className="text-[11px] text-zinc-600 mt-3.5 leading-relaxed">
+                Select a strategy to load its objective entry rules and record which you followed on this trade.
+              </p>
+            )}
           </FormCard>
 
           <FormCard>
