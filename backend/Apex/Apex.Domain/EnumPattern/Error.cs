@@ -17,4 +17,5 @@ public class Error
     public static Error FromTradeError(TradeErrors error) => new() { Code = "TRADE_ERROR", Message = error.Message };
     public static Error FromUserError(UserErrors error) => new() { Code = "USER_ERROR", Message = error.Message };
     public static Error FromAuthError(AuthErrors error) => new() { Code = "AUTH_ERROR", Message = error.Message };
+    public static Error FromStrategyError(StrategyErrors error) => new() { Code = "STRATEGY_ERROR", Message = error.Message };
 }

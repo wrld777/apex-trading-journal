@@ -10,6 +10,8 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     public DbSet<Trade> Trades { get; set; }
     public DbSet<User> Users { get; set; }
+    public DbSet<Strategy> Strategies { get; set; }
+    public DbSet<StrategyRule> StrategyRules { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -76,6 +78,38 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
 
             entity.Property(u => u.AccountSize)
                 .HasPrecision(18, 4);
+        });
+
+        modelBuilder.Entity<Strategy>(entity =>
+        {
+            entity.HasKey(s => s.Id);
+
+            entity.Property(s => s.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(s => s.Description)
+                .HasMaxLength(1000);
+
+            entity.HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Deleting a strategy removes its rules.
+            entity.HasMany(s => s.Rules)
+                .WithOne(r => r.Strategy)
+                .HasForeignKey(r => r.StrategyId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<StrategyRule>(entity =>
+        {
+            entity.HasKey(r => r.Id);
+
+            entity.Property(r => r.Label)
+                .IsRequired()
+                .HasMaxLength(200);
         });
     }
 }
