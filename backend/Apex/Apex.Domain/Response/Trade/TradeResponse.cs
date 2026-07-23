@@ -1,4 +1,5 @@
-﻿using Apex.Domain.Enums;
+﻿using Apex.Domain.DTO;
+using Apex.Domain.Enums;
 
 namespace Apex.Domain.Responses;
 
@@ -27,4 +28,6 @@ public class TradeResponse
     public List<string> Tags { get; set; } = new();
     public DateTime CreatedAt { get; set; }
     public List<string> Screenshots { get; set; } = new();
+    public Guid? StrategyId { get; set; }
+    public List<TradeRuleCheckDto> RuleChecks { get; set; } = new();
 }

@@ -26,6 +26,7 @@ public class TradeRepository : ITradeRepository
     public async Task<Trade?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _context.Trades
+            .Include(t => t.RuleChecks)
             .FirstOrDefaultAsync(t => t.Id == id, ct);
     }
 
@@ -40,6 +41,14 @@ public class TradeRepository : ITradeRepository
     {
         trade.UpdatedAt = DateTime.UtcNow;
         _context.Trades.Update(trade);
+
+        // I rule check sono sempre ricreati (replace): hanno un Id fresco ma, essendo
+        // nel grafo passato a Update(), EF li marca Modified e tenterebbe un UPDATE su
+        // righe inesistenti. Li forzo ad Added (stesso trucco dello StrategyRepository).
+        // I vecchi check, caricati via Include e orfani dopo il Clear(), vengono cancellati.
+        foreach (var rc in trade.RuleChecks)
+            _context.Entry(rc).State = EntityState.Added;
+
         await _context.SaveChangesAsync(ct);
         return trade;
     }

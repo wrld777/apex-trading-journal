@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Apex.Domain.Common;
 using Apex.Domain.Contracts;
+using Apex.Domain.DTO;
 using Apex.Domain.DTOs;
 using Apex.Domain.Entities;
 using Apex.Domain.Enums;
@@ -12,11 +13,13 @@ namespace Apex.Domain.Services;
 public class TradeService : ITradeService
 {
     private readonly ITradeRepository _tradeRepository;
+    private readonly IStrategyRepository _strategyRepository;
     private readonly IMapper _mapper;
 
-    public TradeService(ITradeRepository tradeRepository, IMapper mapper)
+    public TradeService(ITradeRepository tradeRepository, IStrategyRepository strategyRepository, IMapper mapper)
     {
         _tradeRepository = tradeRepository;
+        _strategyRepository = strategyRepository;
         _mapper = mapper;
     }
 
@@ -51,10 +54,16 @@ public class TradeService : ITradeService
     public async Task<Result<TradeDto>> CreateAsync(TradeDto dto, Guid userId, CancellationToken ct)
     {
         var trade = _mapper.Map<Trade>(dto);
+        trade.Id = Guid.NewGuid();
         trade.UserId = userId;
         trade.PnL = CalculatePnL(trade);
         trade.RiskReward = CalculateRR(trade);
         trade.Status = DetermineStatus(trade);
+
+        // Strategia + aderenza (opzionali): valida ownership e ricostruisce i rule check.
+        var applied = await ApplyStrategyAndChecks(trade, dto.StrategyId, dto.RuleChecks, userId, ct);
+        if (!applied.IsSuccess)
+            return Result<TradeDto>.Failure(applied.Error!);
 
         var created = await _tradeRepository.CreateAsync(trade, ct);
         return Result<TradeDto>.Success(_mapper.Map<TradeDto>(created));
@@ -77,6 +86,11 @@ public class TradeService : ITradeService
         trade.RiskReward = CalculateRR(trade);
         trade.Status = DetermineStatus(trade);
 
+        // Riconcilia strategia + aderenza: replace totale dei rule check.
+        var applied = await ApplyStrategyAndChecks(trade, dto.StrategyId, dto.RuleChecks, userId, ct);
+        if (!applied.IsSuccess)
+            return Result<TradeDto>.Failure(applied.Error!);
+
         var updated = await _tradeRepository.UpdateAsync(trade, ct);
         return Result<TradeDto>.Success(_mapper.Map<TradeDto>(updated));
     }
@@ -92,6 +106,44 @@ public class TradeService : ITradeService
     }
 
     /* ── PRIVATE HELPERS ── */
+
+    // Applica strategia + aderenza a un trade.
+    // - StrategyId null/empty → trade senza strategia (nessun check).
+    // - La strategia deve appartenere all'utente (altrimenti NotFound, come #68).
+    // - Ogni rule check deve puntare a una regola DI QUELLA strategia.
+    private async Task<Result<bool>> ApplyStrategyAndChecks(
+        Trade trade, Guid? strategyId, List<TradeRuleCheckDto> checks, Guid userId, CancellationToken ct)
+    {
+        trade.RuleChecks.Clear();
+        trade.StrategyId = null;
+
+        if (strategyId is null || strategyId == Guid.Empty)
+            return Result<bool>.Success(true);
+
+        var strategy = await _strategyRepository.GetByIdAsync(strategyId.Value, userId, ct);
+        if (strategy is null)
+            return Result<bool>.Failure(Error.FromStrategyError(StrategyErrors.NotFound(strategyId.Value)));
+
+        trade.StrategyId = strategy.Id;
+
+        var validRuleIds = strategy.Rules.Select(r => r.Id).ToHashSet();
+        foreach (var c in checks ?? new())
+        {
+            if (!validRuleIds.Contains(c.StrategyRuleId))
+                return Result<bool>.Failure(
+                    Error.Validation("Un rule check non appartiene alla strategia selezionata."));
+
+            trade.RuleChecks.Add(new TradeRuleCheck
+            {
+                Id = Guid.NewGuid(),
+                TradeId = trade.Id,
+                StrategyRuleId = c.StrategyRuleId,
+                Checked = c.Checked
+            });
+        }
+
+        return Result<bool>.Success(true);
+    }
 
     private static decimal CalculatePnL(Trade trade)
     {

@@ -54,7 +54,7 @@ public class StrategyService : IStrategyService
         if (strategy is null)
             return Result<StrategyDto>.Failure(Error.FromStrategyError(StrategyErrors.NotFound(id)));
 
-        // Nome duplicato su un'altra strategia dello stesso utente.
+
         var byName = await _strategyRepository.GetByNameAsync(dto.Name, userId, ct);
         if (byName is not null && byName.Id != id)
             return Result<StrategyDto>.Failure(Error.FromStrategyError(StrategyErrors.AlreadyExist(dto.Name)));

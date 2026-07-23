@@ -1,4 +1,5 @@
-﻿using Apex.Domain.DTOs;
+﻿using Apex.Domain.DTO;
+using Apex.Domain.DTOs;
 using Apex.Domain.Entities;
 using Apex.Domain.Requests;
 using Apex.Domain.Responses;
@@ -17,6 +18,8 @@ namespace Apex.Domain.AutoMapperProfile
             CreateMap<TradeDto, CreateTradeRequest>().ReverseMap();
             CreateMap<TradeDto, UpdateTradeRequest>().ReverseMap();
             CreateMap<TradeDto, TradeResponse>().ReverseMap();
+            CreateMap<TradeRuleCheck, TradeRuleCheckDto>().ReverseMap();
+
         }
     }
 }

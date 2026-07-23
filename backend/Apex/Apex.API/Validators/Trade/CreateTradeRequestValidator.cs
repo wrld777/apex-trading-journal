@@ -55,6 +55,20 @@ public class CreateTradeRequestValidator : AbstractValidator<CreateTradeRequest>
 
         RuleForEach(x => x.Screenshots).Must(BeHttpUrl)
             .WithMessage(TradeErrors.InvalidUrl.Message);
+
+        // L'aderenza serve a registrare anche le regole NON rispettate: una regola
+        // Required non spuntata NON blocca il salvataggio (è il dato che vogliamo).
+        // Qui (stateless) impediamo solo check duplicati sulla stessa regola; l'appartenenza
+        // dei check alla strategia e l'ownership sono validate nel TradeService.
+        RuleFor(x => x.RuleChecks)
+            .Must(NoDuplicateRules)
+            .WithMessage("Rule check duplicati sulla stessa regola.");
+    }
+
+    private static bool NoDuplicateRules(List<Domain.DTO.TradeRuleCheckDto> checks)
+    {
+        if (checks is null || checks.Count == 0) return true;
+        return checks.Select(c => c.StrategyRuleId).Distinct().Count() == checks.Count;
     }
 
     private static bool BeHttpUrl(string url) =>

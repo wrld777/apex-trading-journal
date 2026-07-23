@@ -28,6 +28,9 @@ public class Trade
     public List<string> Screenshots { get; set; } = new();
     public Guid UserId { get; set; }
     public User User { get; set; } = null!;
+    public Guid? StrategyId { get; set; }
+    public Strategy? Strategy { get; set; }
+    public List<TradeRuleCheck> RuleChecks { get; set; } = new();
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

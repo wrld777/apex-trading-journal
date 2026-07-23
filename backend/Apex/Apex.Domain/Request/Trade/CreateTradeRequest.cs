@@ -1,4 +1,5 @@
-﻿using Apex.Domain.Enums;
+﻿using Apex.Domain.DTO;
+using Apex.Domain.Enums;
 
 namespace Apex.Domain.Requests;
 
@@ -22,4 +23,6 @@ public class CreateTradeRequest
     public string Mistakes { get; set; } = string.Empty;
     public List<string> Tags { get; set; } = new();
     public List<string> Screenshots { get; set; } = new();
+    public Guid StrategyId { get; set; }
+    public List<TradeRuleCheckDto> RuleChecks { get; set; } = new();
 }
