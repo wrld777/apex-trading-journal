@@ -12,6 +12,7 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Strategy> Strategies { get; set; }
     public DbSet<StrategyRule> StrategyRules { get; set; }
+    public DbSet<TradeRuleCheck> TradeRuleChecks { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -59,6 +60,10 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
                 .WithMany(u => u.Trades)
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(t => t.Strategy).WithMany()
+                .HasForeignKey(t => t.StrategyId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<User>(entity =>
@@ -96,7 +101,7 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
                 .HasForeignKey(s => s.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Deleting a strategy removes its rules.
+
             entity.HasMany(s => s.Rules)
                 .WithOne(r => r.Strategy)
                 .HasForeignKey(r => r.StrategyId)
@@ -111,5 +116,16 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
                 .IsRequired()
                 .HasMaxLength(200);
         });
+
+        modelBuilder.Entity<TradeRuleCheck>(e =>
+        {
+            e.HasOne(rc => rc.Trade).WithMany(t => t.RuleChecks)
+                .HasForeignKey(rc => rc.TradeId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(rc => rc.StrategyRule).WithMany()
+                .HasForeignKey(rc => rc.StrategyRuleId).OnDelete(DeleteBehavior.Restrict); 
+        });
+
+
     }
+
 }

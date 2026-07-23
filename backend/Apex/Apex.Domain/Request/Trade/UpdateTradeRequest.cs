@@ -1,4 +1,6 @@
-﻿namespace Apex.Domain.Requests;
+﻿using Apex.Domain.DTO;
+
+namespace Apex.Domain.Requests;
 
 public class UpdateTradeRequest
 {
@@ -9,4 +11,6 @@ public class UpdateTradeRequest
     public string Mistakes { get; set; } = string.Empty;
     public List<string> Tags { get; set; } = new();
     public List<string> Screenshots { get; set; } = new();
+    public Guid StrategyId { get; set; }
+    public List<TradeRuleCheckDto> RuleChecks { get; set; } = new();
 }
