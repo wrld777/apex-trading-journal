@@ -13,7 +13,7 @@ public class CreateTradeRequest
     public decimal ExitPrice { get; set; }
     public int Quantity { get; set; }
     public DateTime EntryTime { get; set; }
-    public DateTime ExitTime { get; set; }
+    public DateTime? ExitTime { get; set; }
     public string Session { get; set; } = string.Empty;
     public string Setup { get; set; } = string.Empty;
     public string HTFBias { get; set; } = string.Empty;
@@ -23,6 +23,6 @@ public class CreateTradeRequest
     public string Mistakes { get; set; } = string.Empty;
     public List<string> Tags { get; set; } = new();
     public List<string> Screenshots { get; set; } = new();
-    public Guid StrategyId { get; set; }
+    public Guid? StrategyId { get; set; }
     public List<TradeRuleCheckDto> RuleChecks { get; set; } = new();
 }
