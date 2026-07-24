@@ -124,11 +124,50 @@ Concordate il 25/06. Issue create su GitHub.
 
 [US #83 — Strategie: unità di analisi con checklist di regole oggettive](https://github.com/wrld777/apex-trading-journal/issues/83) · decisione: [[../07 - Decisions/0003 - Strategie con checklist di regole oggettive e aderenza per-trade]]
 
-- [ ] [#84](https://github.com/wrld777/apex-trading-journal/issues/84) — **Fase 1** `BE+FE`: entità `Strategy`/`StrategyRule` + CRUD + pagina `/strategies`
-- [ ] [#85](https://github.com/wrld777/apex-trading-journal/issues/85) — **Fase 2** `FE+BE`: Log Trade selettore strategia + checklist dinamica + aderenza (`TradeRuleCheck`)
+- [x] [#84](https://github.com/wrld777/apex-trading-journal/issues/84) — **Fase 1** `BE+FE`: entità `Strategy`/`StrategyRule` + CRUD + pagina `/strategies` — ✅ **mergiata in `develop`**
+- [x] [#85](https://github.com/wrld777/apex-trading-journal/issues/85) — **Fase 2** `FE+BE`: Log Trade selettore strategia + checklist dinamica + aderenza (`TradeRuleCheck`) — ✅ **BE+FE mergiati in `develop`** (PR #89/#90/#91) · anche `ExitTime` reso opzionale (trade ancora aperto)
 - [ ] [#86](https://github.com/wrld777/apex-trading-journal/issues/86) — **Fase 3** `BE+FE`: analytics per strategia / per-regola / disciplina
 
 > **Idea chiave:** registrare l'**aderenza** (quali regole rispettate per trade) separa "strategia debole" da "esecuzione indisciplinata".
+
+#### #84 Fase 1 — avanzamento (al 20/07)
+
+**Schema fissato** (nell'issue): `StrategyRule { Id, StrategyId, Label, Order, Required(bool) }`, niente `category`. `Label`=testo della regola, `Order`=posizione in lista (riordino ▲▼, ricalcolato da 0), `Required`=obbligatoria per validità del setup.
+
+**FE ✅ FATTO** — branch `feature/AJ-84-fe` (**pushato**, commit `68e5c62`, no PR):
+- `types/strategy.ts`, `strategyService`, `useStrategies` (query+mutation, invalidazione)
+- pagina `/strategies`: lista a card + modale create/edit con editor regole (riordino + flag *Obbligatoria*) + conferma delete
+- route `/strategies` + voce Sidebar. `tsc`+`eslint`+`vite build` puliti. **Non verificato E2E** (manca il BE).
+
+**BE �её in corso (utente, live domani 21/07)** — fatto finora sul working tree (non committato):
+- ✅ entità `Strategy`/`StrategyRule` (`Apex.Domain/Entities/`) — allineate a contratto FE
+- ✅ `AppDbContext`: `DbSet` + config FK/cascade su `Users→Strategies` e `Strategies→StrategyRules`, maxlength
+- ✅ migration `20260720214121_AddStrategyAndStrategyRule` **creata e applicata al DB dev**
+- ⏳ **da fare:** `StrategyDto`(+`StrategyRuleDto`), request Create/Update, `StrategyProfile` (AutoMapper), Repository+Service (con **ownership dal token** come #68), `StrategyController` `[Authorize]` CRUD `/api/strategy`, Validator (nome non vuoto, ≥1 regola).
+
+**⚠️ Contratto da rispettare** (per non ritoccare il FE): JSON **camelCase**, lista regole come **`rules`**. `StrategyDto = { id, name, description, rules:[{id,label,order,required}], createdAt }`; body create/update `{ name, description, rules:[{label,order,required}] }`.
+
+**Prossimo:** finire BE → **verifica E2E** (login reale, crea/edita/elimina strategia) → PR `feature/AJ-84` + `feature/AJ-84-fe` su `develop`.
+
+#### #85 Fase 2 — avanzamento (al 23/07)
+
+**BE ✅ IMPLEMENTATO e VERIFICATO E2E** — branch `feature/AJ-85` (da pushare):
+- Entità: `Trade.StrategyId (Guid?)` + `Trade.RuleChecks`; nuova `TradeRuleCheck { Id, TradeId (FK cascade), StrategyRuleId (FK Restrict), Checked }`. `AppDbContext` + `DbSet<TradeRuleChecks>`. Migration `20260723105157_TradeRule` **applicata al DB dev**.
+- DTO/contratto: `TradeRuleCheckDto { strategyRuleId, checked }`; `TradeDto`/`CreateTradeRequest`/`UpdateTradeRequest`/`TradeResponse` con `strategyId` (nullable) + `ruleChecks`.
+- `TradeRepository`: `.Include(RuleChecks)` in `GetByIdAsync`; in `UpdateAsync` i check nuovi forzati ad `Added` (replace, stesso trucco di `StrategyRepository`).
+- `TradeService`: iniettato `IStrategyRepository`; helper `ApplyStrategyAndChecks` → **ownership** (strategia dev'essere dell'utente, come #68), i check devono appartenere a quella strategia, replace totale.
+- Validator: guard su check duplicati sulla stessa regola.
+- **E2E via curl (DB reale) OK**: happy path (aderenza salvata/riletta), senza strategia (null, no regressione), regola estranea → 400 VALIDATION, strategia altrui/inesistente → 400 NotFound, duplicati → 400 validator, update → riconciliazione replace.
+
+> **Scelta di design (ADR 0003):** una regola `Required` **non spuntata non blocca** il salvataggio — registrare l'esecuzione indisciplinata è proprio il dato che vogliamo.
+
+> **⚠️ Divergenza vs contratto pianificato:** la response espone `ruleChecks: [{ strategyRuleId, checked }]` **senza** `strategyName` né `label/order/required` arricchiti dal join. Sufficiente per il **submit** del FE (`LogTrade.tsx` legge le regole da `GET /api/strategy`). L'arricchimento servirà solo per *visualizzare* l'aderenza di un trade salvato o per l'analytics Fase 3 → da valutare al bisogno.
+
+**FE ✅ FATTO** — branch `feature/AJ-85-fe` (basato su `feature/AJ-84-fe`, da pushare): `LogTrade.tsx` con selettore strategia + checklist guidata dalle regole (badge OBBL. su `required`, contatore "n/tot followed"), invio `strategyId` + `ruleChecks` al submit. Verificato **visivamente**; submit E2E da confermare col BE pushato.
+
+**✅ CHIUSO (24/07):** BE `feature/AJ-85` pushato, FE `feature/AJ-85-fe` pushato, e FE Fase 1 `feature/AJ-84-fe` recuperato. Tutto mergiato in `develop` via PR **#89** (FE#84) → **#91** (FE#85) → **#90** (BE#85). Aggiunto `ExitTime` opzionale + `StrategyId` nullable nei request. **E2E end-to-end nel browser ancora da fare** (finora BE via curl ✅, FE visivo ✅) — consigliato prima di procedere con la Fase 3.
+
+**Prossimo → Fase 3 #86:** analytics per strategia / per-regola / disciplina.
 
 ---
 
