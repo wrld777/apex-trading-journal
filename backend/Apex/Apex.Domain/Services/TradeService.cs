@@ -25,7 +25,7 @@ public class TradeService : ITradeService
 
     public async Task<Result<PagedList<TradeDto>>> GetPagedAsync(Guid userId, TradeQuery query, CancellationToken ct)
     {
-        // clamp: il client non può chiedere pagine invalide o pageSize fuori scala
+
         query.Page = query.Page < 1 ? 1 : query.Page;
         query.PageSize = query.PageSize is < 1 or > 100 ? 25 : query.PageSize;
 
@@ -54,13 +54,13 @@ public class TradeService : ITradeService
     public async Task<Result<TradeDto>> CreateAsync(TradeDto dto, Guid userId, CancellationToken ct)
     {
         var trade = _mapper.Map<Trade>(dto);
-        trade.Id = Guid.NewGuid();
+        trade.Id = Guid.NewGuid();  
         trade.UserId = userId;
         trade.PnL = CalculatePnL(trade);
         trade.RiskReward = CalculateRR(trade);
         trade.Status = DetermineStatus(trade);
 
-        // Strategia + aderenza (opzionali): valida ownership e ricostruisce i rule check.
+
         var applied = await ApplyStrategyAndChecks(trade, dto.StrategyId, dto.RuleChecks, userId, ct);
         if (!applied.IsSuccess)
             return Result<TradeDto>.Failure(applied.Error!);
