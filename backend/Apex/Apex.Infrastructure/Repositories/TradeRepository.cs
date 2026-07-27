@@ -42,10 +42,6 @@ public class TradeRepository : ITradeRepository
         trade.UpdatedAt = DateTime.UtcNow;
         _context.Trades.Update(trade);
 
-        // I rule check sono sempre ricreati (replace): hanno un Id fresco ma, essendo
-        // nel grafo passato a Update(), EF li marca Modified e tenterebbe un UPDATE su
-        // righe inesistenti. Li forzo ad Added (stesso trucco dello StrategyRepository).
-        // I vecchi check, caricati via Include e orfani dopo il Clear(), vengono cancellati.
         foreach (var rc in trade.RuleChecks)
             _context.Entry(rc).State = EntityState.Added;
 
@@ -116,8 +112,26 @@ public class TradeRepository : ITradeRepository
 
     }
 
+    //con questo metodo prendo tutti i trades con le rules e in base alla strategua se presente , e in base al range di date se presente, per fare le analisi statistiche
 
+    public async Task<List<Trade>> GetForAnalyticsAsync(Guid userId, Guid? StrategyId, DateTime? from, DateTime? to, CancellationToken ct)
+    {
+        var q = _context.Trades
+            .AsNoTracking()
+            .Where(t => t.UserId == userId)
+            .Include(t => t.Strategy)
+            .Include(t => t.RuleChecks)
+            .ThenInclude(rc => rc.StrategyRule)
+            .AsQueryable();
 
-
-
+        if (StrategyId.HasValue) q = q.Where(t => t.StrategyId == StrategyId);
+        if (from.HasValue) q = q.Where(t => t.EntryTime >= from.Value);
+        if (to.HasValue) q = q.Where(t => t.EntryTime <= to.Value);
+        return await q.ToListAsync(ct);
     }
+
+
+
+
+
+}
