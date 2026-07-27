@@ -10,6 +10,7 @@ namespace Apex.Domain.Contracts
     {
         Task<Result<StatsDto>> GetStatsByUserAsync(Guid userId, CancellationToken ct);
         Task<Result<StatsDto>> GetStatsByDateRangeAsync(Guid userId, DateTime from, DateTime to, CancellationToken ct);
+        Task<Result<StatsDto>> GetStatsByStrategyAsync(Guid userId, Guid strategyId, CancellationToken ct);
 
     }
 }

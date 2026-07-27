@@ -23,11 +23,19 @@ namespace Apex.API.Controllers
         // GET /api/stats?userId={userId}&from={from}&to={to}
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetStatsAsync([FromQuery] DateTime? from, [FromQuery] DateTime? to, CancellationToken ct)
+        public async Task<IActionResult> GetStatsAsync([FromQuery] DateTime? from, [FromQuery] DateTime? to, [FromQuery] Guid? strategyId, CancellationToken ct)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!Guid.TryParse(userIdClaim, out var userId))
                 return Unauthorized();
+
+            if (strategyId.HasValue)
+            {
+                var stratResult = await _statsService.GetStatsByStrategyAsync(userId, strategyId.Value, ct);
+                if (!stratResult.IsSuccess)
+                    return BadRequest(stratResult.Error);
+                return Ok(stratResult.Value);
+            }
 
             if (from.HasValue && to.HasValue)
             {

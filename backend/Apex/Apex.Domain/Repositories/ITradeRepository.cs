@@ -12,4 +12,5 @@ public interface ITradeRepository
     Task DeleteAsync(Trade trade, CancellationToken ct);
     Task<List<Trade>> GetByDateRangeAsync(Guid userId, DateTime startDate, DateTime endDate, CancellationToken ct);
     Task<(List<Trade> items, int total)> GetPagedAsync(Guid userId, TradeQuery q, CancellationToken ct);
+    Task<List<Trade>> GetForAnalyticsAsync(Guid userId, Guid? StrategyId, DateTime? from, DateTime? to, CancellationToken ct);
 }

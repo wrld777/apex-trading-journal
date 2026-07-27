@@ -33,6 +33,15 @@ public class StatsService : IStatsService
         return Result<StatsDto>.Success(CalculateStats(trades));
     }
 
+    public async Task<Result<StatsDto>> GetStatsByStrategyAsync(Guid userId, Guid strategyId, CancellationToken ct)
+    {
+        var trades = await _tradeRepository.GetForAnalyticsAsync(userId, strategyId, null, null, ct);
+        if (!trades.Any())
+            return Result<StatsDto>.Success(new StatsDto());
+
+        return Result<StatsDto>.Success(CalculateStats(trades));
+    }
+
     private static StatsDto CalculateStats(List<Apex.Domain.Entities.Trade> trades)
     {
         var wins = trades.Where(t => t.Status == TradeStatus.Win).ToList();
