@@ -3,6 +3,7 @@ import Layout from '../components/Layout'
 import Dashboard from '../features/dashboard/Dashboard'
 import LogTrade from '../features/log-trade/LogTrade'
 import Analytics from '../features/analytics/Analytics'
+import StrategyAnalytics from '../features/strategy-analytics/StrategyAnalytics'
 import TradeLog from '../features/trade-log/TradeLog'
 import Strategies from '../features/strategies/Strategies'
 import Profile from '../features/profile/Profile'
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
       { path: 'log-trade', element: <LogTrade /> },
       { path: 'trades', element: <TradeLog /> },
       { path: 'strategies', element: <Strategies /> },
+      { path: 'strategy-insights', element: <StrategyAnalytics /> },
       { path: 'analytics', element: <Analytics /> },
       { path: 'profile', element: <Profile /> },
     ],
