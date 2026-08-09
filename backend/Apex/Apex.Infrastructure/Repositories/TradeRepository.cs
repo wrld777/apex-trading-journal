@@ -18,6 +18,7 @@ public class TradeRepository : ITradeRepository
     public async Task<List<Trade>> GetAllAsync(Guid userId, CancellationToken ct)
     {
         return await _context.Trades
+            .Include(t => t.Instrument)
             .Where(t => t.UserId == userId)
             .OrderByDescending(t => t.EntryTime)
             .ToListAsync(ct);
@@ -27,6 +28,7 @@ public class TradeRepository : ITradeRepository
     {
         return await _context.Trades
             .Include(t => t.RuleChecks)
+            .Include(t => t.Instrument)
             .FirstOrDefaultAsync(t => t.Id == id, ct);
     }
 
@@ -59,6 +61,7 @@ public class TradeRepository : ITradeRepository
     {
         return await _context.Trades
             .AsNoTracking()
+            .Include(t => t.Instrument)
             .Where(t => t.UserId == userId && t.EntryTime >= startDate && t.EntryTime <= endDate)
             .OrderByDescending(t => t.EntryTime)
             .ToListAsync(ct);
@@ -68,6 +71,7 @@ public class TradeRepository : ITradeRepository
     {
         var query = _context.Trades.
             AsNoTracking().
+            Include(t => t.Instrument).
             Where(t => t.UserId == userId);
 
         // Postgres 'timestamp with time zone' accetta solo DateTime in UTC.
@@ -82,8 +86,14 @@ public class TradeRepository : ITradeRepository
             var to = DateTime.SpecifyKind(q.To.Value, DateTimeKind.Utc);
             query = query.Where(t => t.EntryTime <= to);
         }
+        // Il simbolo vive solo su Instrument (#94): filtro e sort passano dalla navigation.
+        // Match esatto, non Contains: con un catalogo chiuso "NQ" deve dare NQ e non anche MNQ.
+        // Basta normalizzare l'input, i simboli a catalogo sono già maiuscoli (seed).
         if (!string.IsNullOrWhiteSpace(q.Symbol))
-            query = query.Where(t => t.Symbol.Contains(q.Symbol));
+        {
+            var symbol = q.Symbol.Trim().ToUpper();
+            query = query.Where(t => t.Instrument.Symbol == symbol);
+        }
         if (!string.IsNullOrWhiteSpace(q.Setup)) query = query.Where(t => t.Setup == q.Setup);
         if (!string.IsNullOrWhiteSpace(q.Session)) query = query.Where(t => t.Session == q.Session);
         if (q.Direction is not null) query = query.Where(t => t.Direction == q.Direction);
@@ -97,8 +107,8 @@ public class TradeRepository : ITradeRepository
             ("pnl", _) => query.OrderByDescending(t => t.PnL),
             ("riskreward", "asc") => query.OrderBy(t => t.RiskReward),
             ("riskreward", _) => query.OrderByDescending(t => t.RiskReward),
-            ("symbol", "asc") => query.OrderBy(t => t.Symbol),
-            ("symbol", _) => query.OrderByDescending(t => t.Symbol),
+            ("symbol", "asc") => query.OrderBy(t => t.Instrument.Symbol),
+            ("symbol", _) => query.OrderByDescending(t => t.Instrument.Symbol),
             (_, "asc") => query.OrderBy(t => t.EntryTime),
             _ => query.OrderByDescending(t => t.EntryTime),
         };
@@ -119,6 +129,7 @@ public class TradeRepository : ITradeRepository
         var q = _context.Trades
             .AsNoTracking()
             .Where(t => t.UserId == userId)
+            .Include(t => t.Instrument)
             .Include(t => t.Strategy)
             .Include(t => t.RuleChecks)
             .ThenInclude(rc => rc.StrategyRule)

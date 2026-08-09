@@ -6,6 +6,8 @@ namespace Apex.Domain.DTOs;
 public class TradeDto
 {
     public Guid Id { get; set; }
+    public Guid InstrumentId { get; set; }
+    // Denormalizzato in sola lettura dal catalogo: il client sceglie per InstrumentId.
     public string Symbol { get; set; } = string.Empty;
     public Direction Direction { get; set; }
     public decimal EntryPrice { get; set; }

@@ -13,6 +13,7 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<Strategy> Strategies { get; set; }
     public DbSet<StrategyRule> StrategyRules { get; set; }
     public DbSet<TradeRuleCheck> TradeRuleChecks { get; set; }
+    public DbSet<Instrument> Instruments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -21,10 +22,6 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
         modelBuilder.Entity<Trade>(entity =>
         {
             entity.HasKey(t => t.Id);
-
-            entity.Property(t => t.Symbol)
-                .IsRequired()
-                .HasMaxLength(10);
 
             entity.Property(t => t.EntryPrice)
                 .HasPrecision(18, 4);
@@ -64,6 +61,11 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
             entity.HasOne(t => t.Strategy).WithMany()
                 .HasForeignKey(t => t.StrategyId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // Restrict: uno strumento del catalogo non può sparire se ci sono trade che lo usano.
+            entity.HasOne(t => t.Instrument).WithMany()
+                .HasForeignKey(t => t.InstrumentId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<User>(entity =>
@@ -116,6 +118,40 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
                 .IsRequired()
                 .HasMaxLength(200);
         });
+
+        modelBuilder.Entity<Instrument>(entity =>
+        {
+            entity.HasKey(i => i.InstrumentId);
+
+            entity.Property(i => i.Symbol)
+                .IsRequired()
+                .HasMaxLength(10);
+
+            entity.HasIndex(i => i.Symbol)
+                .IsUnique();
+
+            entity.Property(i => i.InstrumentName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(i => i.Currency)
+                .IsRequired()
+                .HasMaxLength(3);
+
+            entity.Property(i => i.PointValue)
+                .HasPrecision(18, 4);
+
+            entity.Property(i => i.TickSize)
+                .HasPrecision(18, 4);
+
+            entity.Property(i => i.TickValue)
+                .HasPrecision(18, 4);
+
+            entity.Property(i => i.Type)
+                .HasConversion<string>();
+        });
+
+        InstrumentSeed.Seed(modelBuilder);
 
         modelBuilder.Entity<TradeRuleCheck>(e =>
         {

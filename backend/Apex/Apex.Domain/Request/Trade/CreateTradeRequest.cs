@@ -5,7 +5,7 @@ namespace Apex.Domain.Requests;
 
 public class CreateTradeRequest
 {
-    public string Symbol { get; set; } = string.Empty;
+    public Guid InstrumentId { get; set; }
     public Direction Direction { get; set; }
     public decimal EntryPrice { get; set; }
     public decimal StopLoss { get; set; }

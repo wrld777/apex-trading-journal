@@ -14,12 +14,18 @@ public class TradeService : ITradeService
 {
     private readonly ITradeRepository _tradeRepository;
     private readonly IStrategyRepository _strategyRepository;
+    private readonly IInstrumentRepository _instrumentRepository;
     private readonly IMapper _mapper;
 
-    public TradeService(ITradeRepository tradeRepository, IStrategyRepository strategyRepository, IMapper mapper)
+    public TradeService(
+        ITradeRepository tradeRepository,
+        IStrategyRepository strategyRepository,
+        IInstrumentRepository instrumentRepository,
+        IMapper mapper)
     {
         _tradeRepository = tradeRepository;
         _strategyRepository = strategyRepository;
+        _instrumentRepository = instrumentRepository;
         _mapper = mapper;
     }
 
@@ -53,10 +59,19 @@ public class TradeService : ITradeService
 
     public async Task<Result<TradeDto>> CreateAsync(TradeDto dto, Guid userId, CancellationToken ct)
     {
+        var instrument = await _instrumentRepository.GetInstrumentByIdAsync(dto.InstrumentId, ct);
+        if (instrument is null)
+            return Result<TradeDto>.Failure(
+                Error.FromTradeError(TradeErrors.InstrumentNotFound(dto.InstrumentId)));
+
         var trade = _mapper.Map<Trade>(dto);
-        trade.Id = Guid.NewGuid();  
+        trade.Id = Guid.NewGuid();
         trade.UserId = userId;
-        trade.PnL = CalculatePnL(trade);
+        trade.InstrumentId = instrument.InstrumentId;
+        // Navigation valorizzata con l'entità già tracciata: serve solo a far trovare
+        // il Symbol al mapper nella response (EF non la reinserisce, ha già la chiave).
+        trade.Instrument = instrument;
+        trade.PnL = CalculatePnL(trade, instrument.PointValue);
         trade.RiskReward = CalculateRR(trade);
         trade.Status = DetermineStatus(trade);
 
@@ -82,7 +97,9 @@ public class TradeService : ITradeService
         trade.Mistakes = dto.Mistakes;
         trade.Tags = dto.Tags;
         trade.Screenshots = dto.Screenshots;
-        trade.PnL = CalculatePnL(trade);
+        // Lo strumento di un trade non è modificabile in update: il PointValue è quello
+        // caricato con la navigation da GetByIdAsync.
+        trade.PnL = CalculatePnL(trade, trade.Instrument.PointValue);
         trade.RiskReward = CalculateRR(trade);
         trade.Status = DetermineStatus(trade);
 
@@ -145,13 +162,15 @@ public class TradeService : ITradeService
         return Result<bool>.Success(true);
     }
 
-    private static decimal CalculatePnL(Trade trade)
+    // PnL in valuta, non in punti: senza il PointValue dello strumento un +10 su MNQ
+    // e un +10 su NQ risulterebbero identici (#94).
+    private static decimal CalculatePnL(Trade trade, decimal pointValue)
     {
         var diff = trade.Direction == Direction.Long
             ? trade.ExitPrice - trade.EntryPrice
             : trade.EntryPrice - trade.ExitPrice;
 
-        return diff * trade.Quantity;
+        return diff * trade.Quantity * pointValue;
     }
 
     private static decimal CalculateRR(Trade trade)

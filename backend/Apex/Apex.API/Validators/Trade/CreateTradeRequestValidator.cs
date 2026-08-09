@@ -8,9 +8,8 @@ public class CreateTradeRequestValidator : AbstractValidator<CreateTradeRequest>
 {
     public CreateTradeRequestValidator()
     {
-        RuleFor(x => x.Symbol)
-            .NotEmpty().WithMessage(TradeErrors.MissingSymbol.Message)
-            .MaximumLength(10).WithMessage(TradeErrors.SymbolTooLong.Message);
+        RuleFor(x => x.InstrumentId)
+            .NotEmpty().WithMessage(TradeErrors.MissingInstrument.Message);
 
         RuleFor(x => x.EntryPrice)
             .GreaterThan(0).WithMessage(TradeErrors.InvalidEntryPrice.Message);

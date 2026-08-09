@@ -50,11 +50,11 @@ public class TradeErrors
     public static readonly TradeErrors InvalidTakeProfit =
         new("Take profit must be greater than 0.");
 
-    public static readonly TradeErrors MissingSymbol =
-        new("Symbol is required.");
+    public static readonly TradeErrors MissingInstrument =
+        new("Instrument is required.");
 
-    public static readonly TradeErrors SymbolTooLong =
-        new("Symbol must not exceed 10 characters.");
+    public static TradeErrors InstrumentNotFound(Guid id) =>
+        new($"Instrument with id '{id}' was not found.");
 
     public static readonly TradeErrors MissingSession =
         new("Session is required.");
