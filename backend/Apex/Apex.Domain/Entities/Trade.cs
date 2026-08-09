@@ -5,7 +5,8 @@ namespace Apex.Domain.Entities;
 public class Trade
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public string Symbol { get; set; } = string.Empty;
+    public Guid InstrumentId { get; set; }
+    public Instrument Instrument { get; set; } = null!;
     public Direction Direction { get; set; }
     public decimal EntryPrice { get; set; }
     public decimal StopLoss { get; set; }

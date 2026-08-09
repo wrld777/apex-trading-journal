@@ -20,7 +20,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -44,9 +44,11 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateTradeRequestValidator
 builder.Services.AddScoped<ITradeRepository, TradeRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IStrategyRepository, StrategyRepository>();
+builder.Services.AddScoped<IInstrumentRepository, InstrumentRepository>();
 
 // Service
 builder.Services.AddScoped<ITradeService, TradeService>();
+builder.Services.AddScoped<IInstrumentService, InstrumentService>();
 builder.Services.AddScoped<IStrategyService, StrategyService>();
 builder.Services.AddScoped<IStatsService, StatsService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
@@ -59,6 +61,7 @@ builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddProfile<TradeProfile>();
     cfg.AddProfile<UserProfile>();
+    cfg.AddProfile<InstrumentProfile>();
     cfg.AddProfile<StrategyProfile>();
 });
 

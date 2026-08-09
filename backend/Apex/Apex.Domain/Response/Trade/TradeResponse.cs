@@ -6,6 +6,7 @@ namespace Apex.Domain.Responses;
 public class TradeResponse
 {
     public Guid Id { get; set; }
+    public Guid InstrumentId { get; set; }
     public string Symbol { get; set; } = string.Empty;
     public Direction Direction { get; set; }
     public decimal EntryPrice { get; set; }
