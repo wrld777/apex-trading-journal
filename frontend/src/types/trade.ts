@@ -43,6 +43,8 @@ export interface TradeQuery {
 
 export interface TradeDto {
   id: string
+  instrumentId: string
+  // Read-only: joined from the instrument catalog server-side (#94).
   symbol: string
   direction: Direction
   entryPrice: number
@@ -73,7 +75,9 @@ export interface TradeDto {
 }
 
 export interface CreateTradeRequest {
-  symbol: string
+  // The instrument is picked from the catalog: its point value is what turns the
+  // price difference into currency (#94). The symbol is no longer free text.
+  instrumentId: string
   direction: Direction
   entryPrice: number
   stopLoss: number
