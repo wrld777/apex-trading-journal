@@ -13,6 +13,7 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<Strategy> Strategies { get; set; }
     public DbSet<StrategyRule> StrategyRules { get; set; }
     public DbSet<TradeRuleCheck> TradeRuleChecks { get; set; }
+    public DbSet<TradeExit> TradeExits { get; set; }
     public DbSet<Instrument> Instruments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -171,6 +172,17 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
         });
 
         InstrumentSeed.Seed(modelBuilder);
+
+        modelBuilder.Entity<TradeExit>(e =>
+        {
+            e.HasKey(x => x.Id);
+
+            e.Property(x => x.Price).HasPrecision(18, 4);
+            e.Property(x => x.Outcome).HasConversion<string>();
+
+            e.HasOne(x => x.Trade).WithMany(t => t.Exits)
+                .HasForeignKey(x => x.TradeId).OnDelete(DeleteBehavior.Cascade);
+        });
 
         modelBuilder.Entity<TradeRuleCheck>(e =>
         {

@@ -29,6 +29,21 @@ public class TradeErrors
     public static readonly TradeErrors InvalidExitPrice =
         new("Exit price must be greater than 0.");
 
+    public static readonly TradeErrors InvalidExitContracts =
+        new("Each exit must close at least 1 contract.");
+
+    public static TradeErrors ExitContractsMismatch(int total, int quantity) =>
+        new($"Exits close {total} contracts but the trade has {quantity}: a trade is always recorded already closed.");
+
+    public static readonly TradeErrors MissingManualExitPrice =
+        new("A manual exit requires its own price.");
+
+    public static readonly TradeErrors TakeProfitRequiredForOutcome =
+        new("Take profit is required when an exit is taken at target.");
+
+    public static readonly TradeErrors StopLossRequiredForOutcome =
+        new("Stop loss is required when an exit is taken at stop.");
+
     public static readonly TradeErrors InvalidEntryPrice =
         new("Entry price must be greater than 0.");
 

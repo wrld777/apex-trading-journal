@@ -32,4 +32,9 @@ public class TradeDto
     public List<string> Screenshots { get; set; } = new();
     public Guid? StrategyId { get; set; }
     public List<TradeRuleCheckDto> RuleChecks { get; set; } = new();
+
+    // Esito rapido (#96): con una sola uscita basta questo e il prezzo lo deriva
+    // il servizio. Ignorato quando Exits è valorizzata.
+    public TradeOutcome? Outcome { get; set; }
+    public List<TradeExitDto> Exits { get; set; } = new();
 }

@@ -1,4 +1,5 @@
 ﻿using Apex.Domain.Common;
+using Apex.Domain.Enums;
 using Apex.Domain.Requests;
 using FluentValidation;
 
@@ -18,8 +19,12 @@ public class CreateTradeRequestValidator : AbstractValidator<CreateTradeRequest>
             .GreaterThan(0).WithMessage(TradeErrors.InvalidStopLoss.Message)
             .NotEqual(x => x.EntryPrice).WithMessage(TradeErrors.InvalidRisk.Message);
 
+        // Il take profit è opzionale nel form, quindi non può essere preteso sempre
+        // (#98: un trade senza TP non era salvabile). Serve solo se lo si usa come
+        // esito di un'uscita; se valorizzato deve comunque essere sensato.
         RuleFor(x => x.TakeProfit)
-            .GreaterThan(0).WithMessage(TradeErrors.InvalidTakeProfit.Message);
+            .GreaterThan(0).WithMessage(TradeErrors.InvalidTakeProfit.Message)
+            .When(x => x.TakeProfit != 0 || UsesOutcome(x, TradeOutcome.TakeProfit));
 
         RuleFor(x => x.Quantity)
             .GreaterThan(0).WithMessage(TradeErrors.InvalidQuantity.Message);
@@ -47,11 +52,44 @@ public class CreateTradeRequestValidator : AbstractValidator<CreateTradeRequest>
             if (request.Direction == Domain.Enums.Direction.Short && request.StopLoss <= request.EntryPrice)
                 context.AddFailure(TradeErrors.StopLossBelowEntryForShort.Message);
 
-            if (request.Direction == Domain.Enums.Direction.Long && request.TakeProfit <= request.EntryPrice)
-                context.AddFailure(TradeErrors.TakeProfitBelowEntryForLong.Message);
+            // I controlli direzionali sul TP valgono solo se il TP c'è: senza,
+            // il confronto con l'entry boccerebbe ogni trade privo di target (#98).
+            if (request.TakeProfit != 0)
+            {
+                if (request.Direction == Domain.Enums.Direction.Long && request.TakeProfit <= request.EntryPrice)
+                    context.AddFailure(TradeErrors.TakeProfitBelowEntryForLong.Message);
 
-            if (request.Direction == Domain.Enums.Direction.Short && request.TakeProfit >= request.EntryPrice)
-                context.AddFailure(TradeErrors.TakeProfitAboveEntryForShort.Message);
+                if (request.Direction == Domain.Enums.Direction.Short && request.TakeProfit >= request.EntryPrice)
+                    context.AddFailure(TradeErrors.TakeProfitAboveEntryForShort.Message);
+            }
+
+            // Un esito non si può derivare da un livello che non è stato indicato.
+            if (UsesOutcome(request, TradeOutcome.TakeProfit) && request.TakeProfit <= 0)
+                context.AddFailure(TradeErrors.TakeProfitRequiredForOutcome.Message);
+
+            if (UsesOutcome(request, TradeOutcome.StopLoss) && request.StopLoss <= 0)
+                context.AddFailure(TradeErrors.StopLossRequiredForOutcome.Message);
+
+            // Uscite parziali (#96): il trade si registra sempre già chiuso, quindi
+            // i contratti delle uscite devono coprire esattamente la quantità.
+            if (request.Exits is { Count: > 0 })
+            {
+                if (request.Exits.Any(e => e.Contracts <= 0))
+                    context.AddFailure(TradeErrors.InvalidExitContracts.Message);
+
+                if (request.Exits.Any(e => e.Outcome == TradeOutcome.Manual && (e.Price ?? 0) <= 0))
+                    context.AddFailure(TradeErrors.MissingManualExitPrice.Message);
+
+                var total = request.Exits.Sum(e => e.Contracts);
+                if (total != request.Quantity)
+                    context.AddFailure(TradeErrors.ExitContractsMismatch(total, request.Quantity).Message);
+            }
+            else if ((request.Outcome ?? TradeOutcome.Manual) == TradeOutcome.Manual && request.ExitPrice <= 0)
+            {
+                // Caso semplice senza esito dichiarato: si ricade sull'uscita manuale,
+                // che il prezzo ce l'ha solo se lo si scrive.
+                context.AddFailure(TradeErrors.MissingManualExitPrice.Message);
+            }
         });
 
         RuleForEach(x => x.Screenshots).Must(BeHttpUrl)
@@ -65,6 +103,13 @@ public class CreateTradeRequestValidator : AbstractValidator<CreateTradeRequest>
             .Must(NoDuplicateRules)
             .WithMessage("Rule check duplicati sulla stessa regola.");
     }
+
+    // Vero se l'esito è usato da almeno un'uscita, sia nella forma a parziali che
+    // nell'esito singolo.
+    private static bool UsesOutcome(CreateTradeRequest request, TradeOutcome outcome) =>
+        request.Exits is { Count: > 0 }
+            ? request.Exits.Any(e => e.Outcome == outcome)
+            : request.Outcome == outcome;
 
     private static bool NoDuplicateRules(List<Domain.DTO.TradeRuleCheckDto> checks)
     {

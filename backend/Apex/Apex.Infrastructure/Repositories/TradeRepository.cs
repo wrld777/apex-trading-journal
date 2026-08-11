@@ -28,6 +28,7 @@ public class TradeRepository : ITradeRepository
     {
         return await _context.Trades
             .Include(t => t.RuleChecks)
+            .Include(t => t.Exits)
             .Include(t => t.Instrument)
             .FirstOrDefaultAsync(t => t.Id == id, ct);
     }
@@ -44,8 +45,14 @@ public class TradeRepository : ITradeRepository
         trade.UpdatedAt = DateTime.UtcNow;
         _context.Trades.Update(trade);
 
+        // Stesso replace delle rule check: le uscite vecchie sono uscite dalla
+        // collection (→ Deleted), quelle nuove hanno un Id fresco e vanno forzate
+        // ad Added o EF tenterebbe un UPDATE su righe che non esistono.
         foreach (var rc in trade.RuleChecks)
             _context.Entry(rc).State = EntityState.Added;
+
+        foreach (var exit in trade.Exits)
+            _context.Entry(exit).State = EntityState.Added;
 
         await _context.SaveChangesAsync(ct);
         return trade;
@@ -72,6 +79,7 @@ public class TradeRepository : ITradeRepository
         var query = _context.Trades.
             AsNoTracking().
             Include(t => t.Instrument).
+            Include(t => t.Exits).
             Where(t => t.UserId == userId);
 
         // Postgres 'timestamp with time zone' accetta solo DateTime in UTC.
