@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Modal from '../../components/ui/Modal'
 import { useCreateStrategy, useUpdateStrategy } from '../../hooks/useStrategies'
+import { useInstruments } from '../../hooks/useInstruments'
 import { useToastStore } from '../../store/toastStore'
 import type { StrategyDto } from '../../types/strategy'
 
@@ -31,9 +32,12 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
   const { mutate: updateStrategy, isPending: isUpdating } = useUpdateStrategy()
   const isPending = isCreating || isUpdating
 
+  const { data: instruments } = useInstruments()
+
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [rules, setRules] = useState<RuleDraft[]>([newRule()])
+  const [instrumentIds, setInstrumentIds] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
 
   // Re-seed the form whenever the modal opens or switches strategy (render-time,
@@ -51,10 +55,12 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
           .sort((a, b) => a.order - b.order)
           .map((r) => ({ key: `r${ruleKeySeq++}`, label: r.label, required: r.required })),
       )
+      setInstrumentIds(strategy.instrumentIds ?? [])
     } else {
       setName('')
       setDescription('')
       setRules([newRule()])
+      setInstrumentIds([])
     }
   }
   // Allow re-seeding next time it reopens.
@@ -64,6 +70,9 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
     setRules((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)))
 
   const removeRule = (key: string) => setRules((rs) => rs.filter((r) => r.key !== key))
+
+  const toggleInstrument = (id: string) =>
+    setInstrumentIds((ids) => (ids.includes(id) ? ids.filter((i) => i !== id) : [...ids, id]))
 
   const moveRule = (index: number, dir: -1 | 1) =>
     setRules((rs) => {
@@ -93,6 +102,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
       name: trimmedName,
       description: description.trim(),
       rules: cleanRules.map((r, i) => ({ label: r.label, order: i, required: r.required })),
+      instrumentIds,
     }
 
     const onSuccess = () => {
@@ -164,6 +174,50 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
             rows={2}
             className={`${INPUT} resize-none`}
           />
+        </div>
+
+        {/* Instruments (#95) — il catalogo è breve e fisso: chip a toggle invece
+            di un multi-select, così i simboli si leggono tutti a colpo d'occhio. */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] text-zinc-500 uppercase tracking-wide">
+              Strumenti
+            </label>
+            <span className="text-[10px] text-zinc-700">
+              {instrumentIds.length === 0 ? 'tutti' : `${instrumentIds.length} selezionat${instrumentIds.length === 1 ? 'o' : 'i'}`}
+            </span>
+          </div>
+
+          {instruments === undefined ? (
+            <p className="text-[11px] text-zinc-700">Caricamento catalogo…</p>
+          ) : (
+            <>
+              <div className="flex flex-wrap gap-1.5">
+                {instruments.map((ins) => {
+                  const active = instrumentIds.includes(ins.instrumentId)
+                  return (
+                    <button
+                      key={ins.instrumentId}
+                      type="button"
+                      onClick={() => toggleInstrument(ins.instrumentId)}
+                      aria-pressed={active}
+                      title={`${ins.instrumentName} · ${ins.currency} ${ins.pointValue} per point`}
+                      className={`px-2 py-1 rounded-md text-[11px] font-medium border transition-all ${
+                        active
+                          ? 'bg-white text-black border-white'
+                          : 'text-zinc-400 border-white/[0.07] hover:border-white/[0.18] hover:text-zinc-200'
+                      }`}
+                    >
+                      {ins.symbol}
+                    </button>
+                  )
+                })}
+              </div>
+              <p className="text-[10px] text-zinc-700 leading-relaxed">
+                Su quali strumenti gira questa strategia. Lasciando vuoto vale per tutti.
+              </p>
+            </>
+          )}
         </div>
 
         {/* Rules editor */}

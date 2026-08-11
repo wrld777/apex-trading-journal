@@ -158,6 +158,14 @@ export default function LogTrade() {
     ? selectedStrategy.rules.filter((r) => ruleChecks[r.id]).length
     : 0
 
+  // Una strategia dichiara su quali strumenti gira (#95): se ne ha, il select
+  // mostra solo quelli. Elenco vuoto = nessun vincolo, si vede tutto il catalogo.
+  const strategyInstrumentIds = selectedStrategy?.instrumentIds ?? []
+  const visibleInstruments =
+    strategyInstrumentIds.length > 0
+      ? instruments.filter((i) => strategyInstrumentIds.includes(i.instrumentId))
+      : instruments
+
   const handleChange = (field: keyof typeof DEFAULT_FORM) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -169,6 +177,14 @@ export default function LogTrade() {
     const s = strategies.find((x) => x.id === id)
     // Reset adherence to the chosen strategy's rules, all unchecked.
     setRuleChecks(s ? Object.fromEntries(s.rules.map((r) => [r.id, false])) : {})
+
+    // Lo strumento già scelto può non rientrare tra quelli della nuova strategia:
+    // lasciarlo selezionato ma fuori lista significherebbe un select che mostra
+    // il placeholder e invia comunque il vecchio id.
+    const allowed = s?.instrumentIds ?? []
+    if (allowed.length > 0 && form.instrumentId && !allowed.includes(form.instrumentId)) {
+      setForm((prev) => ({ ...prev, instrumentId: '' }))
+    }
   }
 
   const toggleRule = (id: string) => {
@@ -321,13 +337,19 @@ export default function LogTrade() {
                     <option value="">
                       {instrumentsLoading ? 'Loading…' : '— Select instrument —'}
                     </option>
-                    {instruments.map((i) => (
+                    {visibleInstruments.map((i) => (
                       <option key={i.instrumentId} value={i.instrumentId}>
                         {i.symbol} · {i.instrumentName}
                       </option>
                     ))}
                   </Select>
                 </Field>
+                {strategyInstrumentIds.length > 0 && (
+                  <p className="text-[10px] text-zinc-600 mt-1.5">
+                    Limitato ai {visibleInstruments.length} strumenti di{' '}
+                    <span className="text-zinc-400">{selectedStrategy?.name}</span>.
+                  </p>
+                )}
                 {/* The point value is the whole reason this is a catalog and not free
                     text: showing it makes the P&L scale explicit before submitting. */}
                 {selectedInstrument && (
