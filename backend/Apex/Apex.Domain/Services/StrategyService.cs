@@ -71,18 +71,9 @@ public class StrategyService : IStrategyService
         strategy.Name = dto.Name;
         strategy.Description = dto.Description;
 
-        strategy.Rules.Clear();
-        foreach (var rule in dto.Rules)
-        {
-            strategy.Rules.Add(new StrategyRule
-            {
-                Id = Guid.NewGuid(),
-                Label = rule.Label,
-                Order = rule.Order,
-                Required = rule.Required,
-                StrategyId = strategy.Id
-            });
-        }
+        var rules = await ApplyRules(strategy, dto.Rules, ct);
+        if (!rules.IsSuccess)
+            return Result<StrategyDto>.Failure(rules.Error!);
 
         var applied = await ApplyInstruments(strategy, dto.InstrumentIds, ct);
         if (!applied.IsSuccess)
@@ -98,7 +89,85 @@ public class StrategyService : IStrategyService
         if (strategy is null)
             return Result<bool>.Failure(Error.FromStrategyError(StrategyErrors.NotFound(id)));
 
+        // Cancellare la strategia porterebbe via le sue regole (cascade), ma l'aderenza
+        // registrata sui trade le referenzia con FK Restrict: senza questo controllo si
+        // otterrebbe un 500 da DbUpdateException invece di una spiegazione.
+        var inUse = await _strategyRepository.GetRuleIdsInUseAsync(
+            strategy.Rules.Select(r => r.Id).ToList(), ct);
+
+        if (inUse.Count > 0)
+            return Result<bool>.Failure(Error.FromStrategyError(StrategyErrors.StrategyInUse(strategy.Name)));
+
         await _strategyRepository.DeleteAsync(strategy, ct);
+        return Result<bool>.Success(true);
+    }
+
+    // Le regole si aggiornano SUL POSTO, non si sostituiscono. Ricrearle a ogni salvataggio
+    // — com'era prima — dava due problemi: l'aderenza già registrata sui trade
+    // (TradeRuleCheck, FK Restrict) faceva fallire la DELETE con DbUpdateException, e
+    // anche senza quel vincolo gli id nuovi avrebbero staccato lo storico dalle analytics
+    // per regola. Chi non tocca le regole non deve subire nulla di tutto questo.
+    private async Task<Result<bool>> ApplyRules(
+        Strategy strategy, List<StrategyRuleDto> rules, CancellationToken ct)
+    {
+        var incoming = rules ?? new();
+        var existing = strategy.Rules.ToDictionary(r => r.Id);
+
+        var kept = incoming
+            .Where(r => r.Id != Guid.Empty && existing.ContainsKey(r.Id))
+            .Select(r => r.Id)
+            .ToHashSet();
+
+        var removed = strategy.Rules.Where(r => !kept.Contains(r.Id)).ToList();
+
+        // Una regola già usata non si può togliere senza cancellare l'aderenza storica,
+        // che è il dato per cui la feature esiste (ADR 0003): meglio un errore leggibile
+        // che una violazione di FK o una perdita silenziosa.
+        if (removed.Count > 0)
+        {
+            var inUse = await _strategyRepository.GetRuleIdsInUseAsync(
+                removed.Select(r => r.Id).ToList(), ct);
+
+            if (inUse.Count > 0)
+            {
+                var labels = string.Join(", ", removed.Where(r => inUse.Contains(r.Id)).Select(r => $"\"{r.Label}\""));
+                return Result<bool>.Failure(
+                    Error.FromStrategyError(StrategyErrors.RuleInUse(labels)));
+            }
+        }
+
+        foreach (var rule in removed)
+            strategy.Rules.Remove(rule);
+
+        // L'ordine lo detta la posizione nella lista ricevuta, non il campo Order del
+        // client: è già così che il form lo intende.
+        var order = 0;
+        foreach (var dto in incoming)
+        {
+            if (dto.Id != Guid.Empty && existing.TryGetValue(dto.Id, out var rule))
+            {
+                rule.Label = dto.Label;
+                rule.Order = order++;
+                rule.Required = dto.Required;
+            }
+            else
+            {
+                // Id volutamente NON assegnato (l'entità lo inizializzerebbe da sé):
+                // dentro un grafo già tracciato EF considera "esistente" ogni entità
+                // con la chiave valorizzata e tenterebbe un UPDATE su una riga che non
+                // c'è — DbUpdateConcurrencyException, 0 righe toccate. Con la chiave
+                // vuota la riconosce come nuova e genera lei il Guid.
+                strategy.Rules.Add(new StrategyRule
+                {
+                    Id = Guid.Empty,
+                    Label = dto.Label,
+                    Order = order++,
+                    Required = dto.Required,
+                    StrategyId = strategy.Id
+                });
+            }
+        }
+
         return Result<bool>.Success(true);
     }
 

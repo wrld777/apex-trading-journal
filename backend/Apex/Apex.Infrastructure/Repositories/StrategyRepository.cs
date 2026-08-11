@@ -57,20 +57,33 @@ namespace Apex.Infrastructure.Repositories
 
         public async Task<Strategy> UpdateAsync(Strategy strategy, CancellationToken ct)
         {
-            // L'entità è già tracciata (GetByIdAsync). Le regole vecchie sono state
-            // rimosse dalla collection (→ Deleted via cascade); quelle nuove hanno un
-            // Id fresco ma, aggiunte al grafo tracciato, EF le marca Modified e proverebbe
-            // un UPDATE su righe inesistenti. Le forzo ad Added (in update è sempre replace).
+            // L'entità arriva tracciata da GetByIdAsync e il service ha già fatto il
+            // lavoro sul grafo: regole esistenti aggiornate sul posto, nuove aggiunte
+            // con la chiave vuota (così EF le riconosce e le INSERTa), rimosse tolte
+            // dalla collection. Qui non serve forzare nessuno stato — la vecchia
+            // marcatura ad Added indiscriminata è ciò che rompeva le regole esistenti.
             //
-            // Instruments NON ha bisogno dello stesso trattamento: le entità arrivano già
-            // tracciate come Unchanged dal catalogo, quindi EF tocca solo le righe di join.
+            // Instruments non ha bisogno di niente: le entità arrivano già tracciate
+            // come Unchanged dal catalogo, EF tocca solo le righe di join.
             strategy.UpdatedAt = DateTime.UtcNow;
-
-            foreach (var rule in strategy.Rules)
-                _context.Entry(rule).State = EntityState.Added;
 
             await _context.SaveChangesAsync(ct);
             return strategy;
+        }
+
+        public async Task<HashSet<Guid>> GetRuleIdsInUseAsync(IReadOnlyCollection<Guid> ruleIds, CancellationToken ct)
+        {
+            if (ruleIds.Count == 0)
+                return new HashSet<Guid>();
+
+            var used = await _context.TradeRuleChecks
+                .AsNoTracking()
+                .Where(rc => ruleIds.Contains(rc.StrategyRuleId))
+                .Select(rc => rc.StrategyRuleId)
+                .Distinct()
+                .ToListAsync(ct);
+
+            return used.ToHashSet();
         }
 
         public async Task DeleteAsync(Strategy strategy, CancellationToken ct)

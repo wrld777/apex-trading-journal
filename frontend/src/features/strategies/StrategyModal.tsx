@@ -13,8 +13,11 @@ interface StrategyModalProps {
 }
 
 // Local, editable representation of a rule row (client key keeps React stable).
+// `id` c'è solo per le regole già salvate: senza, il server le ricrea e stacca
+// l'aderenza registrata sui trade.
 interface RuleDraft {
   key: string
+  id?: string
   label: string
   required: boolean
 }
@@ -53,7 +56,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
       setRules(
         [...strategy.rules]
           .sort((a, b) => a.order - b.order)
-          .map((r) => ({ key: `r${ruleKeySeq++}`, label: r.label, required: r.required })),
+          .map((r) => ({ key: `r${ruleKeySeq++}`, id: r.id, label: r.label, required: r.required })),
       )
       setInstrumentIds(strategy.instrumentIds ?? [])
     } else {
@@ -86,7 +89,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
   const handleSubmit = () => {
     const trimmedName = name.trim()
     const cleanRules = rules
-      .map((r) => ({ label: r.label.trim(), required: r.required }))
+      .map((r) => ({ id: r.id, label: r.label.trim(), required: r.required }))
       .filter((r) => r.label !== '')
 
     if (!trimmedName) {
@@ -101,7 +104,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
     const payload = {
       name: trimmedName,
       description: description.trim(),
-      rules: cleanRules.map((r, i) => ({ label: r.label, order: i, required: r.required })),
+      rules: cleanRules.map((r, i) => ({ id: r.id, label: r.label, order: i, required: r.required })),
       instrumentIds,
     }
 
