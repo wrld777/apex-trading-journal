@@ -12,6 +12,9 @@ export interface StrategyDto {
   name: string
   description: string
   rules: StrategyRuleDto[]
+  // Strumenti su cui la strategia opera (#95). Solo gli id: il catalogo è già
+  // in cache lato client, il simbolo si risolve da lì.
+  instrumentIds: string[]
   createdAt: string
 }
 
@@ -26,6 +29,7 @@ export interface CreateStrategyRequest {
   name: string
   description: string
   rules: StrategyRuleInput[]
+  instrumentIds: string[]
 }
 
 // Same shape as create: the editor sends the full rule list every save.

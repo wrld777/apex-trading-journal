@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useStrategies, useDeleteStrategy } from '../../hooks/useStrategies'
+import { useInstruments } from '../../hooks/useInstruments'
 import { Skeleton } from '../../components/ui/Skeleton'
 import EmptyState from '../../components/ui/EmptyState'
 import Modal from '../../components/ui/Modal'
@@ -9,14 +10,22 @@ import type { StrategyDto } from '../../types/strategy'
 
 function StrategyCard({
   strategy,
+  symbolById,
   onEdit,
   onDelete,
 }: {
   strategy: StrategyDto
+  symbolById: Map<string, string>
   onEdit: () => void
   onDelete: () => void
 }) {
   const rules = [...strategy.rules].sort((a, b) => a.order - b.order)
+  // Il catalogo può non essere ancora arrivato: in quel caso salto l'id invece
+  // di mostrarne il guid.
+  const symbols = strategy.instrumentIds
+    .map((id) => symbolById.get(id))
+    .filter((s): s is string => s !== undefined)
+    .sort()
   return (
     <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 flex flex-col gap-3 hover:border-white/[0.08] transition-colors">
       <div className="flex items-start justify-between gap-3">
@@ -49,6 +58,19 @@ function StrategyCard({
           </button>
         </div>
       </div>
+
+      {symbols.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {symbols.map((s) => (
+            <span
+              key={s}
+              className="text-[10px] font-medium text-zinc-400 border border-white/[0.07] rounded px-1.5 py-0.5"
+            >
+              {s}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="flex flex-col gap-1 pt-1 border-t border-white/[0.04]">
         <span className="text-[10px] text-zinc-700 uppercase tracking-wide">
@@ -88,6 +110,7 @@ function SkeletonCard() {
 
 export default function Strategies() {
   const { data: strategies, isLoading, isError } = useStrategies()
+  const { data: instruments } = useInstruments()
   const { mutate: deleteStrategy, isPending: isDeleting } = useDeleteStrategy()
   const addToast = useToastStore((s) => s.addToast)
 
@@ -119,6 +142,7 @@ export default function Strategies() {
   }
 
   const list = strategies ?? []
+  const symbolById = new Map((instruments ?? []).map((i) => [i.instrumentId, i.symbol]))
 
   return (
     <div className="p-4 lg:p-7">
@@ -172,6 +196,7 @@ export default function Strategies() {
             <StrategyCard
               key={s.id}
               strategy={s}
+              symbolById={symbolById}
               onEdit={() => openEdit(s)}
               onDelete={() => setPendingDelete(s)}
             />
