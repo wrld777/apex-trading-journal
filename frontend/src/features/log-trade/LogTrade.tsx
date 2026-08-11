@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useCreateTrade } from '../../hooks/useTrades'
 import { useStrategies } from '../../hooks/useStrategies'
+import { useInstruments } from '../../hooks/useInstruments'
 import { useToastStore } from '../../store/toastStore'
 import ScreenshotInput from '../../components/ui/ScreenshotInput'
 import type { Direction } from '../../types/trade'
@@ -114,7 +115,7 @@ function FormCard({ children }: { children: React.ReactNode }) {
 // ── Default form state ────────────────────────────────────────────────────────
 
 const DEFAULT_FORM = {
-  symbol: '',
+  instrumentId: '',
   date: '',
   time: '',
   entryPrice: '',
@@ -136,6 +137,7 @@ const DEFAULT_FORM = {
 export default function LogTrade() {
   const { mutate: createTrade, isPending } = useCreateTrade()
   const { data: strategies = [] } = useStrategies()
+  const { data: instruments = [], isLoading: instrumentsLoading } = useInstruments()
   const addToast = useToastStore((s) => s.addToast)
 
   const [direction, setDirection] = useState<Direction>('Long')
@@ -146,6 +148,10 @@ export default function LogTrade() {
   const [strategyId, setStrategyId] = useState('')
   // Adherence keyed by StrategyRule id → whether the rule was followed on this trade.
   const [ruleChecks, setRuleChecks] = useState<Record<string, boolean>>({})
+
+  const selectedInstrument = instruments.find((i) => i.instrumentId === form.instrumentId) ?? null
+  // Price steps follow the instrument's tick size (0.25 on index futures, 0.01 on CL…).
+  const priceStep = selectedInstrument ? String(selectedInstrument.tickSize) : '0.25'
 
   const selectedStrategy = strategies.find((s) => s.id === strategyId) ?? null
   const checkedCount = selectedStrategy
@@ -196,7 +202,7 @@ export default function LogTrade() {
 
   const handleSubmit = () => {
     // Basic validation
-    if (!form.symbol || !form.date || !form.entryPrice || !form.stopLoss || !form.quantity) {
+    if (!form.instrumentId || !form.date || !form.entryPrice || !form.stopLoss || !form.quantity) {
       addToast('Please fill in all required fields.', 'error')
       return
     }
@@ -207,7 +213,7 @@ export default function LogTrade() {
 
     createTrade(
       {
-        symbol: form.symbol.toUpperCase(),
+        instrumentId: form.instrumentId,
         direction,
         entryPrice: parseFloat(form.entryPrice),
         stopLoss: parseFloat(form.stopLoss),
@@ -305,14 +311,32 @@ export default function LogTrade() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3.5">
-              <Field label="Symbol *">
-                <Input
-                  type="text"
-                  placeholder="NQ, ES…"
-                  value={form.symbol}
-                  onChange={handleChange('symbol')}
-                />
-              </Field>
+              <div className="col-span-2">
+                <Field label="Instrument *">
+                  <Select
+                    value={form.instrumentId}
+                    onChange={handleChange('instrumentId')}
+                    disabled={instrumentsLoading}
+                  >
+                    <option value="">
+                      {instrumentsLoading ? 'Loading…' : '— Select instrument —'}
+                    </option>
+                    {instruments.map((i) => (
+                      <option key={i.instrumentId} value={i.instrumentId}>
+                        {i.symbol} · {i.instrumentName}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+                {/* The point value is the whole reason this is a catalog and not free
+                    text: showing it makes the P&L scale explicit before submitting. */}
+                {selectedInstrument && (
+                  <p className="text-[10px] text-zinc-600 mt-1.5">
+                    {selectedInstrument.currency} {selectedInstrument.pointValue} per point ·
+                    tick {selectedInstrument.tickSize} = {selectedInstrument.currency} {selectedInstrument.tickValue}
+                  </p>
+                )}
+              </div>
               <Field label="Date *">
                 <Input
                   type="date"
@@ -333,7 +357,7 @@ export default function LogTrade() {
                   placeholder="0.00"
                   value={form.entryPrice}
                   onChange={handleChange('entryPrice')}
-                  step="0.25"
+                  step={priceStep}
                 />
               </Field>
               <Field label="Stop Loss *">
@@ -342,7 +366,7 @@ export default function LogTrade() {
                   placeholder="0.00"
                   value={form.stopLoss}
                   onChange={handleChange('stopLoss')}
-                  step="0.25"
+                  step={priceStep}
                 />
               </Field>
               <Field label="Take Profit">
@@ -351,7 +375,7 @@ export default function LogTrade() {
                   placeholder="0.00"
                   value={form.takeProfit}
                   onChange={handleChange('takeProfit')}
-                  step="0.25"
+                  step={priceStep}
                 />
               </Field>
               <Field label="Exit Price">
@@ -360,7 +384,7 @@ export default function LogTrade() {
                   placeholder="0.00"
                   value={form.exitPrice}
                   onChange={handleChange('exitPrice')}
-                  step="0.25"
+                  step={priceStep}
                 />
               </Field>
               <Field label="Contracts / Qty *">

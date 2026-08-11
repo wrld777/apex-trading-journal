@@ -131,6 +131,12 @@ export default function TradeLog() {
     () => [...new Set((optionsPage?.items ?? []).map(t => t.session))].filter(Boolean).sort(),
     [optionsPage],
   )
+  // Since #94 the server matches the symbol exactly against the instrument catalog,
+  // so a free-text box would return nothing while the user is still typing.
+  const symbols = useMemo(
+    () => [...new Set((optionsPage?.items ?? []).map(t => t.symbol))].filter(Boolean).sort(),
+    [optionsPage],
+  )
 
   const onSort = (key: SortKey) =>
     setSort(s => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'desc' }))
@@ -154,7 +160,10 @@ export default function TradeLog() {
 
       {/* Filters */}
       <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-3 mb-3.5 flex flex-wrap items-center gap-2">
-        <input value={symbol} onChange={e => setSymbol(e.target.value)} placeholder="Symbol…" className={`${INPUT} w-28 placeholder:text-zinc-700`} />
+        <select value={symbol} onChange={e => setSymbol(e.target.value)} className={INPUT}>
+          <option value="">Symbol: tutti</option>
+          {symbols.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
         <select value={setup} onChange={e => setSetup(e.target.value)} className={INPUT}>
           <option value="">Setup: tutti</option>
           {setups.map(s => <option key={s} value={s}>{s}</option>)}
