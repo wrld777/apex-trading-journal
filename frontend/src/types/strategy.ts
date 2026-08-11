@@ -18,8 +18,11 @@ export interface StrategyDto {
   createdAt: string
 }
 
-// Rule payload when creating/updating a strategy (no id — server assigns it).
+// Rule payload when creating/updating a strategy. In update le regole già esistenti
+// vanno rimandate col loro `id`: è ciò che permette al server di aggiornarle sul posto
+// invece di ricrearle, preservando l'aderenza registrata sui trade.
 export interface StrategyRuleInput {
+  id?: string
   label: string
   order: number
   required: boolean
