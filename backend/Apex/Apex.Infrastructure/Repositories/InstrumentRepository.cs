@@ -22,6 +22,16 @@ namespace Apex.Infrastructure.Repositories
             return await _context.Instruments.FirstOrDefaultAsync(i => i.InstrumentId == instrumentId, ct);
         }
 
+        public async Task<List<Instrument>> GetByIdsAsync(IReadOnlyCollection<Guid> instrumentIds, CancellationToken ct)
+        {
+            if (instrumentIds.Count == 0)
+                return new List<Instrument>();
+
+            return await _context.Instruments
+                .Where(i => instrumentIds.Contains(i.InstrumentId))
+                .ToListAsync(ct);
+        }
+
         public async Task<List<Instrument>> GetAllAsync(CancellationToken ct)
         {
             return await _context.Instruments

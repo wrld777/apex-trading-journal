@@ -91,6 +91,25 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
         {
             entity.HasKey(s => s.Id);
 
+            // Many-to-many verso il catalogo (#95). WithMany() senza navigation inversa:
+            // Instrument è globale e condiviso, non deve sapere quali strategie lo usano.
+            // Tabella di join esplicita per non dipendere dal nome generato da EF.
+            // Restrict verso il catalogo, come per Trade.Instrument: uno strumento usato
+            // da una strategia non deve sparire. Cascade verso la strategia: se la
+            // strategia muore, le sue associazioni non hanno più senso.
+            entity.HasMany(s => s.Instruments)
+                .WithMany()
+                .UsingEntity(
+                    "StrategyInstruments",
+                    right => right.HasOne(typeof(Instrument))
+                        .WithMany()
+                        .HasForeignKey("InstrumentId")
+                        .OnDelete(DeleteBehavior.Restrict),
+                    left => left.HasOne(typeof(Strategy))
+                        .WithMany()
+                        .HasForeignKey("StrategyId")
+                        .OnDelete(DeleteBehavior.Cascade));
+
             entity.Property(s => s.Name)
                 .IsRequired()
                 .HasMaxLength(100);

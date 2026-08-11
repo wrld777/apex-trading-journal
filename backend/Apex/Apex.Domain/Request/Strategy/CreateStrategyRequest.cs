@@ -5,6 +5,7 @@ public class CreateStrategyRequest
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public List<StrategyRuleRequest> Rules { get; set; } = new();
+    public List<Guid> InstrumentIds { get; set; } = new();
 }
 
 public class StrategyRuleRequest
