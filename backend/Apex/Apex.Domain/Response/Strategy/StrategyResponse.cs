@@ -7,6 +7,7 @@ public class StrategyResponse
     public string Description { get; set; } = string.Empty;
     public List<StrategyRuleResponse> Rules { get; set; } = new();
     public DateTime CreatedAt { get; set; }
+    public List<Guid> InstrumentIds { get; set; } = new();
 }
 
 public class StrategyRuleResponse

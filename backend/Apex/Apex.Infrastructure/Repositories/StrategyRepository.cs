@@ -22,6 +22,7 @@ namespace Apex.Infrastructure.Repositories
             return await _context.Strategies
                 .Where(s => s.UserId == userId)
                 .Include(s => s.Rules.OrderBy(r => r.Order))
+                .Include(s => s.Instruments)
                 .AsNoTracking()
                 .ToListAsync(ct);
         }
@@ -29,8 +30,12 @@ namespace Apex.Infrastructure.Repositories
 
         public async Task<Strategy?> GetByIdAsync(Guid id, Guid userId, CancellationToken ct)
         {
+            // Volutamente TRACKED: UpdateAsync lavora sul grafo caricato da qui
+            // (replace di Rules e Instruments). Con AsNoTracking il Clear() non
+            // produrrebbe alcuna DELETE e l'update salverebbe solo i campi scalari.
             return await _context.Strategies
                 .Include(s => s.Rules.OrderBy(r => r.Order))
+                .Include(s => s.Instruments)
                 .FirstOrDefaultAsync(s => s.Id == id && s.UserId == userId, ct);
         }
 
@@ -56,6 +61,9 @@ namespace Apex.Infrastructure.Repositories
             // rimosse dalla collection (→ Deleted via cascade); quelle nuove hanno un
             // Id fresco ma, aggiunte al grafo tracciato, EF le marca Modified e proverebbe
             // un UPDATE su righe inesistenti. Le forzo ad Added (in update è sempre replace).
+            //
+            // Instruments NON ha bisogno dello stesso trattamento: le entità arrivano già
+            // tracciate come Unchanged dal catalogo, quindi EF tocca solo le righe di join.
             strategy.UpdatedAt = DateTime.UtcNow;
 
             foreach (var rule in strategy.Rules)

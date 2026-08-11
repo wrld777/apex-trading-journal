@@ -10,11 +10,16 @@ namespace Apex.Domain.Services;
 public class StrategyService : IStrategyService
 {
     private readonly IStrategyRepository _strategyRepository;
+    private readonly IInstrumentRepository _instrumentRepository;
     private readonly IMapper _mapper;
 
-    public StrategyService(IStrategyRepository strategyRepository, IMapper mapper)
+    public StrategyService(
+        IStrategyRepository strategyRepository,
+        IInstrumentRepository instrumentRepository,
+        IMapper mapper)
     {
         _strategyRepository = strategyRepository;
+        _instrumentRepository = instrumentRepository;
         _mapper = mapper;
     }
 
@@ -43,6 +48,10 @@ public class StrategyService : IStrategyService
         strategy.Id = Guid.NewGuid();
         strategy.UserId = userId;
         NormalizeRules(strategy);
+
+        var applied = await ApplyInstruments(strategy, dto.InstrumentIds, ct);
+        if (!applied.IsSuccess)
+            return Result<StrategyDto>.Failure(applied.Error!);
 
         var created = await _strategyRepository.CreateAsync(strategy, ct);
         return Result<StrategyDto>.Success(_mapper.Map<StrategyDto>(created));
@@ -75,6 +84,10 @@ public class StrategyService : IStrategyService
             });
         }
 
+        var applied = await ApplyInstruments(strategy, dto.InstrumentIds, ct);
+        if (!applied.IsSuccess)
+            return Result<StrategyDto>.Failure(applied.Error!);
+
         var updated = await _strategyRepository.UpdateAsync(strategy, ct);
         return Result<StrategyDto>.Success(_mapper.Map<StrategyDto>(updated));
     }
@@ -86,6 +99,32 @@ public class StrategyService : IStrategyService
             return Result<bool>.Failure(Error.FromStrategyError(StrategyErrors.NotFound(id)));
 
         await _strategyRepository.DeleteAsync(strategy, ct);
+        return Result<bool>.Success(true);
+    }
+
+    // Replace totale degli strumenti associati, stesso schema dei rule check sui trade.
+    // Gli Instrument NON si costruiscono: si caricano dal catalogo globale (seed, non
+    // modificabile dall'utente) e si agganciano tracciati, così EF scrive solo le righe
+    // di join. Il caricamento serve anche a validare: un id fuori catalogo deve dare 400,
+    // non una violazione di FK a valle.
+    private async Task<Result<bool>> ApplyInstruments(
+        Strategy strategy, List<Guid> instrumentIds, CancellationToken ct)
+    {
+        strategy.Instruments.Clear();
+
+        var requested = (instrumentIds ?? new()).Distinct().ToList();
+        if (requested.Count == 0)
+            return Result<bool>.Success(true);
+
+        var instruments = await _instrumentRepository.GetByIdsAsync(requested, ct);
+
+        var found = instruments.Select(i => i.InstrumentId).ToHashSet();
+        var missing = requested.Where(id => !found.Contains(id)).ToList();
+        if (missing.Count > 0)
+            return Result<bool>.Failure(
+                Error.FromStrategyError(StrategyErrors.InstrumentNotFound(missing[0])));
+
+        strategy.Instruments.AddRange(instruments);
         return Result<bool>.Success(true);
     }
 

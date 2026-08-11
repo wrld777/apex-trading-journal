@@ -13,7 +13,16 @@ namespace Apex.Domain.AutoMapperProfile
     {
         public StrategyProfile()
         {
-            CreateMap<Strategy, StrategyDto>().ReverseMap();
+            CreateMap<Strategy, StrategyDto>()
+                .ForMember(d => d.InstrumentIds,
+                    o => o.MapFrom(s => s.Instruments.Select(i => i.InstrumentId)));
+
+            // In ingresso gli strumenti NON si mappano: sono entità del catalogo globale
+            // e vanno risolte dal DB (StrategyService.ApplyInstruments), altrimenti
+            // AutoMapper costruirebbe Instrument nuovi ed EF proverebbe a inserirli.
+            CreateMap<StrategyDto, Strategy>()
+                .ForMember(d => d.Instruments, o => o.Ignore());
+
             CreateMap<StrategyRule, StrategyRuleDto>().ReverseMap();
 
             CreateMap<StrategyDto, CreateStrategyRequest>().ReverseMap();

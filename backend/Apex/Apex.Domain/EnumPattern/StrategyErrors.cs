@@ -31,5 +31,8 @@ namespace Apex.Domain.Common
 
         public static readonly StrategyErrors RuleLabelRequired =
             new("Rule label is required.");
+
+        public static StrategyErrors InstrumentNotFound(Guid id) =>
+            new($"Instrument with id '{id}' was not found in the catalog.");
     }
 }
