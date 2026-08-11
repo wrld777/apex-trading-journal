@@ -5,7 +5,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import Modal from '../../components/ui/Modal'
 import { useToastStore } from '../../store/toastStore'
 import EditTradeModal from './EditTradeModal'
-import type { Direction, TradeDto, TradeQuery, TradeStatus } from '../../types/trade'
+import type { Direction, TradeDto, TradeOutcome, TradeQuery, TradeStatus } from '../../types/trade'
 
 /* ── helpers ── */
 function fmtNum(n: number, d = 0) {
@@ -31,6 +31,24 @@ function StatusBadge({ status }: { status: TradeDto['status'] }) {
     BreakEven: 'bg-zinc-500/10 border-zinc-500/20 text-zinc-400',
   }
   return <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] border ${map[status]}`}>{status}</span>
+}
+
+// Come si è usciti, accanto al prezzo (#96). Un'uscita manuale non aggiunge
+// nulla al prezzo già mostrato, quindi resta muta.
+function ExitOutcomeTag({ exits }: { exits: TradeDto['exits'] }) {
+  if (!exits || exits.length === 0) return null
+
+  const labels: Record<TradeOutcome, string> = {
+    TakeProfit: 'TP',
+    StopLoss: 'SL',
+    BreakEven: 'BE',
+    Manual: '',
+  }
+
+  const text = exits.length > 1 ? `${exits.length} uscite` : labels[exits[0].outcome]
+  if (!text) return null
+
+  return <span className="ml-1.5 text-[9px] text-zinc-600 uppercase tracking-wide">{text}</span>
 }
 
 function SortHeader({ label, col, sort, onSort, align = 'left' }: {
@@ -242,7 +260,12 @@ export default function TradeLog() {
                       <td className="py-2.5 px-3 text-[11px] text-zinc-500">{t.session}</td>
                       <td className="py-2.5 px-3 text-[11px] text-zinc-500 text-right font-mono">{t.quantity}</td>
                       <td className="py-2.5 px-3 text-[11px] text-zinc-500 text-right font-mono">{fmtNum(t.entryPrice, 2)}</td>
-                      <td className="py-2.5 px-3 text-[11px] text-zinc-500 text-right font-mono">{fmtNum(t.exitPrice, 2)}</td>
+                      <td className="py-2.5 px-3 text-[11px] text-zinc-500 text-right font-mono">
+                        {fmtNum(t.exitPrice, 2)}
+                        {/* Come si è chiuso (#96): sui parziali il prezzo è una media,
+                            quindi da solo direbbe poco. */}
+                        <ExitOutcomeTag exits={t.exits} />
+                      </td>
                       <td className={`py-2.5 px-3 text-[11px] text-right font-mono ${t.pnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>{fmtPnl(t.pnL)}</td>
                       <td className="py-2.5 px-3 text-[11px] text-zinc-400 text-right font-mono">{fmtNum(t.riskReward, 2)}</td>
                       <td className="py-2.5 px-3 text-right"><StatusBadge status={t.status} /></td>

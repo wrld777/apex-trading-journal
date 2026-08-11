@@ -4,7 +4,7 @@ import { useStrategies } from '../../hooks/useStrategies'
 import { useInstruments } from '../../hooks/useInstruments'
 import { useToastStore } from '../../store/toastStore'
 import ScreenshotInput from '../../components/ui/ScreenshotInput'
-import type { Direction } from '../../types/trade'
+import type { Direction, TradeOutcome } from '../../types/trade'
 import type { StrategyRuleDto } from '../../types/strategy'
 
 // ── Small UI helpers ──────────────────────────────────────────────────────────
@@ -112,6 +112,37 @@ function FormCard({ children }: { children: React.ReactNode }) {
   )
 }
 
+// ── Esiti di uscita (#96) ─────────────────────────────────────────────────────
+
+// TP e SL derivano il prezzo dai livelli del trade: senza quel livello l'esito
+// non è selezionabile, invece di far fallire il submit lato server.
+const OUTCOMES: {
+  value: TradeOutcome
+  label: string
+  hint: string
+  disabled?: (form: typeof DEFAULT_FORM) => boolean
+}[] = [
+  { value: 'TakeProfit', label: 'Take Profit', hint: 'Uscita al target', disabled: (f) => !f.takeProfit },
+  { value: 'StopLoss', label: 'Stop Loss', hint: 'Uscita allo stop', disabled: (f) => !f.stopLoss },
+  { value: 'BreakEven', label: 'Break Even', hint: 'Uscita al prezzo di ingresso' },
+  { value: 'Manual', label: 'Manuale', hint: 'Prezzo di uscita da inserire' },
+]
+
+interface PartialDraft {
+  key: string
+  outcome: TradeOutcome
+  contracts: string
+  price: string
+}
+
+let partialKeySeq = 1
+const newPartial = (): PartialDraft => ({
+  key: `x${partialKeySeq++}`,
+  outcome: 'TakeProfit',
+  contracts: '',
+  price: '',
+})
+
 // ── Default form state ────────────────────────────────────────────────────────
 
 const DEFAULT_FORM = {
@@ -148,6 +179,10 @@ export default function LogTrade() {
   const [strategyId, setStrategyId] = useState('')
   // Adherence keyed by StrategyRule id → whether the rule was followed on this trade.
   const [ruleChecks, setRuleChecks] = useState<Record<string, boolean>>({})
+  // Uscita (#96): esito singolo, oppure righe parziali quando la sezione è aperta.
+  const [outcome, setOutcome] = useState<TradeOutcome | ''>('')
+  const [partialsOpen, setPartialsOpen] = useState(false)
+  const [partials, setPartials] = useState<PartialDraft[]>([newPartial()])
 
   const selectedInstrument = instruments.find((i) => i.instrumentId === form.instrumentId) ?? null
   // Price steps follow the instrument's tick size (0.25 on index futures, 0.01 on CL…).
@@ -165,6 +200,32 @@ export default function LogTrade() {
     strategyInstrumentIds.length > 0
       ? instruments.filter((i) => strategyInstrumentIds.includes(i.instrumentId))
       : instruments
+
+  const quantityNumber = parseInt(form.quantity, 10) || 0
+  const partialContracts = partials.reduce((sum, p) => sum + (parseInt(p.contracts, 10) || 0), 0)
+
+  // Che prezzo userà il server per l'esito scelto, detto in chiaro nel form.
+  const outcomePriceLabel =
+    outcome === 'TakeProfit'
+      ? `take profit ${form.takeProfit || '—'}`
+      : outcome === 'StopLoss'
+        ? `stop loss ${form.stopLoss || '—'}`
+        : `prezzo di ingresso ${form.entryPrice || '—'}`
+
+  const updatePartial = (key: string, patch: Partial<PartialDraft>) =>
+    setPartials((ps) => ps.map((p) => (p.key === key ? { ...p, ...patch } : p)))
+
+  const addPartial = () => setPartials((ps) => [...ps, newPartial()])
+
+  const removePartial = (key: string) => setPartials((ps) => ps.filter((p) => p.key !== key))
+
+  const togglePartials = () =>
+    setPartialsOpen((open) => {
+      // Rientrando su uscita singola le righe non servono più; entrando, si parte
+      // da una riga sola così il primo parziale è già pronto da compilare.
+      setPartials([newPartial()])
+      return !open
+    })
 
   const handleChange = (field: keyof typeof DEFAULT_FORM) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -214,6 +275,9 @@ export default function LogTrade() {
     setScreenshots([])
     setStrategyId('')
     setRuleChecks({})
+    setOutcome('')
+    setPartialsOpen(false)
+    setPartials([newPartial()])
   }
 
   const handleSubmit = () => {
@@ -221,6 +285,34 @@ export default function LogTrade() {
     if (!form.instrumentId || !form.date || !form.entryPrice || !form.stopLoss || !form.quantity) {
       addToast('Please fill in all required fields.', 'error')
       return
+    }
+
+    // Uscita (#96). Il trade si registra sempre già chiuso, quindi l'esito è
+    // obbligatorio e sui parziali i contratti devono coprire tutta la quantità.
+    if (!partialsOpen && outcome === '') {
+      addToast('Scegli come si è chiuso il trade.', 'error')
+      return
+    }
+    if (!partialsOpen && outcome === 'Manual' && !form.exitPrice) {
+      addToast('Un\'uscita manuale ha bisogno del prezzo.', 'error')
+      return
+    }
+    if (partialsOpen) {
+      if (partials.some((p) => (parseInt(p.contracts, 10) || 0) <= 0)) {
+        addToast('Ogni uscita deve chiudere almeno 1 contratto.', 'error')
+        return
+      }
+      if (partials.some((p) => p.outcome === 'Manual' && !p.price)) {
+        addToast('Le uscite manuali hanno bisogno del prezzo.', 'error')
+        return
+      }
+      if (partialContracts !== quantityNumber) {
+        addToast(
+          `Le uscite chiudono ${partialContracts} contratti su ${quantityNumber}.`,
+          'error',
+        )
+        return
+      }
     }
 
     const entryTime = form.time
@@ -250,6 +342,18 @@ export default function LogTrade() {
         ruleChecks: selectedStrategy
           ? selectedStrategy.rules.map((r) => ({ strategyRuleId: r.id, checked: !!ruleChecks[r.id] }))
           : [],
+        // Esito singolo oppure parziali: `exits` vince quando c'è, quindi si manda
+        // solo la forma effettivamente usata.
+        ...(partialsOpen
+          ? {
+              exits: partials.map((p, i) => ({
+                outcome: p.outcome,
+                contracts: parseInt(p.contracts, 10),
+                price: p.outcome === 'Manual' ? parseFloat(p.price) : undefined,
+                order: i,
+              })),
+            }
+          : { outcome: outcome as TradeOutcome }),
       },
       {
         onSuccess: () => {
@@ -400,15 +504,6 @@ export default function LogTrade() {
                   step={priceStep}
                 />
               </Field>
-              <Field label="Exit Price">
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  value={form.exitPrice}
-                  onChange={handleChange('exitPrice')}
-                  step={priceStep}
-                />
-              </Field>
               <Field label="Contracts / Qty *">
                 <Input
                   type="number"
@@ -419,6 +514,131 @@ export default function LogTrade() {
                 />
               </Field>
             </div>
+
+            {/* Uscita (#96) — si ragiona per esito, non per prezzo: il prezzo
+                di TP/SL/BE è già nei campi sopra e lo deriva il server. */}
+            <SectionTitle>Uscita</SectionTitle>
+
+            {!partialsOpen ? (
+              <>
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {OUTCOMES.map((o) => (
+                    <button
+                      key={o.value}
+                      type="button"
+                      onClick={() => setOutcome(o.value)}
+                      aria-pressed={outcome === o.value}
+                      disabled={o.disabled?.(form) ?? false}
+                      title={o.hint}
+                      className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
+                        outcome === o.value
+                          ? 'bg-white text-black border-white'
+                          : 'text-zinc-400 border-white/[0.07] hover:border-white/[0.18] hover:text-zinc-200'
+                      }`}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+
+                {outcome === 'Manual' ? (
+                  <div className="max-w-[220px] mb-2">
+                    <Field label="Prezzo di uscita *">
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        value={form.exitPrice}
+                        onChange={handleChange('exitPrice')}
+                        step={priceStep}
+                      />
+                    </Field>
+                  </div>
+                ) : outcome !== '' ? (
+                  <p className="text-[11px] text-zinc-600 mb-2">
+                    Uscita a {outcomePriceLabel} — il prezzo lo prende dal campo qui sopra.
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-zinc-600 mb-2">Scegli come si è chiuso il trade.</p>
+                )}
+              </>
+            ) : (
+              <div className="flex flex-col gap-2 mb-2">
+                {partials.map((p, i) => (
+                  <div key={p.key} className="flex items-center gap-2">
+                    <div className="w-[130px] shrink-0">
+                      <Select
+                        value={p.outcome}
+                        onChange={(e) => updatePartial(p.key, { outcome: e.target.value as TradeOutcome })}
+                      >
+                        {OUTCOMES.map((o) => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </Select>
+                    </div>
+                    <div className="w-[110px] shrink-0">
+                      <Input
+                        type="number"
+                        placeholder="contratti"
+                        value={p.contracts}
+                        onChange={(e) => updatePartial(p.key, { contracts: e.target.value })}
+                        min="1"
+                      />
+                    </div>
+                    {p.outcome === 'Manual' && (
+                      <div className="w-[130px] shrink-0">
+                        <Input
+                          type="number"
+                          placeholder="prezzo"
+                          value={p.price}
+                          onChange={(e) => updatePartial(p.key, { price: e.target.value })}
+                          step={priceStep}
+                        />
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removePartial(p.key)}
+                      disabled={partials.length === 1}
+                      aria-label={`Rimuovi uscita ${i + 1}`}
+                      className="p-1 rounded-md text-zinc-600 hover:text-red-400 hover:bg-red-500/[0.08] transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                        <path d="M2.5 3.5h9M5.5 3.5V2.3h3v1.2M3.5 3.5l.5 8h6l.5-8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={addPartial}
+                    className="px-2.5 py-1 rounded-md text-[11px] text-zinc-400 border border-dashed border-white/[0.12] hover:bg-[#1a1a1d] hover:text-zinc-200 transition-all"
+                  >
+                    + Aggiungi uscita
+                  </button>
+                  {/* Il trade si registra già chiuso: se i contratti non tornano
+                      il server rifiuta, tanto vale dirlo subito. */}
+                  <span
+                    className={`text-[11px] ${
+                      quantityNumber > 0 && partialContracts === quantityNumber
+                        ? 'text-zinc-600'
+                        : 'text-amber-500/90'
+                    }`}
+                  >
+                    {partialContracts}/{quantityNumber || '—'} contratti
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={togglePartials}
+              className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors underline underline-offset-2"
+            >
+              {partialsOpen ? 'Torna a uscita singola' : 'Sono uscito in più volte'}
+            </button>
           </FormCard>
 
           <FormCard>

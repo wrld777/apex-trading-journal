@@ -3,7 +3,14 @@ import Modal from '../../components/ui/Modal'
 import ScreenshotInput from '../../components/ui/ScreenshotInput'
 import { useUpdateTrade } from '../../hooks/useTrades'
 import { useToastStore } from '../../store/toastStore'
-import type { TradeDto, UpdateTradeRequest } from '../../types/trade'
+import type { TradeDto, TradeOutcome, UpdateTradeRequest } from '../../types/trade'
+
+const OUTCOME_LABELS: Record<TradeOutcome, string> = {
+  TakeProfit: 'TP',
+  StopLoss: 'SL',
+  BreakEven: 'BE',
+  Manual: 'Manuale',
+}
 
 const EMOTIONAL_STATES = [
   'Calm & Focused',
@@ -58,6 +65,12 @@ export default function EditTradeModal({ trade, open, onClose }: {
     setScreenshots(trade.screenshots ?? [])
   }
 
+  // Un trade chiuso in un'unica uscita manuale è l'unico caso in cui ha senso
+  // ritoccare il prezzo a mano: negli altri il prezzo lo deriva il server
+  // dall'esito, e sui parziali non c'è un singolo prezzo da editare (#96).
+  const exits = trade?.exits ?? []
+  const isSimpleManualExit = exits.length <= 1 && (exits[0]?.outcome ?? 'Manual') === 'Manual'
+
   const addTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && tagInput.trim()) {
       e.preventDefault()
@@ -78,6 +91,20 @@ export default function EditTradeModal({ trade, open, onClose }: {
       mistakes,
       tags,
       screenshots,
+      // L'update ricostruisce le uscite da zero (#96): quelle non semplici vanno
+      // rimandate uguali, o un trade con parziali diventerebbe un'uscita manuale
+      // unica al prezzo medio. Qui si modifica solo il caso a uscita singola.
+      ...(isSimpleManualExit
+        ? { outcome: 'Manual' as const }
+        : {
+            exits: exits.map((e, i) => ({
+              outcome: e.outcome,
+              contracts: e.contracts,
+              price: e.outcome === 'Manual' ? e.price : undefined,
+              time: e.time,
+              order: i,
+            })),
+          }),
     }
 
     updateTrade(
@@ -126,10 +153,23 @@ export default function EditTradeModal({ trade, open, onClose }: {
     >
       <div className="flex flex-col gap-3.5">
         <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[11px] text-zinc-600 tracking-[0.04em]">Exit Price</span>
-            <input type="number" step="0.25" placeholder="0.00" value={exitPrice} onChange={(e) => setExitPrice(e.target.value)} className={FIELD} />
-          </label>
+          {isSimpleManualExit ? (
+            <label className="flex flex-col gap-1.5">
+              <span className="text-[11px] text-zinc-600 tracking-[0.04em]">Exit Price</span>
+              <input type="number" step="0.25" placeholder="0.00" value={exitPrice} onChange={(e) => setExitPrice(e.target.value)} className={FIELD} />
+            </label>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[11px] text-zinc-600 tracking-[0.04em]">Uscite</span>
+              <div className="flex flex-col gap-1 pt-1">
+                {exits.map((e, i) => (
+                  <span key={i} className="text-[11px] text-zinc-400 font-mono">
+                    {e.contracts}× {OUTCOME_LABELS[e.outcome]} @ {e.price}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           <label className="flex flex-col gap-1.5">
             <span className="text-[11px] text-zinc-600 tracking-[0.04em]">Exit Time</span>
             <input type="datetime-local" value={exitTime} onChange={(e) => setExitTime(e.target.value)} className={FIELD} />
