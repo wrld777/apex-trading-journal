@@ -71,9 +71,12 @@ public class TradeService : ITradeService
         // Navigation valorizzata con l'entità già tracciata: serve solo a far trovare
         // il Symbol al mapper nella response (EF non la reinserisce, ha già la chiave).
         trade.Instrument = instrument;
-        trade.PnL = CalculatePnL(trade, instrument.PointValue);
-        trade.RiskReward = CalculateRR(trade);
-        trade.Status = DetermineStatus(trade);
+
+        var exits = BuildExits(trade, dto);
+        if (!exits.IsSuccess)
+            return Result<TradeDto>.Failure(exits.Error!);
+
+        RecomputeFromExits(trade, instrument.PointValue);
 
 
         var applied = await ApplyStrategyAndChecks(trade, dto.StrategyId, dto.RuleChecks, userId, ct);
@@ -90,18 +93,20 @@ public class TradeService : ITradeService
         if (trade is null || trade.UserId != userId)
             return Result<TradeDto>.Failure(Error.FromTradeError(TradeErrors.NotFound(id)));
 
-        trade.ExitPrice = dto.ExitPrice;
         trade.ExitTime = dto.ExitTime;
         trade.Rationale = dto.Rationale;
         trade.EmotionalState = dto.EmotionalState;
         trade.Mistakes = dto.Mistakes;
         trade.Tags = dto.Tags;
         trade.Screenshots = dto.Screenshots;
+
+        var exits = BuildExits(trade, dto);
+        if (!exits.IsSuccess)
+            return Result<TradeDto>.Failure(exits.Error!);
+
         // Lo strumento di un trade non è modificabile in update: il PointValue è quello
         // caricato con la navigation da GetByIdAsync.
-        trade.PnL = CalculatePnL(trade, trade.Instrument.PointValue);
-        trade.RiskReward = CalculateRR(trade);
-        trade.Status = DetermineStatus(trade);
+        RecomputeFromExits(trade, trade.Instrument.PointValue);
 
         // Riconcilia strategia + aderenza: replace totale dei rule check.
         var applied = await ApplyStrategyAndChecks(trade, dto.StrategyId, dto.RuleChecks, userId, ct);
@@ -162,15 +167,112 @@ public class TradeService : ITradeService
         return Result<bool>.Success(true);
     }
 
+    // Costruisce le uscite del trade (#96). Due forme accettate:
+    // - dto.Exits valorizzata → parziali, la somma dei contratti deve coprire Quantity;
+    // - altrimenti un'unica uscita su tutta la quantità, con l'esito indicato da
+    //   dto.Outcome (default Manual, che è il comportamento pre-#96 su ExitPrice).
+    // Il trade è chiuso per definizione: non esiste il caso "quantità residua aperta".
+    private static Result<bool> BuildExits(Trade trade, TradeDto dto)
+    {
+        trade.Exits.Clear();
+
+        var requested = dto.Exits is { Count: > 0 }
+            ? dto.Exits
+            : new List<TradeExitDto>
+            {
+                new()
+                {
+                    Outcome = dto.Outcome ?? TradeOutcome.Manual,
+                    Price = dto.ExitPrice,
+                    Contracts = trade.Quantity,
+                    Time = dto.ExitTime,
+                    Order = 0
+                }
+            };
+
+        var order = 0;
+        foreach (var e in requested)
+        {
+            if (e.Contracts <= 0)
+                return Result<bool>.Failure(Error.FromTradeError(TradeErrors.InvalidExitContracts));
+
+            var price = ResolveExitPrice(trade, e.Outcome, e.Price);
+            if (price <= 0)
+                return Result<bool>.Failure(Error.FromTradeError(TradeErrors.InvalidExitPrice));
+
+            trade.Exits.Add(new TradeExit
+            {
+                Id = Guid.NewGuid(),
+                TradeId = trade.Id,
+                Outcome = e.Outcome,
+                Price = price,
+                Contracts = e.Contracts,
+                // Senza orario sulla singola uscita si eredita quello del trade:
+                // sui parziali serve solo se l'utente vuole distinguerli.
+                Time = e.Time ?? trade.ExitTime,
+                Order = order++
+            });
+        }
+
+        var totalContracts = trade.Exits.Sum(x => x.Contracts);
+        if (totalContracts != trade.Quantity)
+            return Result<bool>.Failure(
+                Error.FromTradeError(TradeErrors.ExitContractsMismatch(totalContracts, trade.Quantity)));
+
+        return Result<bool>.Success(true);
+    }
+
+    // Il punto della #96: per TP/SL/BE il prezzo è già sul trade, si digita solo
+    // sull'uscita manuale.
+    private static decimal ResolveExitPrice(Trade trade, TradeOutcome outcome, decimal? manualPrice) =>
+        outcome switch
+        {
+            TradeOutcome.TakeProfit => trade.TakeProfit,
+            TradeOutcome.StopLoss => trade.StopLoss,
+            TradeOutcome.BreakEven => trade.EntryPrice,
+            _ => manualPrice ?? 0m
+        };
+
+    // ExitPrice, PnL, RR e Status derivano tutti dalle uscite: un solo punto in cui
+    // si ricalcolano, chiamato sia in create che in update.
+    private static void RecomputeFromExits(Trade trade, decimal pointValue)
+    {
+        trade.ExitPrice = CalculateWeightedExitPrice(trade);
+        trade.PnL = CalculatePnL(trade, pointValue);
+        trade.RiskReward = CalculateRR(trade);
+        trade.Status = DetermineStatus(trade);
+    }
+
+    // Media dei prezzi di uscita pesata sui contratti: è il prezzo "equivalente"
+    // del trade, usato da RR, stats ed export.
+    private static decimal CalculateWeightedExitPrice(Trade trade)
+    {
+        var contracts = trade.Exits.Sum(e => e.Contracts);
+        if (contracts == 0) return 0m;
+
+        var weighted = trade.Exits.Sum(e => e.Price * e.Contracts);
+        return Math.Round(weighted / contracts, 4);
+    }
+
     // PnL in valuta, non in punti: senza il PointValue dello strumento un +10 su MNQ
-    // e un +10 su NQ risulterebbero identici (#94).
+    // e un +10 su NQ risulterebbero identici (#94). Dalla #96 è la somma delle uscite,
+    // ognuna con i propri contratti. Sul risultato è equivalente a calcolarlo sul prezzo
+    // medio ponderato — il PnL è lineare nel prezzo — ma tenerlo per uscita è ciò che
+    // permette di leggere *come* si è chiuso il trade, e regge se un domani si
+    // aggiungono commissioni per contratto.
     private static decimal CalculatePnL(Trade trade, decimal pointValue)
     {
-        var diff = trade.Direction == Direction.Long
-            ? trade.ExitPrice - trade.EntryPrice
-            : trade.EntryPrice - trade.ExitPrice;
+        decimal total = 0m;
+        foreach (var exit in trade.Exits)
+        {
+            var diff = trade.Direction == Direction.Long
+                ? exit.Price - trade.EntryPrice
+                : trade.EntryPrice - exit.Price;
 
-        return diff * trade.Quantity * pointValue;
+            total += diff * exit.Contracts * pointValue;
+        }
+
+        return total;
     }
 
     private static decimal CalculateRR(Trade trade)

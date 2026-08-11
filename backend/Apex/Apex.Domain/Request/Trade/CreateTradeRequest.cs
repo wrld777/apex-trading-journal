@@ -25,4 +25,11 @@ public class CreateTradeRequest
     public List<string> Screenshots { get; set; } = new();
     public Guid? StrategyId { get; set; }
     public List<TradeRuleCheckDto> RuleChecks { get; set; } = new();
+
+    // #96 — due modi di chiudere il trade:
+    // - Outcome da solo: uscita unica su tutta la quantità, prezzo derivato.
+    // - Exits: uscite parziali, la somma dei Contracts deve coprire Quantity.
+    // ExitPrice resta solo come prezzo dell'uscita manuale nel caso semplice.
+    public TradeOutcome? Outcome { get; set; }
+    public List<TradeExitDto> Exits { get; set; } = new();
 }

@@ -11,6 +11,9 @@ public class Trade
     public decimal EntryPrice { get; set; }
     public decimal StopLoss { get; set; }
     public decimal TakeProfit { get; set; }
+    // Derivato dalle uscite (#96): media dei prezzi pesata sui contratti. Resta sul
+    // trade perché stats, analytics ed export ci si appoggiano, ma non si scrive più
+    // a mano.
     public decimal ExitPrice { get; set; }
     public int Quantity { get; set; }
     public decimal PnL { get; set; }
@@ -32,6 +35,7 @@ public class Trade
     public Guid? StrategyId { get; set; }
     public Strategy? Strategy { get; set; }
     public List<TradeRuleCheck> RuleChecks { get; set; } = new();
+    public List<TradeExit> Exits { get; set; } = new();
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

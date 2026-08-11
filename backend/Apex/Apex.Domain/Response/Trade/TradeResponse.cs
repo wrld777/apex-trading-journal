@@ -31,4 +31,6 @@ public class TradeResponse
     public List<string> Screenshots { get; set; } = new();
     public Guid? StrategyId { get; set; }
     public List<TradeRuleCheckDto> RuleChecks { get; set; } = new();
+    // Come si è usciti (#96): una riga nel caso normale, più righe sui parziali.
+    public List<TradeExitDto> Exits { get; set; } = new();
 }
