@@ -14,6 +14,15 @@ function fmtNum(n: number, d = 0) {
 function fmtPnl(n: number) {
   return n >= 0 ? `+$${fmtNum(n)}` : `-$${fmtNum(Math.abs(n))}`
 }
+/**
+ * Risultato in unità di rischio, col segno. Il RR accanto è una magnitudine:
+ * senza questa colonna un trade perso mostrava `RR 1.00`, identico a un vinto
+ * da 1R.
+ */
+function fmtR(n: number | null) {
+  if (n === null) return '—'
+  return `${n >= 0 ? '+' : '−'}${fmtNum(Math.abs(n), 2)}R`
+}
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { year: '2-digit', month: 'short', day: 'numeric' })
 }
@@ -241,6 +250,7 @@ export default function TradeLog() {
                     <th className="font-medium pb-2 px-3 text-right">Entry</th>
                     <th className="font-medium pb-2 px-3 text-right">Exit</th>
                     <SortHeader label="P&L" col="pnl" sort={sort} onSort={onSort} align="right" />
+                    <th className="font-medium pb-2 px-3 text-right">R</th>
                     <SortHeader label="RR" col="rr" sort={sort} onSort={onSort} align="right" />
                     <th className="font-medium pb-2 px-3 text-right">Status</th>
                     <th className="font-medium pb-2 px-3 text-right">Actions</th>
@@ -267,6 +277,9 @@ export default function TradeLog() {
                         <ExitOutcomeTag exits={t.exits} />
                       </td>
                       <td className={`py-2.5 px-3 text-[11px] text-right font-mono ${t.pnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>{fmtPnl(t.pnL)}</td>
+                      <td className={`py-2.5 px-3 text-[11px] text-right font-mono ${
+                        t.rMultiple === null ? 'text-zinc-700' : t.rMultiple >= 0 ? 'text-green-500' : 'text-red-500'
+                      }`}>{fmtR(t.rMultiple)}</td>
                       <td className="py-2.5 px-3 text-[11px] text-zinc-400 text-right font-mono">{fmtNum(t.riskReward, 2)}</td>
                       <td className="py-2.5 px-3 text-right"><StatusBadge status={t.status} /></td>
                       <td className="py-2.5 px-3">

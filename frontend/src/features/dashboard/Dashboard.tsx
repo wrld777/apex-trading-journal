@@ -50,7 +50,10 @@ function Heatmap({ daily }: { daily: DailyPnLDto[] }) {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '26px repeat(13, 1fr)', gap: 2 }}>
+    // Le colonne erano `1fr`: su desktop diventavano quadrati da ~90px e la
+    // heatmap si mangiava mezza pagina. Con un tetto crescono fin dove serve
+    // e poi si fermano, allineate a sinistra.
+    <div style={{ display: 'grid', gridTemplateColumns: '26px repeat(13, minmax(0, 26px))', gap: 3, justifyContent: 'start' }}>
       {days.map((day, di) => (
         <Fragment key={`row-${di}`}>
           <div className="text-[9px] text-zinc-700 flex items-center justify-end pr-1">{day}</div>
@@ -178,6 +181,7 @@ function RecentTrades({ trades }: { trades: TradeDto[] }) {
             <th className="font-medium pb-2 pr-3">Date</th>
             <th className="font-medium pb-2 pr-3">Setup</th>
             <th className="font-medium pb-2 pr-3 text-right">Qty</th>
+            <th className="font-medium pb-2 pr-3 text-right">R</th>
             <th className="font-medium pb-2 pr-3 text-right">P&L</th>
             <th className="font-medium pb-2 text-right">Status</th>
           </tr>
@@ -196,6 +200,12 @@ function RecentTrades({ trades }: { trades: TradeDto[] }) {
               </td>
               <td className="py-2.5 pr-3 text-[11px] text-zinc-500">{t.setup}</td>
               <td className="py-2.5 pr-3 text-[11px] text-zinc-500 text-right font-mono">{t.quantity}</td>
+              {/* null quando lo stop coincideva con l'entry: lì l'R non esiste. */}
+              <td className={`py-2.5 pr-3 text-[11px] text-right font-mono ${
+                t.rMultiple === null ? 'text-zinc-700' : t.rMultiple >= 0 ? 'text-green-500' : 'text-red-500'
+              }`}>
+                {t.rMultiple === null ? '—' : fmtR(t.rMultiple)}
+              </td>
               <td className={`py-2.5 pr-3 text-[11px] text-right font-mono ${t.pnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                 {fmtPnl(t.pnL)}
               </td>
@@ -509,24 +519,29 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="flex flex-col">
+              {/* Il colore seguiva i dollari mentre il numero mostrato era in R:
+                  un setup con +3.00R ma -$132 usciva verde-positivo su barra
+                  ambra. R e $ possono davvero divergere fra strumenti con point
+                  value diverso, quindi il colore segue il numero che si legge
+                  — l'R — e i dollari si mostrano accanto quando dissentono. */}
               {(data?.setupStats ?? []).map(s => {
-                const positive = s.pnL >= 0
+                const positive = s.r >= 0
+                const disagree = (s.r >= 0) !== (s.pnL >= 0)
                 return (
                   <div key={s.setup} className="flex items-center gap-2.5 py-2 border-b border-white/[0.04] last:border-0">
-                    <div className="text-xs text-zinc-400 flex-1">{s.setup}</div>
+                    <div className="text-xs text-zinc-400 flex-1 truncate">{s.setup}</div>
                     <div className="flex-[2] h-[3px] bg-[#1a1a1d] rounded-full overflow-hidden">
                       <div className={`h-full rounded-full ${positive ? 'bg-green-500' : 'bg-amber-500'}`} style={{ width: `${s.winRate}%` }} />
                     </div>
-                    <div className={`text-[11px] w-9 text-right ${positive ? 'text-green-500' : 'text-amber-500'}`}>
+                    <div className="text-[11px] w-9 text-right text-zinc-500">
                       {fmt(s.winRate, 0)}%
                     </div>
-                    {/* In R: fra due setup con size diverse è l'unico confronto onesto.
-                        Il valore in dollari resta nel tooltip. */}
                     <div
-                      title={fmtPnl(s.pnL)}
-                      className={`text-[11px] w-16 text-right font-mono ${positive ? 'text-green-500' : 'text-zinc-600'}`}
+                      title={`${fmtR(s.r)} · ${fmtPnl(s.pnL)}`}
+                      className={`text-[11px] w-24 text-right font-mono ${positive ? 'text-green-500' : 'text-amber-500'}`}
                     >
                       {fmtR(s.r)}
+                      {disagree && <span className="text-zinc-600"> {fmtPnl(s.pnL)}</span>}
                     </div>
                   </div>
                 )
@@ -590,9 +605,7 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <div className="min-w-[500px]">
-            <Heatmap daily={allTime?.dailyPnL ?? []} />
-          </div>
+          <Heatmap daily={allTime?.dailyPnL ?? []} />
         </div>
       </div>
 

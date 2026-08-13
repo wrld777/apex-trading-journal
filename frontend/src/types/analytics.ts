@@ -4,7 +4,11 @@
 export interface MetricsBlockDto {
   totalTrades: number
   winRate: number      // %
-  expectancy: number   // avg PnL per trade
+  expectancy: number   // avg PnL per trade, in $
+  // L'expectancy in unità di rischio: quella in dollari cresce con la size,
+  // questa no, quindi è l'unica con cui si confrontano due strategie.
+  expectancyR: number
+  netR: number
   avgRR: number
 }
 

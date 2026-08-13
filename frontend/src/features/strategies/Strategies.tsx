@@ -5,17 +5,44 @@ import { Skeleton } from '../../components/ui/Skeleton'
 import EmptyState from '../../components/ui/EmptyState'
 import Modal from '../../components/ui/Modal'
 import StrategyModal from './StrategyModal'
+import { useStrategyStats } from '../../hooks/useAnalytics'
 import { useToastStore } from '../../store/toastStore'
 import type { StrategyDto } from '../../types/strategy'
+import type { MetricsBlockDto } from '../../types/analytics'
+
+function fmtR(n: number) {
+  return `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(2)}R`
+}
+
+/**
+ * Riga di risultati sulla card. Senza, la pagina elencava le strategie senza
+ * dire quale funziona — che è l'unica domanda che ci si fa guardandola.
+ */
+function CardStats({ block }: { block: MetricsBlockDto | undefined }) {
+  if (!block || block.totalTrades === 0) {
+    return <span className="text-[10px] text-zinc-700">Nessun trade collegato</span>
+  }
+  return (
+    <div className="flex items-center gap-3 text-[10px] text-zinc-600">
+      <span>{block.totalTrades} trade</span>
+      <span>{block.winRate.toFixed(0)}% WR</span>
+      <span className={block.expectancyR >= 0 ? 'text-green-500' : 'text-red-500'}>
+        {fmtR(block.expectancyR)} / trade
+      </span>
+    </div>
+  )
+}
 
 function StrategyCard({
   strategy,
   symbolById,
+  stats,
   onEdit,
   onDelete,
 }: {
   strategy: StrategyDto
   symbolById: Map<string, string>
+  stats: MetricsBlockDto | undefined
   onEdit: () => void
   onDelete: () => void
 }) {
@@ -58,6 +85,8 @@ function StrategyCard({
           </button>
         </div>
       </div>
+
+      <CardStats block={stats} />
 
       {symbols.length > 0 && (
         <div className="flex flex-wrap gap-1">
@@ -111,6 +140,7 @@ function SkeletonCard() {
 export default function Strategies() {
   const { data: strategies, isLoading, isError } = useStrategies()
   const { data: instruments } = useInstruments()
+  const { data: strategyStats } = useStrategyStats()
   const { mutate: deleteStrategy, isPending: isDeleting } = useDeleteStrategy()
   const addToast = useToastStore((s) => s.addToast)
 
@@ -143,6 +173,9 @@ export default function Strategies() {
 
   const list = strategies ?? []
   const symbolById = new Map((instruments ?? []).map((i) => [i.instrumentId, i.symbol]))
+  // Le stats arrivano solo per le strategie che hanno trade: la card gestisce
+  // da sé il caso mancante, quindi non serve attenderle per disegnare la lista.
+  const statsById = new Map((strategyStats ?? []).map((s) => [s.strategyId, s.overall]))
 
   return (
     <div className="p-4 lg:p-7">
@@ -197,6 +230,7 @@ export default function Strategies() {
               key={s.id}
               strategy={s}
               symbolById={symbolById}
+              stats={statsById.get(s.id)}
               onEdit={() => openEdit(s)}
               onDelete={() => setPendingDelete(s)}
             />

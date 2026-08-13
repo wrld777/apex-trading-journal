@@ -20,6 +20,10 @@ function fmtPnl(n: number) {
 function pnlColor(n: number) {
   return n > 0 ? 'text-green-500' : n < 0 ? 'text-red-500' : 'text-zinc-400'
 }
+/** Risultato in unità di rischio: il metro che non dipende dalla size. */
+function fmtR(n: number) {
+  return `${n >= 0 ? '+' : '−'}${fmt(Math.abs(n), 2)}R`
+}
 
 const card = 'bg-[#111113] border border-white/[0.04] rounded-[10px] hover:border-white/[0.07] transition-colors'
 const label = 'text-[11px] text-zinc-600 uppercase tracking-widest'
@@ -39,8 +43,11 @@ function MetricColumn({ title, block, accent }: { title: string; block: MetricsB
         <>
           <div className="font-display font-bold text-[22px] leading-none text-white mb-1.5">{fmt(block.winRate, 1)}%</div>
           <div className="flex flex-col gap-0.5">
-            <Row k="Expectancy" v={fmtPnl(block.expectancy)} vc={pnlColor(block.expectancy)} />
-            <Row k="Avg RR" v={`${fmt(block.avgRR, 2)}R`} />
+            {/* L'expectancy in R viene prima: è quella con cui si confrontano
+                due strategie. I dollari restano sotto come riferimento. */}
+            <Row k="Expectancy" v={fmtR(block.expectancyR)} vc={pnlColor(block.expectancyR)} />
+            <Row k="in $" v={fmtPnl(block.expectancy)} vc="text-zinc-500" />
+            <Row k="Avg RR" v={fmt(block.avgRR, 2)} />
             <Row k="Trades" v={String(block.totalTrades)} />
           </div>
         </>
@@ -67,6 +74,12 @@ function verdict(s: StrategyStatsDto): { text: string; cls: string } | null {
   if (delta >= 15) {
     return { text: 'Funziona quando segui le regole → esecuzione indisciplinata', cls: 'bg-amber-500/10 border-amber-500/20 text-amber-400' }
   }
+  // Il caso opposto mancava e finiva in "allineati", che è la lettura più
+  // sbagliata possibile: se rispettare la checklist va *peggio* che ignorarla,
+  // il problema è nelle regole, non nell'esecuzione. È il caso più interessante.
+  if (delta <= -15) {
+    return { text: 'Va meglio quando le salti → le regole non descrivono ciò che funziona', cls: 'bg-violet-500/10 border-violet-500/20 text-violet-400' }
+  }
   if (a.winRate < 45 && n.winRate < 45) {
     return { text: 'Scarsa anche eseguita bene → strategia da rivedere', cls: 'bg-red-500/10 border-red-500/20 text-red-400' }
   }
@@ -80,7 +93,9 @@ function StrategyCard({ s }: { s: StrategyStatsDto }) {
     <div className={`${card} p-4 lg:p-[18px]`}>
       <div className="flex items-center justify-between mb-4">
         <div className="text-sm font-medium text-white truncate">{s.strategyName}</div>
-        <div className={`text-[11px] font-mono ${pnlColor(s.overall.expectancy)}`}>{fmtPnl(s.overall.expectancy)} exp</div>
+        <div className={`text-[11px] font-mono ${pnlColor(s.overall.expectancyR)}`} title={`${fmtPnl(s.overall.expectancy)} per trade`}>
+          {fmtR(s.overall.expectancyR)} exp
+        </div>
       </div>
       <div className="flex gap-3">
         <MetricColumn title="Tutti" block={s.overall} accent="bg-zinc-500" />
