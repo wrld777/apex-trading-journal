@@ -39,7 +39,8 @@ export interface StatsDto {
   rTradeCount: number
   winRate: number
   avgRR: number
-  profitFactor: number
+  // null quando non ci sono trade in perdita: il rapporto non è definito.
+  profitFactor: number | null
   maxDrawdown: number
   avgHoldMinutes: number
   totalTrades: number

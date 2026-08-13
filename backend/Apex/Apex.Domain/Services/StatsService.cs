@@ -54,7 +54,13 @@ public class StatsService : IStatsService
         var winRate = totalTrades > 0 ? Math.Round((decimal)winCount / totalTrades * 100, 2) : 0;
         var avgWin = winCount > 0 ? Math.Round(wins.Average(t => t.PnL), 2) : 0;
         var avgLoss = lossCount > 0 ? Math.Round(losses.Average(t => t.PnL), 2) : 0;
-        var profitFactor = Math.Abs(avgLoss) > 0 ? Math.Round(avgWin / Math.Abs(avgLoss), 2) : 0;
+        // Profit factor = profitto lordo / perdita lorda. Prima usava le *medie*,
+        // che coincidono col valore giusto solo se vinte e perse sono in pari numero.
+        // Senza nessuna perdita il rapporto non esiste: null, non 0 — uno zero
+        // faceva leggere "Negative edge" a un periodo chiuso al 100% di win.
+        var grossProfit = wins.Sum(t => t.PnL);
+        var grossLoss = Math.Abs(losses.Sum(t => t.PnL));
+        decimal? profitFactor = grossLoss > 0 ? Math.Round(grossProfit / grossLoss, 2) : null;
         var avgRR = totalTrades > 0 ? Math.Round(trades.Average(t => t.RiskReward), 2) : 0;
 
         // Risultati in R (#106). I trade con stop sull'entry non hanno un R definito:

@@ -1,9 +1,12 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 
+// Nessuna etichetta di periodo quassù: il periodo lo scelgono le pagine — il
+// selettore della Dashboard, il range da/a di Analytics — e una scritta fissa
+// qui finisce solo per contraddirle. "May 2025" è rimasta appesa per un anno.
 const PAGE_META: Record<string, [string, string]> = {
-  '/':          ['Dashboard', 'May 2025'],
+  '/':          ['Dashboard', ''],
   '/log-trade': ['Log Trade', 'New Entry'],
-  '/analytics': ['Analytics', 'All Time'],
+  '/analytics': ['Analytics', ''],
 }
 
 interface TopbarProps {
