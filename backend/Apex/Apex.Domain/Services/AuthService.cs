@@ -37,7 +37,8 @@ public class AuthService : IAuthService
 
         var user = new User
         {
-            Name = request.Name,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
             Email = request.Email,
             PasswordHash = passwordHash,
         };

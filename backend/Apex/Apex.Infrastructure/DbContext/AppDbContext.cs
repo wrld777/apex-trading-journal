@@ -80,9 +80,18 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
             entity.HasIndex(u => u.Email)
                 .IsUnique();
 
-            entity.Property(u => u.Name)
+            // 100 come il vecchio Name: la colonna si rinomina, non si ricrea, e
+            // restringerla romperebbe chi ha già un nome più lungo.
+            entity.Property(u => u.FirstName)
                 .IsRequired()
                 .HasMaxLength(100);
+
+            // Il cognome è facoltativo: chi si è registrato prima della #110 ha
+            // solo un nome, e non lo si costringe a inventarsene uno.
+            entity.Property(u => u.LastName)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasDefaultValue(string.Empty);
         });
 
         modelBuilder.Entity<Strategy>(entity =>

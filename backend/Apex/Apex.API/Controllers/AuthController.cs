@@ -59,7 +59,7 @@ public class AuthController : ControllerBase
         return Ok(new AuthResponse
         {
             UserId = user.Id,
-            Name = user.Name,
+            Name = user.DisplayName,
             Email = user.Email,
             Token = accessToken.Token,
             ExpirationDate = accessToken.ExpirationDate,

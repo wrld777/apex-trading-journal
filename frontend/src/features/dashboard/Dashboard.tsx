@@ -221,6 +221,14 @@ function fmtR(n: number) {
   return `${n >= 0 ? '+' : '−'}${fmt(Math.abs(n), 2)}R`
 }
 
+/** Il saluto seguiva l'ora solo di nome: era "Good morning" anche a mezzanotte. */
+function greeting() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Good morning'
+  if (h < 18) return 'Good afternoon'
+  return 'Good evening'
+}
+
 /* ── PERIODO ── */
 type PeriodKey = '1D' | '1W' | '1M' | '3M' | 'ALL'
 
@@ -287,7 +295,6 @@ export default function Dashboard() {
   const trades = tradesPage?.items
   const { data: profile } = useProfile()
 
-  const instrument = profile?.instrument || 'NQ Futures'
 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
@@ -304,9 +311,9 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">
-            Good morning, {name ?? 'Trader'}.
+            {greeting()}, {profile?.firstName || name || 'Trader'}.
           </h1>
-          <p className="text-xs text-zinc-600">{today} · {instrument}</p>
+          <p className="text-xs text-zinc-600">{today}</p>
         </div>
         {/* Un solo selettore per tutta la pagina: due controlli di periodo sulla
             stessa schermata finirebbero per contraddirsi. */}

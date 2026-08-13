@@ -1,12 +1,22 @@
 export interface UserProfile {
   id: string
-  name: string
+  firstName: string
+  lastName: string
+  /** Nome e cognome già composti dal backend. */
+  displayName: string
   email: string
-  instrument: string
+  /** Data URI dell'immagine, o null se non c'è foto. */
+  avatarUrl: string | null
   createdAt: string
 }
 
 export interface UpdateProfileRequest {
-  name: string
-  instrument: string
+  firstName: string
+  lastName: string
+  avatarUrl: string | null
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
 }

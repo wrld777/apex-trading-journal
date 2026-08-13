@@ -36,11 +36,17 @@ public class UserErrors
         new("This token has been revoked. Please login again.");
 
     // ── Validation ──
-    public static readonly UserErrors MissingName =
-        new("Name is required.");
+    public static readonly UserErrors MissingFirstName =
+        new("First name is required.");
 
-    public static readonly UserErrors NameTooLong =
-        new("Name must not exceed 100 characters.");
+    public static readonly UserErrors FirstNameTooLong =
+        new("First name must not exceed 100 characters.");
+
+    public static readonly UserErrors LastNameTooLong =
+        new("Last name must not exceed 100 characters.");
+
+    public static readonly UserErrors AvatarTooLarge =
+        new("The profile picture is too large. Please choose a smaller image.");
 
     public static readonly UserErrors MissingEmail =
         new("Email is required.");
@@ -60,8 +66,14 @@ public class UserErrors
     public static readonly UserErrors PasswordTooWeak =
         new("Password must contain at least one uppercase letter, one number and one special character.");
 
-    public static readonly UserErrors MissingInstrument =
-        new("Instrument is required.");
+    public static readonly UserErrors MissingCurrentPassword =
+        new("Your current password is required.");
+
+    public static readonly UserErrors CurrentPasswordWrong =
+        new("The current password is not correct.");
+
+    public static readonly UserErrors NewPasswordSameAsCurrent =
+        new("The new password must be different from the current one.");
 
     // ── Business Rules ──
     public static readonly UserErrors AccountSuspended =
