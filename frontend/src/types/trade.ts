@@ -76,6 +76,9 @@ export interface TradeDto {
   quantity: number
   pnL: number
   riskReward: number
+  // Lo stesso PnL in unità di rischio, con segno. null quando lo stop coincide
+  // con l'entry e l'R non è definito.
+  rMultiple: number | null
   entryTime: string
   exitTime: string | null
   status: TradeStatus

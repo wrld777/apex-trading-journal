@@ -1,6 +1,7 @@
 export interface SessionStatsDto {
   session: string
   pnL: number
+  r: number
   totalTrades: number
   winRate: number
 }
@@ -8,6 +9,7 @@ export interface SessionStatsDto {
 export interface SetupStatsDto {
   setup: string
   pnL: number
+  r: number
   totalTrades: number
   winRate: number
 }
@@ -15,17 +17,26 @@ export interface SetupStatsDto {
 export interface DayOfWeekStatsDto {
   day: string
   pnL: number
+  r: number
   totalTrades: number
 }
 
 export interface DailyPnLDto {
   date: string
   pnL: number
+  r: number
   totalTrades: number
 }
 
 export interface StatsDto {
   netPnL: number
+  // Gli stessi risultati in unità di rischio: è il metro indipendente dal capitale.
+  // rTradeCount dice su quanti trade sono calcolati — quelli con stop sull'entry
+  // non hanno un R definito e restano esclusi.
+  netR: number
+  expectancyR: number
+  maxDrawdownR: number
+  rTradeCount: number
   winRate: number
   avgRR: number
   profitFactor: number

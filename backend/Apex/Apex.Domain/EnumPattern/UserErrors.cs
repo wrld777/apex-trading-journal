@@ -60,9 +60,6 @@ public class UserErrors
     public static readonly UserErrors PasswordTooWeak =
         new("Password must contain at least one uppercase letter, one number and one special character.");
 
-    public static readonly UserErrors InvalidAccountSize =
-        new("Account size must be greater than 0.");
-
     public static readonly UserErrors MissingInstrument =
         new("Instrument is required.");
 

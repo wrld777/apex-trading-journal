@@ -3,6 +3,14 @@
 public class StatsDto
 {
     public decimal NetPnL { get; set; }
+    // Gli stessi risultati in unità di rischio (#106): è il metro con cui si giudica
+    // la strategia, i dollari restano come riferimento. I trade con rischio 0
+    // (stop sull'entry) non hanno un R definito e restano fuori dalle medie in R:
+    // RTradeCount dice su quanti trade sono calcolate.
+    public decimal NetR { get; set; }
+    public decimal ExpectancyR { get; set; }
+    public decimal MaxDrawdownR { get; set; }
+    public int RTradeCount { get; set; }
     public decimal WinRate { get; set; }
     public decimal AvgRR { get; set; }
     public decimal ProfitFactor { get; set; }
@@ -28,6 +36,7 @@ public class SessionStatsDto
 {
     public string Session { get; set; } = string.Empty;
     public decimal PnL { get; set; }
+    public decimal R { get; set; }
     public int TotalTrades { get; set; }
     public decimal WinRate { get; set; }
 }
@@ -36,6 +45,7 @@ public class SetupStatsDto
 {
     public string Setup { get; set; } = string.Empty;
     public decimal PnL { get; set; }
+    public decimal R { get; set; }
     public int TotalTrades { get; set; }
     public decimal WinRate { get; set; }
 }
@@ -44,6 +54,7 @@ public class DayOfWeekStatsDto
 {
     public string Day { get; set; } = string.Empty;
     public decimal PnL { get; set; }
+    public decimal R { get; set; }
     public int TotalTrades { get; set; }
 }
 
@@ -51,5 +62,6 @@ public class DailyPnLDto
 {
     public DateTime Date { get; set; }
     public decimal PnL { get; set; }
+    public decimal R { get; set; }
     public int TotalTrades { get; set; }
 }

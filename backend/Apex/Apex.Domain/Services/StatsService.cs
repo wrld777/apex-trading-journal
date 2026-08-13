@@ -57,16 +57,30 @@ public class StatsService : IStatsService
         var profitFactor = Math.Abs(avgLoss) > 0 ? Math.Round(avgWin / Math.Abs(avgLoss), 2) : 0;
         var avgRR = totalTrades > 0 ? Math.Round(trades.Average(t => t.RiskReward), 2) : 0;
 
-        // Max Drawdown
+        // Risultati in R (#106). I trade con stop sull'entry non hanno un R definito:
+        // restano fuori dalle somme e dal conteggio, ma continuano a pesare in dollari.
+        var rTrades = trades.Where(t => t.RMultiple.HasValue).ToList();
+        var netR = rTrades.Sum(t => t.RMultiple!.Value);
+        var expectancyR = rTrades.Count > 0 ? Math.Round(netR / rTrades.Count, 2) : 0;
+
+        // Max Drawdown, in dollari e in R sulla stessa passata
         var maxDrawdown = 0m;
         var peak = 0m;
         var runningPnL = 0m;
+        var maxDrawdownR = 0m;
+        var peakR = 0m;
+        var runningR = 0m;
         foreach (var trade in trades.OrderBy(t => t.EntryTime))
         {
             runningPnL += trade.PnL;
             if (runningPnL > peak) peak = runningPnL;
             var drawdown = peak - runningPnL;
             if (drawdown > maxDrawdown) maxDrawdown = drawdown;
+
+            runningR += trade.RMultiple ?? 0m;
+            if (runningR > peakR) peakR = runningR;
+            var drawdownR = peakR - runningR;
+            if (drawdownR > maxDrawdownR) maxDrawdownR = drawdownR;
         }
 
         // Streaks
@@ -104,6 +118,7 @@ public class StatsService : IStatsService
             {
                 Session = g.Key,
                 PnL = g.Sum(t => t.PnL),
+                R = Math.Round(g.Sum(t => t.RMultiple ?? 0m), 2),
                 TotalTrades = g.Count(),
                 WinRate = Math.Round((decimal)g.Count(t => t.Status == TradeStatus.Win) / g.Count() * 100, 2)
             }).ToList();
@@ -115,6 +130,7 @@ public class StatsService : IStatsService
             {
                 Setup = g.Key,
                 PnL = g.Sum(t => t.PnL),
+                R = Math.Round(g.Sum(t => t.RMultiple ?? 0m), 2),
                 TotalTrades = g.Count(),
                 WinRate = Math.Round((decimal)g.Count(t => t.Status == TradeStatus.Win) / g.Count() * 100, 2)
             }).ToList();
@@ -126,6 +142,7 @@ public class StatsService : IStatsService
             {
                 Day = g.Key.ToString(),
                 PnL = g.Sum(t => t.PnL),
+                R = Math.Round(g.Sum(t => t.RMultiple ?? 0m), 2),
                 TotalTrades = g.Count()
             }).ToList();
 
@@ -136,6 +153,7 @@ public class StatsService : IStatsService
             {
                 Date = g.Key,
                 PnL = g.Sum(t => t.PnL),
+                R = Math.Round(g.Sum(t => t.RMultiple ?? 0m), 2),
                 TotalTrades = g.Count()
             })
             .OrderBy(d => d.Date)
@@ -144,6 +162,10 @@ public class StatsService : IStatsService
         return new StatsDto
         {
             NetPnL = Math.Round(netPnL, 2),
+            NetR = Math.Round(netR, 2),
+            ExpectancyR = expectancyR,
+            MaxDrawdownR = Math.Round(maxDrawdownR, 2),
+            RTradeCount = rTrades.Count,
             WinRate = winRate,
             AvgRR = avgRR,
             ProfitFactor = profitFactor,

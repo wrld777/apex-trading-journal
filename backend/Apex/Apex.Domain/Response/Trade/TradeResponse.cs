@@ -16,6 +16,9 @@ public class TradeResponse
     public int Quantity { get; set; }
     public decimal PnL { get; set; }
     public decimal RiskReward { get; set; }
+    // Lo stesso PnL in unità di rischio (#106), con segno. null quando lo stop
+    // coincide con l'entry e l'R non è definito.
+    public decimal? RMultiple { get; set; }
     public DateTime EntryTime { get; set; }
     public DateTime? ExitTime { get; set; }
     public TradeStatus Status { get; set; }

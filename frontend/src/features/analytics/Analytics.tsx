@@ -49,12 +49,19 @@ function downloadCsv(filename: string, content: string) {
   URL.revokeObjectURL(url)
 }
 
-/** Cumulative equity values from daily P&L (backend returns ascending by date). */
-function cumulative(daily: DailyPnLDto[]): { date: string; value: number }[] {
+/**
+ * Cumulative equity values from daily P&L (backend returns ascending by date).
+ * `pick` sceglie l'unità: dollari di default, R per le viste che devono restare
+ * indipendenti dal capitale.
+ */
+function cumulative(
+  daily: DailyPnLDto[],
+  pick: (d: DailyPnLDto) => number = d => d.pnL,
+): { date: string; value: number }[] {
   const out: { date: string; value: number }[] = []
   for (const d of daily) {
     const prev = out.length ? out[out.length - 1].value : 0
-    out.push({ date: d.date, value: prev + d.pnL })
+    out.push({ date: d.date, value: prev + pick(d) })
   }
   return out
 }
@@ -74,9 +81,6 @@ const DOW_ORDER = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 const DOW_SHORT: Record<string, string> = {
   Monday: 'Mon', Tuesday: 'Tue', Wednesday: 'Wed', Thursday: 'Thu', Friday: 'Fri',
 }
-
-const CAPITAL = 150_000
-const DD_LIMIT = CAPITAL * 0.05 // $7,500
 
 function EmptyChart({ height = 180 }: { height?: number }) {
   return <div style={{ height }} className="flex items-center justify-center text-xs text-zinc-600">No data for this range</div>
@@ -131,11 +135,13 @@ function CumulativePnLChart({ daily }: { daily: DailyPnLDto[] }) {
 function DrawdownChart({ daily }: { daily: DailyPnLDto[] }) {
   if (daily.length === 0) return <EmptyChart />
 
+  // Il drawdown si misura in R: quante unità di rischio si sono restituite dal
+  // picco. Prima era in dollari, letto contro un capitale fisso di fantasia.
   const W = 400, topY = 20, bottomY = 160
-  const pts = cumulative(daily)
+  const pts = cumulative(daily, d => d.r)
   const dd = drawdownSeries(pts.map(p => p.value))
   const maxDD = Math.max(...dd, 0)
-  const scaleMax = Math.max(maxDD, DD_LIMIT, 1)
+  const scaleMax = Math.max(maxDD, 1)
   const n = dd.length
 
   const x = (i: number) => (n === 1 ? W : (i / (n - 1)) * W)
@@ -146,11 +152,9 @@ function DrawdownChart({ daily }: { daily: DailyPnLDto[] }) {
   const line = n === 1 ? `0,${flatY} ${W},${flatY}` : coords.join(' ')
   const area = `${n === 1 ? `0,${flatY} ${W},${flatY}` : coords.join(' ')} ${W},${topY} 0,${topY}`
 
-  const limitY = Math.min(y(DD_LIMIT), bottomY)
   const maxIdx = dd.indexOf(maxDD)
   const maxX = x(maxIdx)
   const maxY = y(maxDD)
-  const maxPct = (maxDD / CAPITAL) * 100
 
   return (
     <svg viewBox={`0 0 ${W} 180`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
@@ -161,15 +165,13 @@ function DrawdownChart({ daily }: { daily: DailyPnLDto[] }) {
         </linearGradient>
       </defs>
       <line x1="0" y1={topY} x2={W} y2={topY} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-      <line x1="0" y1={limitY} x2={W} y2={limitY} stroke="rgba(255,255,255,0.06)" strokeDasharray="4,3" strokeWidth="1" />
-      <text x="4" y={limitY - 4} fill="rgba(239,68,68,0.4)" fontSize="9" fontFamily="monospace">-5% limit</text>
       <polygon points={area} fill="url(#dd-grad)" />
       <polyline points={line} fill="none" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       {maxDD > 0 && (
         <>
           <circle cx={maxX} cy={maxY} r="3" fill="#ef4444" />
           <text x={Math.min(maxX + 4, W - 40)} y={maxY + 14} fill="rgba(239,68,68,0.6)" fontSize="9" fontFamily="monospace">
-            -{maxPct.toFixed(2)}%
+            −{maxDD.toFixed(2)}R
           </text>
         </>
       )}

@@ -28,7 +28,6 @@ export default function Profile() {
 
   const [name, setName] = useState('')
   const [instrument, setInstrument] = useState('')
-  const [accountSize, setAccountSize] = useState('')
 
   // Seed the form once the profile has loaded.
   const [seeded, setSeeded] = useState(false)
@@ -36,17 +35,14 @@ export default function Profile() {
     setSeeded(true)
     setName(profile.name)
     setInstrument(profile.instrument)
-    setAccountSize(profile.accountSize ? String(profile.accountSize) : '')
   }
 
   const handleSave = () => {
     if (!name.trim()) { addToast('Name is required.', 'error'); return }
     if (!instrument.trim()) { addToast('Instrument is required.', 'error'); return }
-    const size = parseFloat(accountSize)
-    if (!size || size <= 0) { addToast('Account size must be greater than 0.', 'error'); return }
 
     updateProfile(
-      { name: name.trim(), instrument: instrument.trim(), accountSize: size },
+      { name: name.trim(), instrument: instrument.trim() },
       {
         onSuccess: (updated) => {
           addToast('Profile updated.', 'success')
@@ -64,7 +60,7 @@ export default function Profile() {
     <div className="p-4 lg:p-7 max-w-2xl">
       <div className="mb-6">
         <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">Profile</h1>
-        <p className="text-xs text-zinc-600">Account settings · used across your dashboard and analytics</p>
+        <p className="text-xs text-zinc-600">Your details · used across your dashboard and analytics</p>
       </div>
 
       {isError ? (
@@ -89,14 +85,9 @@ export default function Profile() {
                 <input value={profile?.email ?? ''} disabled className={`${FIELD} opacity-60 cursor-not-allowed`} />
               </Field>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field label="Instrument" hint="e.g. NQ, ES, NAS100">
-                  <input value={instrument} onChange={(e) => setInstrument(e.target.value)} className={FIELD} placeholder="NQ Futures" />
-                </Field>
-                <Field label="Account Size ($)" hint="Drives the “% of capital” metrics.">
-                  <input type="number" step="100" min="0" value={accountSize} onChange={(e) => setAccountSize(e.target.value)} className={FIELD} placeholder="150000" />
-                </Field>
-              </div>
+              <Field label="Instrument" hint="e.g. NQ, ES, NAS100">
+                <input value={instrument} onChange={(e) => setInstrument(e.target.value)} className={FIELD} placeholder="NQ Futures" />
+              </Field>
 
               <div className="flex justify-end pt-2">
                 <button

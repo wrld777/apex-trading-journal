@@ -9,6 +9,10 @@ namespace Apex.Domain.DTO
         public int TotalTrades { get; set; }
         public decimal WinRate { get; set; }
         public decimal Expectancy { get; set; }
+        // L'expectancy che conta per confrontare strategie fra loro (#106): quella in
+        // dollari cresce con la size, questa no.
+        public decimal ExpectancyR { get; set; }
+        public decimal NetR { get; set; }
         public decimal AvgRR { get; set; }
     }
 

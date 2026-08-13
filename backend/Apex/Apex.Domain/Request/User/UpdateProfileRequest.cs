@@ -4,6 +4,5 @@ namespace Apex.Domain.Request.User
     {
         public string Name { get; set; } = string.Empty;
         public string Instrument { get; set; } = string.Empty;
-        public decimal AccountSize { get; set; }
     }
 }
