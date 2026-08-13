@@ -17,6 +17,7 @@ public class TradeDto
     public int Quantity { get; set; }
     public decimal PnL { get; set; }
     public decimal RiskReward { get; set; }
+    public decimal? RMultiple { get; set; }
     public DateTime EntryTime { get; set; }
     public DateTime? ExitTime { get; set; }
     public TradeStatus Status { get; set; }

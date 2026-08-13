@@ -35,7 +35,6 @@ namespace Apex.Domain.Services
 
             user.Name = request.Name;
             user.Instrument = request.Instrument;
-            user.AccountSize = request.AccountSize;
 
             var updated = await _userRepository.UpdateAsync(user, ct);
             return Result<ProfileResponse>.Success(_mapper.Map<ProfileResponse>(updated));

@@ -1,4 +1,5 @@
-﻿using Apex.Domain.Enums;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Apex.Domain.Enums;
 
 namespace Apex.Domain.Entities;
 
@@ -38,4 +39,20 @@ public class Trade
     public List<TradeExit> Exits { get; set; } = new();
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // Rischio iniziale in valuta (#106): quanto sarebbe costato lo stop a piena size.
+    // Usa lo stesso PointValue del PnL, altrimenti i due numeri non sarebbero
+    // confrontabili. Richiede Instrument caricato — tutte le query che alimentano
+    // stats e analytics lo fanno con Include.
+    [NotMapped]
+    public decimal InitialRisk =>
+        Math.Abs(EntryPrice - StopLoss) * Quantity * (Instrument?.PointValue ?? 0m);
+
+    // PnL espresso in unità di rischio, **con segno**: è la misura di efficienza
+    // indipendente dal capitale che sostituisce le "% of capital".
+    // Da non confondere con RiskReward, che è una magnitudine senza segno.
+    // null — non zero — quando lo stop coincide con l'entry: lì l'R non è definito.
+    [NotMapped]
+    public decimal? RMultiple =>
+        InitialRisk > 0 ? Math.Round(PnL / InitialRisk, 2) : null;
 }

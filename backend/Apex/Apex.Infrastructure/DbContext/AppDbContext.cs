@@ -83,9 +83,6 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
             entity.Property(u => u.Name)
                 .IsRequired()
                 .HasMaxLength(100);
-
-            entity.Property(u => u.AccountSize)
-                .HasPrecision(18, 4);
         });
 
         modelBuilder.Entity<Strategy>(entity =>

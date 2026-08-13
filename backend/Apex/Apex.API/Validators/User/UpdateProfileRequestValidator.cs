@@ -14,8 +14,5 @@ public class UpdateProfileRequestValidator : AbstractValidator<UpdateProfileRequ
 
         RuleFor(x => x.Instrument)
             .NotEmpty().WithMessage(UserErrors.MissingInstrument.Message);
-
-        RuleFor(x => x.AccountSize)
-            .GreaterThan(0).WithMessage(UserErrors.InvalidAccountSize.Message);
     }
 }

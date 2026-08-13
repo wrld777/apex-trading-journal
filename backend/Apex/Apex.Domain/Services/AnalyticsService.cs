@@ -122,13 +122,23 @@ namespace Apex.Domain.Services
         private static decimal WinRate(int total, int wins) =>
             total > 0 ? Math.Round((decimal)wins / total * 100, 2) : 0;
 
-        private static MetricsBlockDto Metrics(List<Trade> trades) => new()
+        private static MetricsBlockDto Metrics(List<Trade> trades)
         {
-            TotalTrades = trades.Count,
-            WinRate = WinRate(trades.Count, trades.Count(t => t.Status == TradeStatus.Win)),
-            Expectancy = trades.Count > 0 ? Math.Round(trades.Average(t => t.PnL), 2) : 0,
-            AvgRR = trades.Count > 0 ? Math.Round(trades.Average(t => t.RiskReward), 2) : 0
-        };
+            // I trade senza R definito (stop sull'entry) restano fuori dalle medie in R
+            // ma continuano a contare in dollari.
+            var withR = trades.Where(t => t.RMultiple.HasValue).ToList();
+            var netR = withR.Sum(t => t.RMultiple!.Value);
+
+            return new MetricsBlockDto
+            {
+                TotalTrades = trades.Count,
+                WinRate = WinRate(trades.Count, trades.Count(t => t.Status == TradeStatus.Win)),
+                Expectancy = trades.Count > 0 ? Math.Round(trades.Average(t => t.PnL), 2) : 0,
+                ExpectancyR = withR.Count > 0 ? Math.Round(netR / withR.Count, 2) : 0,
+                NetR = Math.Round(netR, 2),
+                AvgRR = trades.Count > 0 ? Math.Round(trades.Average(t => t.RiskReward), 2) : 0
+            };
+        }
 
         private static DateTime PeriodStart(DateTime d, string granularity) =>
             granularity == "month"

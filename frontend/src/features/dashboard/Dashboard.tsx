@@ -215,6 +215,10 @@ function fmtPnl(n: number) {
   const s = n >= 0 ? `+$${fmt(n)}` : `-$${fmt(Math.abs(n))}`
   return s
 }
+/** Risultato in unità di rischio: il metro che non dipende dal capitale. */
+function fmtR(n: number) {
+  return `${n >= 0 ? '+' : '−'}${fmt(Math.abs(n), 2)}R`
+}
 
 /* ── MAIN ── */
 export default function Dashboard() {
@@ -225,11 +229,7 @@ export default function Dashboard() {
   const trades = tradesPage?.items
   const { data: profile } = useProfile()
 
-  // Account size drives "% of capital" figures. Fall back to a sane default
-  // until the user sets it in their profile.
-  const accountSize = profile?.accountSize && profile.accountSize > 0 ? profile.accountSize : 150000
   const instrument = profile?.instrument || 'NQ Futures'
-  const drawdownLimit = accountSize * 0.05
 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
@@ -245,7 +245,7 @@ export default function Dashboard() {
           <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">
             Good morning, {name ?? 'Trader'}.
           </h1>
-          <p className="text-xs text-zinc-600">{today} · {instrument} · Funded ${fmt(accountSize)}</p>
+          <p className="text-xs text-zinc-600">{today} · {instrument}</p>
         </div>
         <div className="flex gap-2">
           <button className="px-3 py-1.5 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all">May 2025</button>
@@ -272,15 +272,15 @@ export default function Dashboard() {
       <>
 
       {/* KPI Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-3.5 mb-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-3.5 mb-3.5">
         {isLoading ? (
-          Array.from({ length: 5 }).map((_, i) => <KpiCardSkeleton key={i} />)
+          Array.from({ length: 6 }).map((_, i) => <KpiCardSkeleton key={i} />)
         ) : (
           <>
             <KpiCard
               label="Net P&L"
               value={data ? `$${fmt(data.netPnL)}` : '—'}
-              delta={data ? `${data.netPnL >= 0 ? '+' : ''}${fmt(data.netPnL / accountSize * 100, 1)}% of capital` : undefined}
+              delta={data ? fmtR(data.netR) : undefined}
               deltaUp={data ? data.netPnL >= 0 : undefined}
             >
               <div className="h-7 mt-2">
@@ -307,6 +307,16 @@ export default function Dashboard() {
             </KpiCard>
 
             <KpiCard
+              label="Expectancy"
+              value={data ? fmtR(data.expectancyR) : '—'}
+              deltaUp={data ? data.expectancyR >= 0 : undefined}
+            >
+              <div className="text-[10px] text-zinc-700 mt-2">
+                Per trade{data ? ` · ${data.rTradeCount} trades` : ''}
+              </div>
+            </KpiCard>
+
+            <KpiCard
               label="Avg RR"
               value={data ? fmt(data.avgRR, 2) : '—'}
               delta={data ? (data.avgRR >= 2 ? 'Above target' : 'Below target') : undefined}
@@ -322,13 +332,22 @@ export default function Dashboard() {
             <KpiCard
               label="Max Drawdown"
               value={data ? `-$${fmt(Math.abs(data.maxDrawdown))}` : '—'}
-              delta={data ? `${fmt(Math.abs(data.maxDrawdown) / accountSize * 100, 2)}% of capital` : undefined}
+              delta={data ? `−${fmt(Math.abs(data.maxDrawdownR), 2)}R` : undefined}
               deltaUp={false}
             >
+              {/* Il drawdown si legge contro il guadagno prodotto, non contro un
+                  capitale dichiarato: quanto della salita si è restituito. */}
               <div className="h-1 bg-[#1a1a1d] rounded-full overflow-hidden mt-2">
-                <div className="h-full bg-red-500 rounded-full" style={{ width: data ? `${Math.min(Math.abs(data.maxDrawdown) / drawdownLimit * 100, 100)}%` : '0%' }} />
+                <div
+                  className="h-full bg-red-500 rounded-full"
+                  style={{ width: data && data.netR > 0 ? `${Math.min(Math.abs(data.maxDrawdownR) / data.netR * 100, 100)}%` : '100%' }}
+                />
               </div>
-              <div className="text-[10px] text-zinc-700 mt-1.5">Limit 5% (${fmt(drawdownLimit)})</div>
+              <div className="text-[10px] text-zinc-700 mt-1.5">
+                {data && data.netR > 0
+                  ? `${fmt(Math.abs(data.maxDrawdownR) / data.netR * 100, 0)}% of gains given back`
+                  : 'No net gain yet'}
+              </div>
             </KpiCard>
 
             <KpiCard
@@ -393,7 +412,7 @@ export default function Dashboard() {
                     {fmtPnl(s.pnL)}
                   </div>
                   <div className="text-[10px] text-zinc-700">
-                    {s.totalTrades} trades · {fmt(s.winRate, 0)}% WR
+                    {s.totalTrades} trades · {fmt(s.winRate, 0)}% WR · {fmtR(s.r)}
                   </div>
                 </div>
               ))}
@@ -424,8 +443,13 @@ export default function Dashboard() {
                     <div className={`text-[11px] w-9 text-right ${positive ? 'text-green-500' : 'text-amber-500'}`}>
                       {fmt(s.winRate, 0)}%
                     </div>
-                    <div className={`text-[11px] w-16 text-right font-mono ${positive ? 'text-green-500' : 'text-zinc-600'}`}>
-                      {fmtPnl(s.pnL)}
+                    {/* In R: fra due setup con size diverse è l'unico confronto onesto.
+                        Il valore in dollari resta nel tooltip. */}
+                    <div
+                      title={fmtPnl(s.pnL)}
+                      className={`text-[11px] w-16 text-right font-mono ${positive ? 'text-green-500' : 'text-zinc-600'}`}
+                    >
+                      {fmtR(s.r)}
                     </div>
                   </div>
                 )

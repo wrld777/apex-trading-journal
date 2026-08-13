@@ -21,8 +21,6 @@ export function useUpdateProfile() {
     mutationFn: (data: UpdateProfileRequest) => userService.updateProfile(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] })
-      // Account size feeds the dashboard "% of capital" figures.
-      queryClient.invalidateQueries({ queryKey: ['stats'] })
     },
   })
 }

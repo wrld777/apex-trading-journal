@@ -99,9 +99,6 @@ public class TradeErrors
     public static readonly TradeErrors TakeProfitAboveEntryForShort =
         new("Take profit must be below entry price for a Short trade.");
 
-    public static readonly TradeErrors RiskTooHigh =
-        new("Risk exceeds the maximum allowed percentage of account size.");
-
     // ── Screenshot ──
     public static readonly TradeErrors ScreenshotNotFound =
         new("The specified screenshot was not found.");
