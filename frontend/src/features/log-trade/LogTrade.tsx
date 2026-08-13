@@ -6,6 +6,7 @@ import { useToastStore } from '../../store/toastStore'
 import ScreenshotInput from '../../components/ui/ScreenshotInput'
 import type { Direction, TradeOutcome } from '../../types/trade'
 import type { StrategyRuleDto } from '../../types/strategy'
+import { t } from '../../i18n'
 
 // ── Small UI helpers ──────────────────────────────────────────────────────────
 
@@ -122,10 +123,10 @@ const OUTCOMES: {
   hint: string
   disabled?: (form: typeof DEFAULT_FORM) => boolean
 }[] = [
-  { value: 'TakeProfit', label: 'Take Profit', hint: 'Uscita al target', disabled: (f) => !f.takeProfit },
-  { value: 'StopLoss', label: 'Stop Loss', hint: 'Uscita allo stop', disabled: (f) => !f.stopLoss },
-  { value: 'BreakEven', label: 'Break Even', hint: 'Uscita al prezzo di ingresso' },
-  { value: 'Manual', label: 'Manuale', hint: 'Prezzo di uscita da inserire' },
+  { value: 'TakeProfit', label: t('logTrade.outcomeTakeProfit'), hint: t('logTrade.hintTakeProfit'), disabled: (f) => !f.takeProfit },
+  { value: 'StopLoss', label: t('logTrade.outcomeStopLoss'), hint: t('logTrade.hintStopLoss'), disabled: (f) => !f.stopLoss },
+  { value: 'BreakEven', label: t('logTrade.outcomeBreakEven'), hint: t('logTrade.hintBreakEven') },
+  { value: 'Manual', label: t('logTrade.outcomeManual'), hint: t('logTrade.hintManual') },
 ]
 
 interface PartialDraft {
@@ -207,10 +208,10 @@ export default function LogTrade() {
   // Che prezzo userà il server per l'esito scelto, detto in chiaro nel form.
   const outcomePriceLabel =
     outcome === 'TakeProfit'
-      ? `take profit ${form.takeProfit || '—'}`
+      ? t('logTrade.levelTakeProfit', { price: form.takeProfit || '—' })
       : outcome === 'StopLoss'
-        ? `stop loss ${form.stopLoss || '—'}`
-        : `prezzo di ingresso ${form.entryPrice || '—'}`
+        ? t('logTrade.levelStopLoss', { price: form.stopLoss || '—' })
+        : t('logTrade.levelEntry', { price: form.entryPrice || '—' })
 
   const updatePartial = (key: string, patch: Partial<PartialDraft>) =>
     setPartials((ps) => ps.map((p) => (p.key === key ? { ...p, ...patch } : p)))
@@ -290,25 +291,25 @@ export default function LogTrade() {
     // Uscita (#96). Il trade si registra sempre già chiuso, quindi l'esito è
     // obbligatorio e sui parziali i contratti devono coprire tutta la quantità.
     if (!partialsOpen && outcome === '') {
-      addToast('Scegli come si è chiuso il trade.', 'error')
+      addToast(t('logTrade.chooseOutcome'), 'error')
       return
     }
     if (!partialsOpen && outcome === 'Manual' && !form.exitPrice) {
-      addToast('Un\'uscita manuale ha bisogno del prezzo.', 'error')
+      addToast(t('logTrade.manualNeedsPrice'), 'error')
       return
     }
     if (partialsOpen) {
       if (partials.some((p) => (parseInt(p.contracts, 10) || 0) <= 0)) {
-        addToast('Ogni uscita deve chiudere almeno 1 contratto.', 'error')
+        addToast(t('logTrade.everyExitNeedsContracts'), 'error')
         return
       }
       if (partials.some((p) => p.outcome === 'Manual' && !p.price)) {
-        addToast('Le uscite manuali hanno bisogno del prezzo.', 'error')
+        addToast(t('logTrade.manualNeedsPricePlural'), 'error')
         return
       }
       if (partialContracts !== quantityNumber) {
         addToast(
-          `Le uscite chiudono ${partialContracts} contratti su ${quantityNumber}.`,
+          t('logTrade.exitsMismatch', { done: partialContracts, total: quantityNumber }),
           'error',
         )
         return
@@ -517,7 +518,7 @@ export default function LogTrade() {
 
             {/* Uscita (#96) — si ragiona per esito, non per prezzo: il prezzo
                 di TP/SL/BE è già nei campi sopra e lo deriva il server. */}
-            <SectionTitle>Uscita</SectionTitle>
+            <SectionTitle>{t('logTrade.exitSection')}</SectionTitle>
 
             {!partialsOpen ? (
               <>
@@ -543,7 +544,7 @@ export default function LogTrade() {
 
                 {outcome === 'Manual' ? (
                   <div className="max-w-[220px] mb-2">
-                    <Field label="Prezzo di uscita *">
+                    <Field label={t('logTrade.exitPrice')}>
                       <Input
                         type="number"
                         placeholder="0.00"
@@ -555,10 +556,10 @@ export default function LogTrade() {
                   </div>
                 ) : outcome !== '' ? (
                   <p className="text-[11px] text-zinc-600 mb-2">
-                    Uscita a {outcomePriceLabel} — il prezzo lo prende dal campo qui sopra.
+                    {t('logTrade.derivedPrice', { level: outcomePriceLabel })}
                   </p>
                 ) : (
-                  <p className="text-[11px] text-zinc-600 mb-2">Scegli come si è chiuso il trade.</p>
+                  <p className="text-[11px] text-zinc-600 mb-2">{t('logTrade.chooseOutcome')}</p>
                 )}
               </>
             ) : (
@@ -578,7 +579,7 @@ export default function LogTrade() {
                     <div className="w-[110px] shrink-0">
                       <Input
                         type="number"
-                        placeholder="contratti"
+                        placeholder={t('logTrade.contractsPlaceholder')}
                         value={p.contracts}
                         onChange={(e) => updatePartial(p.key, { contracts: e.target.value })}
                         min="1"
@@ -588,7 +589,7 @@ export default function LogTrade() {
                       <div className="w-[130px] shrink-0">
                         <Input
                           type="number"
-                          placeholder="prezzo"
+                          placeholder={t('logTrade.pricePlaceholder')}
                           value={p.price}
                           onChange={(e) => updatePartial(p.key, { price: e.target.value })}
                           step={priceStep}
@@ -599,7 +600,7 @@ export default function LogTrade() {
                       type="button"
                       onClick={() => removePartial(p.key)}
                       disabled={partials.length === 1}
-                      aria-label={`Rimuovi uscita ${i + 1}`}
+                      aria-label={t('logTrade.removeExit', { n: i + 1 })}
                       className="p-1 rounded-md text-zinc-600 hover:text-red-400 hover:bg-red-500/[0.08] transition-all disabled:opacity-30 disabled:hover:bg-transparent"
                     >
                       <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
@@ -615,7 +616,7 @@ export default function LogTrade() {
                     onClick={addPartial}
                     className="px-2.5 py-1 rounded-md text-[11px] text-zinc-400 border border-dashed border-white/[0.12] hover:bg-[#1a1a1d] hover:text-zinc-200 transition-all"
                   >
-                    + Aggiungi uscita
+                    {t('logTrade.addExit')}
                   </button>
                   {/* Il trade si registra già chiuso: se i contratti non tornano
                       il server rifiuta, tanto vale dirlo subito. */}
@@ -626,7 +627,7 @@ export default function LogTrade() {
                         : 'text-amber-500/90'
                     }`}
                   >
-                    {partialContracts}/{quantityNumber || '—'} contratti
+                    {t('logTrade.contractsTally', { done: partialContracts, total: quantityNumber || '—' })}
                   </span>
                 </div>
               </div>
@@ -637,7 +638,7 @@ export default function LogTrade() {
               onClick={togglePartials}
               className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors underline underline-offset-2"
             >
-              {partialsOpen ? 'Torna a uscita singola' : 'Sono uscito in più volte'}
+              {partialsOpen ? t('logTrade.backToSingleExit') : t('logTrade.scaledOut')}
             </button>
           </FormCard>
 

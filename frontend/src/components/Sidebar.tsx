@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { useProfile } from '../hooks/useProfile'
+import { t } from '../i18n'
 
 interface SidebarProps {
   open: boolean
@@ -43,13 +44,13 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <rect x="9" y="1" width="4" height="12" rx="1" fill="black" opacity=".4"/>
             </svg>
           </div>
-          <span className="font-display font-bold text-[15px] tracking-widest text-white">APEX</span>
+          <span className="font-display font-bold text-[15px] tracking-widest text-white">{t('brand.name')}</span>
           <span className="ml-auto text-[9px] text-zinc-600 bg-[#141416] px-1.5 py-0.5 rounded border border-white/[0.07] tracking-widest uppercase">PRO</span>
         </div>
 
         {/* Nav */}
         <div className="p-3 flex flex-col gap-0.5 mt-2">
-          <p className="text-[10px] text-zinc-700 uppercase tracking-widest px-2 pb-2">Overview</p>
+          <p className="text-[10px] text-zinc-700 uppercase tracking-widest px-2 pb-2">{t('nav.overview')}</p>
 
           <NavLink to="/" end onClick={onClose} className={({ isActive }) =>
             `flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[13px] transition-all border ${
@@ -80,7 +81,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             Analytics
           </NavLink>
 
-          <p className="text-[10px] text-zinc-700 uppercase tracking-widest px-2 pb-2 mt-4">Trades</p>
+          <p className="text-[10px] text-zinc-700 uppercase tracking-widest px-2 pb-2 mt-4">{t('nav.trades')}</p>
 
           <NavLink to="/log-trade" onClick={onClose} className={({ isActive }) =>
             `flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[13px] transition-all border ${

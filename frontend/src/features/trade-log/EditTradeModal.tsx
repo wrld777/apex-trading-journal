@@ -4,12 +4,13 @@ import ScreenshotInput from '../../components/ui/ScreenshotInput'
 import { useUpdateTrade } from '../../hooks/useTrades'
 import { useToastStore } from '../../store/toastStore'
 import type { TradeDto, TradeOutcome, UpdateTradeRequest } from '../../types/trade'
+import { t } from '../../i18n'
 
 const OUTCOME_LABELS: Record<TradeOutcome, string> = {
   TakeProfit: 'TP',
   StopLoss: 'SL',
   BreakEven: 'BE',
-  Manual: 'Manuale',
+  Manual: 'Manual',
 }
 
 const EMOTIONAL_STATES = [
@@ -160,7 +161,7 @@ export default function EditTradeModal({ trade, open, onClose }: {
             </label>
           ) : (
             <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] text-zinc-600 tracking-[0.04em]">Uscite</span>
+              <span className="text-[11px] text-zinc-600 tracking-[0.04em]">{t('tradeLog.exits')}</span>
               <div className="flex flex-col gap-1 pt-1">
                 {exits.map((e, i) => (
                   <span key={i} className="text-[11px] text-zinc-400 font-mono">

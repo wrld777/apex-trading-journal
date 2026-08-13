@@ -1,16 +1,17 @@
 import { useLocation, useNavigate } from 'react-router-dom'
+import { t, type TranslationKey } from '../i18n'
 
 // Nessuna etichetta di periodo quassù: il periodo lo scelgono le pagine — il
 // selettore della Dashboard, il range da/a di Analytics — e una scritta fissa
 // qui finisce solo per contraddirle. "May 2025" è rimasta appesa per un anno.
-const PAGE_META: Record<string, [string, string]> = {
-  '/':                   ['Dashboard', ''],
-  '/log-trade':          ['Log Trade', 'New Entry'],
-  '/analytics':          ['Analytics', ''],
-  '/trades':             ['Trade Log', ''],
-  '/strategies':         ['Strategie', ''],
-  '/strategy-insights':  ['Strategy Insights', ''],
-  '/profile':            ['Profile', ''],
+const PAGE_META: Record<string, [TranslationKey, TranslationKey | '']> = {
+  '/':                   ['nav.dashboard', ''],
+  '/log-trade':          ['nav.logTrade', 'nav.newEntry'],
+  '/analytics':          ['nav.analytics', ''],
+  '/trades':             ['nav.tradeLog', ''],
+  '/strategies':         ['nav.strategies', ''],
+  '/strategy-insights':  ['insights.title', ''],
+  '/profile':            ['nav.profile', ''],
 }
 
 interface TopbarProps {
@@ -20,7 +21,9 @@ interface TopbarProps {
 export default function Topbar({ onMenuClick }: TopbarProps) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
-  const [title, meta] = PAGE_META[pathname] ?? ['APEX', '']
+  const [titleKey, metaKey] = PAGE_META[pathname] ?? ['brand.name', '']
+  const title = t(titleKey)
+  const meta = metaKey ? t(metaKey) : ''
 
   return (
     <header className="h-[52px] bg-[#080809] border-b border-white/[0.04] flex items-center px-4 lg:px-6 gap-3 sticky top-0 z-50">
@@ -28,7 +31,7 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
       {/* Hamburger — visible only on mobile */}
       <button
         onClick={onMenuClick}
-        aria-label="Open navigation"
+        aria-label={t('nav.openNavigation')}
         className="lg:hidden bg-[#141416] border border-white/[0.07] rounded-md p-1.5 text-zinc-400 hover:text-white transition-colors"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -53,13 +56,13 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
             <circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.2"/>
             <line x1="8" y1="8" x2="11" y2="11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
           </svg>
-          Search
+          {t('nav.search')}
         </button>
         <button
           onClick={() => navigate('/log-trade')}
           className="px-3 py-1.5 rounded-md text-xs font-medium bg-white text-black hover:bg-white/90 transition-all"
         >
-          + Log Trade
+          + {t('nav.logTrade')}
         </button>
       </div>
     </header>

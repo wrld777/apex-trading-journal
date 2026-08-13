@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useToastStore } from '../../store/toastStore'
+import { t } from '../../i18n'
 
 // ── Validazione URL ───────────────────────────────────────────────────────────
 
@@ -44,18 +45,18 @@ export default function ScreenshotInput({ value, onChange }: {
     const candidate = url.trim()
     if (!candidate) return
     if (!isHttpUrl(candidate)) {
-      addToast('Inserisci un URL http(s) valido.', 'error')
+      addToast(t('screenshot.invalidUrl'), 'error')
       return
     }
     if (value.includes(candidate)) {
-      addToast('Screenshot già aggiunto.', 'error')
+      addToast(t('screenshot.duplicate'), 'error')
       return
     }
     setChecking(true)
     const ok = await isLoadableImage(candidate)
     setChecking(false)
     if (!ok) {
-      addToast('Il link non mostra un’immagine.', 'error')
+      addToast(t('screenshot.notAnImage'), 'error')
       return
     }
     onChange([...value, candidate])
@@ -77,7 +78,7 @@ export default function ScreenshotInput({ value, onChange }: {
         <input
           type="url"
           inputMode="url"
-          placeholder="Incolla il link dell'immagine (es. snapshot TradingView)…"
+          placeholder={t('screenshot.placeholder')}
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={onKeyDown}
@@ -94,12 +95,12 @@ export default function ScreenshotInput({ value, onChange }: {
               <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="10" />
             </svg>
           )}
-          {checking ? 'Controllo…' : 'Aggiungi'}
+          {checking ? t('screenshot.checking') : t('screenshot.add')}
         </button>
       </div>
 
       <p className="text-[11px] text-zinc-700">
-        Su TradingView: tasto destro sullo snapshot → “Copia indirizzo immagine”.
+        {t('screenshot.hint')}
       </p>
 
       {value.length > 0 && (
@@ -109,14 +110,14 @@ export default function ScreenshotInput({ value, onChange }: {
               <a href={src} target="_blank" rel="noreferrer">
                 <img
                   src={src}
-                  alt="Trade screenshot"
+                  alt={t('screenshot.alt')}
                   className="w-full h-full object-cover rounded-md border border-white/[0.07]"
                 />
               </a>
               <button
                 type="button"
                 onClick={() => remove(src)}
-                aria-label="Rimuovi screenshot"
+                aria-label={t('screenshot.removeAria')}
                 className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500"
               >
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none">

@@ -6,6 +6,7 @@ import Modal from '../../components/ui/Modal'
 import { useToastStore } from '../../store/toastStore'
 import EditTradeModal from './EditTradeModal'
 import type { Direction, TradeDto, TradeOutcome, TradeQuery, TradeStatus } from '../../types/trade'
+import { t as tr } from '../../i18n'
 
 /* ── helpers ── */
 function fmtNum(n: number, d = 0) {
@@ -180,7 +181,7 @@ export default function TradeLog() {
         <div>
           <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">Trade Log</h1>
           <p className="text-xs text-zinc-600">
-            {isLoading ? 'Loading…' : `${total} trade${hasFilters ? ' (filtrati)' : ''}`}
+            {isLoading ? tr('common.loading') : tr(hasFilters ? 'tradeLog.countFiltered' : 'tradeLog.count', { count: total })}
           </p>
         </div>
       </div>
@@ -188,24 +189,24 @@ export default function TradeLog() {
       {/* Filters */}
       <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-3 mb-3.5 flex flex-wrap items-center gap-2">
         <select value={symbol} onChange={e => setSymbol(e.target.value)} className={INPUT}>
-          <option value="">Symbol: tutti</option>
+          <option value="">{tr('tradeLog.filterSymbol')}</option>
           {symbols.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
         <select value={setup} onChange={e => setSetup(e.target.value)} className={INPUT}>
-          <option value="">Setup: tutti</option>
+          <option value="">{tr('tradeLog.filterSetup')}</option>
           {setups.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
         <select value={session} onChange={e => setSession(e.target.value)} className={INPUT}>
-          <option value="">Session: tutte</option>
+          <option value="">{tr('tradeLog.filterSession')}</option>
           {sessions.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
         <select value={direction} onChange={e => setDirection(e.target.value)} className={INPUT}>
-          <option value="">Side: tutti</option>
+          <option value="">{tr('tradeLog.filterSide')}</option>
           <option value="Long">Long</option>
           <option value="Short">Short</option>
         </select>
         <select value={status} onChange={e => setStatus(e.target.value)} className={INPUT}>
-          <option value="">Status: tutti</option>
+          <option value="">{tr('tradeLog.filterStatus')}</option>
           <option value="Win">Win</option>
           <option value="Loss">Loss</option>
           <option value="BreakEven">Break Even</option>
@@ -234,7 +235,7 @@ export default function TradeLog() {
             actionTo="/log-trade"
           />
         ) : total === 0 ? (
-          <div className="text-xs text-zinc-600 py-8 text-center">Nessun trade corrisponde ai filtri.</div>
+          <div className="text-xs text-zinc-600 py-8 text-center">{tr('tradeLog.noMatch')}</div>
         ) : (
           <>
             <div className="overflow-x-auto">
@@ -315,7 +316,7 @@ export default function TradeLog() {
             {/* Pagination */}
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/[0.04]">
               <span className="text-[11px] text-zinc-600">
-                Pagina {page} di {totalPages}
+                {tr('tradeLog.page', { page, total: totalPages })}
               </span>
               <div className="flex gap-1.5">
                 <button
@@ -323,14 +324,14 @@ export default function TradeLog() {
                   disabled={page <= 1}
                   className="px-2.5 py-1 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  ← Prec
+                  {tr('tradeLog.prev')}
                 </button>
                 <button
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
                   className="px-2.5 py-1 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  Succ →
+                  {tr('tradeLog.next')}
                 </button>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Skeleton } from '../../components/ui/Skeleton'
+import { t } from '../../i18n'
 import EmptyState from '../../components/ui/EmptyState'
 import { useDiscipline, useRuleImpact, useStrategyStats } from '../../hooks/useAnalytics'
 import type {
@@ -45,10 +46,10 @@ function MetricColumn({ title, block, accent }: { title: string; block: MetricsB
           <div className="flex flex-col gap-0.5">
             {/* L'expectancy in R viene prima: è quella con cui si confrontano
                 due strategie. I dollari restano sotto come riferimento. */}
-            <Row k="Expectancy" v={fmtR(block.expectancyR)} vc={pnlColor(block.expectancyR)} />
-            <Row k="in $" v={fmtPnl(block.expectancy)} vc="text-zinc-500" />
-            <Row k="Avg RR" v={fmt(block.avgRR, 2)} />
-            <Row k="Trades" v={String(block.totalTrades)} />
+            <Row k={t('insights.expectancy')} v={fmtR(block.expectancyR)} vc={pnlColor(block.expectancyR)} />
+            <Row k={t('insights.inDollars')} v={fmtPnl(block.expectancy)} vc="text-zinc-500" />
+            <Row k={t('insights.avgRR')} v={fmt(block.avgRR, 2)} />
+            <Row k={t('insights.tradesLabel')} v={String(block.totalTrades)} />
           </div>
         </>
       )}
@@ -72,18 +73,18 @@ function verdict(s: StrategyStatsDto): { text: string; cls: string } | null {
   if (a.totalTrades < 2 || n.totalTrades < 2) return null
   const delta = a.winRate - n.winRate
   if (delta >= 15) {
-    return { text: 'Funziona quando segui le regole → esecuzione indisciplinata', cls: 'bg-amber-500/10 border-amber-500/20 text-amber-400' }
+    return { text: t('insights.verdictDisciplined'), cls: 'bg-amber-500/10 border-amber-500/20 text-amber-400' }
   }
   // Il caso opposto mancava e finiva in "allineati", che è la lettura più
   // sbagliata possibile: se rispettare la checklist va *peggio* che ignorarla,
   // il problema è nelle regole, non nell'esecuzione. È il caso più interessante.
   if (delta <= -15) {
-    return { text: 'Va meglio quando le salti → le regole non descrivono ciò che funziona', cls: 'bg-violet-500/10 border-violet-500/20 text-violet-400' }
+    return { text: t('insights.verdictInverted'), cls: 'bg-violet-500/10 border-violet-500/20 text-violet-400' }
   }
   if (a.winRate < 45 && n.winRate < 45) {
-    return { text: 'Scarsa anche eseguita bene → strategia da rivedere', cls: 'bg-red-500/10 border-red-500/20 text-red-400' }
+    return { text: t('insights.verdictWeak'), cls: 'bg-red-500/10 border-red-500/20 text-red-400' }
   }
-  return { text: 'Aderenza e risultati allineati', cls: 'bg-zinc-500/10 border-white/10 text-zinc-400' }
+  return { text: t('insights.verdictAligned'), cls: 'bg-zinc-500/10 border-white/10 text-zinc-400' }
 }
 
 /* ── STRATEGY CARD ── */
@@ -93,16 +94,16 @@ function StrategyCard({ s }: { s: StrategyStatsDto }) {
     <div className={`${card} p-4 lg:p-[18px]`}>
       <div className="flex items-center justify-between mb-4">
         <div className="text-sm font-medium text-white truncate">{s.strategyName}</div>
-        <div className={`text-[11px] font-mono ${pnlColor(s.overall.expectancyR)}`} title={`${fmtPnl(s.overall.expectancy)} per trade`}>
-          {fmtR(s.overall.expectancyR)} exp
+        <div className={`text-[11px] font-mono ${pnlColor(s.overall.expectancyR)}`} title={t('insights.expTitle', { value: fmtPnl(s.overall.expectancy) })}>
+          {t('insights.expShort', { value: fmtR(s.overall.expectancyR) })}
         </div>
       </div>
       <div className="flex gap-3">
-        <MetricColumn title="Tutti" block={s.overall} accent="bg-zinc-500" />
+        <MetricColumn title={t('insights.all')} block={s.overall} accent="bg-zinc-500" />
         <div className="w-px bg-white/[0.05]" />
-        <MetricColumn title="Checklist 100%" block={s.whenFullyAdherent} accent="bg-green-500" />
+        <MetricColumn title={t('insights.fullChecklist')} block={s.whenFullyAdherent} accent="bg-green-500" />
         <div className="w-px bg-white/[0.05]" />
-        <MetricColumn title="Regole saltate" block={s.whenNotAdherent} accent="bg-red-500" />
+        <MetricColumn title={t('insights.rulesSkipped')} block={s.whenNotAdherent} accent="bg-red-500" />
       </div>
       {v && (
         <div className={`mt-4 px-3 py-2 rounded-md border text-[11px] ${v.cls}`}>{v.text}</div>
@@ -115,7 +116,7 @@ function StrategyCard({ s }: { s: StrategyStatsDto }) {
 function RuleImpactTable({ rules, isLoading }: { rules: RuleImpactDto[] | undefined; isLoading: boolean }) {
   if (isLoading) return <div className="flex flex-col gap-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-11 w-full" />)}</div>
   if (!rules || rules.length === 0)
-    return <div className="py-8 text-center text-xs text-zinc-600">Nessuna aderenza registrata per questa strategia.</div>
+    return <div className="py-8 text-center text-xs text-zinc-600">{t('insights.noAdherence')}</div>
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -150,7 +151,7 @@ function RuleImpactTable({ rules, isLoading }: { rules: RuleImpactDto[] | undefi
 /* ── DISCIPLINE TREND (adherence % over time) ── */
 function DisciplineChart({ points }: { points: DisciplinePointDto[] }) {
   if (points.length === 0)
-    return <div className="h-[180px] flex items-center justify-center text-xs text-zinc-600">Nessun dato di aderenza</div>
+    return <div className="h-[180px] flex items-center justify-center text-xs text-zinc-600">{t('insights.noAdherenceData')}</div>
 
   const W = 400, H = 180, pad = 18
   const n = points.length
@@ -208,13 +209,13 @@ export default function StrategyAnalytics() {
     <div className="p-4 lg:p-7">
       {/* Header */}
       <div className="mb-5">
-        <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">Strategy Insights</h1>
-        <p className="text-xs text-zinc-600">Aderenza e disciplina · {strategies?.length ?? 0} strategie con trade</p>
+        <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">{t('insights.title')}</h1>
+        <p className="text-xs text-zinc-600">{t('insights.subtitle', { count: strategies?.length ?? 0 })}</p>
       </div>
 
       {isError && (
         <div className="mb-4 px-4 py-3 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
-          Impossibile caricare le analytics. Riprova più tardi.
+          {t('insights.loadFailed')}
         </div>
       )}
 
@@ -226,9 +227,9 @@ export default function StrategyAnalytics() {
       ) : !strategies || strategies.length === 0 ? (
         <div className={`${card} mb-3.5`}>
           <EmptyState
-            title="Nessun dato per strategia"
-            description="Logga qualche trade selezionando una strategia e spuntando la checklist: qui vedrai come cambia il rendimento quando segui (o salti) le regole."
-            actionLabel="Log Trade"
+            title={t('insights.emptyTitle')}
+            description={t('insights.emptyBody')}
+            actionLabel={t('nav.logTrade')}
             actionTo="/log-trade"
           />
         </div>
@@ -243,9 +244,9 @@ export default function StrategyAnalytics() {
         {/* Rule impact */}
         <div className={`${card} p-4 lg:p-[18px]`}>
           <div className="flex items-center justify-between mb-4 gap-2">
-            <div className={label}>Impatto per regola</div>
+            <div className={label}>{t('insights.ruleImpact')}</div>
             {strategies && strategies.length > 0 && (
-              <select value={activeId} onChange={e => setSelectedId(e.target.value)} className={selectCls} aria-label="Strategia">
+              <select value={activeId} onChange={e => setSelectedId(e.target.value)} className={selectCls} aria-label={t('insights.strategyAria')}>
                 {strategies.map(s => <option key={s.strategyId} value={s.strategyId}>{s.strategyName}</option>)}
               </select>
             )}
@@ -255,7 +256,7 @@ export default function StrategyAnalytics() {
           ) : (
             <>
               <p className="text-[10px] text-zinc-600 mb-3">
-                Win rate quando <span className="text-green-500/80">{activeName || 'la regola'}</span> è rispettata vs violata. Barra = impatto.
+                {t('insights.ruleImpactHint', { name: activeName || t('common.rule') })}
               </p>
               <RuleImpactTable rules={rules} isLoading={rulesLoading} />
             </>
@@ -265,7 +266,7 @@ export default function StrategyAnalytics() {
         {/* Discipline trend */}
         <div className={`${card} p-4 lg:p-[18px]`}>
           <div className="flex items-center justify-between mb-4">
-            <div className={label}>Trend disciplina</div>
+            <div className={label}>{t('insights.disciplineTrend')}</div>
             <div className="flex items-center gap-1 bg-[#141416] border border-white/[0.07] rounded-md p-0.5">
               {(['week', 'month'] as Granularity[]).map(g => (
                 <button
@@ -275,7 +276,7 @@ export default function StrategyAnalytics() {
                     gran === g ? 'bg-[#1f1f23] text-white' : 'text-zinc-600 hover:text-zinc-400'
                   }`}
                 >
-                  {g === 'week' ? 'Settimana' : 'Mese'}
+                  {g === 'week' ? t('insights.week') : t('insights.month')}
                 </button>
               ))}
             </div>
