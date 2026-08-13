@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { userService } from '../services/userService'
 import { useAuthStore } from '../store/authStore'
-import type { UpdateProfileRequest } from '../types/user'
+import type { ChangePasswordRequest, UpdateProfileRequest } from '../types/user'
 
 export function useProfile() {
   const userId = useAuthStore((s) => s.userId)
@@ -22,5 +22,13 @@ export function useUpdateProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] })
     },
+  })
+}
+
+// Il cambio password non tocca nessuna query in cache: il token resta valido,
+// quindi non c'è niente da invalidare né da rifare.
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: (data: ChangePasswordRequest) => userService.changePassword(data),
   })
 }

@@ -1,10 +1,14 @@
-import { useState } from 'react'
-import { useProfile, useUpdateProfile } from '../../hooks/useProfile'
+import { useRef, useState } from 'react'
+import { useChangePassword, useProfile, useUpdateProfile } from '../../hooks/useProfile'
 import { useAuthStore } from '../../store/authStore'
 import { useToastStore } from '../../store/toastStore'
 import { Skeleton } from '../../components/ui/Skeleton'
 
 const FIELD = 'bg-[#141416] border border-white/[0.07] rounded-md px-3 py-2 text-[13px] text-white outline-none w-full transition-all focus:border-white/[0.18] focus:bg-[#1a1a1d] placeholder:text-zinc-700'
+
+/** Lato più lungo dell'avatar dopo il ridimensionamento. */
+const AVATAR_SIZE = 256
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 
 function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (
@@ -16,9 +20,61 @@ function Field({ label, children, hint }: { label: string; children: React.React
   )
 }
 
+function Card({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-6 flex flex-col gap-4">
+      <div>
+        <div className="text-[11px] text-zinc-600 uppercase tracking-widest">{title}</div>
+        {subtitle && <div className="text-[10px] text-zinc-700 mt-1">{subtitle}</div>}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function initials(first: string, last: string) {
+  const a = first.trim()[0] ?? ''
+  const b = last.trim()[0] ?? ''
+  return (a + b).toUpperCase() || '—'
+}
+
+/**
+ * Riduce l'immagine a un quadrato di AVATAR_SIZE e la restituisce come data URI.
+ * Il ritaglio è centrale: così un ritratto verticale non esce schiacciato.
+ * Si fa qui e non sul server perché evita di caricare megabyte per mostrare
+ * poi una miniatura da 30px.
+ */
+function resizeToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = () => reject(new Error('Could not read the file.'))
+    reader.onload = () => {
+      const img = new Image()
+      img.onerror = () => reject(new Error('That file is not a valid image.'))
+      img.onload = () => {
+        const side = Math.min(img.width, img.height)
+        const canvas = document.createElement('canvas')
+        canvas.width = AVATAR_SIZE
+        canvas.height = AVATAR_SIZE
+        const ctx = canvas.getContext('2d')
+        if (!ctx) { reject(new Error('Could not process the image.')); return }
+        ctx.drawImage(
+          img,
+          (img.width - side) / 2, (img.height - side) / 2, side, side,
+          0, 0, AVATAR_SIZE, AVATAR_SIZE,
+        )
+        resolve(canvas.toDataURL('image/jpeg', 0.85))
+      }
+      img.src = reader.result as string
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
 export default function Profile() {
   const { data: profile, isLoading, isError } = useProfile()
   const { mutate: updateProfile, isPending } = useUpdateProfile()
+  const { mutate: changePassword, isPending: pwPending } = useChangePassword()
   const addToast = useToastStore((s) => s.addToast)
 
   const token = useAuthStore((s) => s.token)
@@ -26,31 +82,66 @@ export default function Profile() {
   const email = useAuthStore((s) => s.email)
   const setAuth = useAuthStore((s) => s.setAuth)
 
-  const [name, setName] = useState('')
-  const [instrument, setInstrument] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const fileInput = useRef<HTMLInputElement>(null)
+
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
 
   // Seed the form once the profile has loaded.
   const [seeded, setSeeded] = useState(false)
   if (profile && !seeded) {
     setSeeded(true)
-    setName(profile.name)
-    setInstrument(profile.instrument)
+    setFirstName(profile.firstName)
+    setLastName(profile.lastName)
+    setAvatarUrl(profile.avatarUrl)
+  }
+
+  const handlePick = async (file: File | undefined) => {
+    if (!file) return
+    if (!file.type.startsWith('image/')) { addToast('Please choose an image file.', 'error'); return }
+    if (file.size > MAX_UPLOAD_BYTES) { addToast('That image is too large (max 5 MB).', 'error'); return }
+    try {
+      setAvatarUrl(await resizeToDataUrl(file))
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : 'Could not process the image.', 'error')
+    }
   }
 
   const handleSave = () => {
-    if (!name.trim()) { addToast('Name is required.', 'error'); return }
-    if (!instrument.trim()) { addToast('Instrument is required.', 'error'); return }
+    if (!firstName.trim()) { addToast('First name is required.', 'error'); return }
 
     updateProfile(
-      { name: name.trim(), instrument: instrument.trim() },
+      { firstName: firstName.trim(), lastName: lastName.trim(), avatarUrl },
       {
         onSuccess: (updated) => {
           addToast('Profile updated.', 'success')
-          // Keep the cached auth identity (greeting, etc.) in sync with the new name.
-          if (token && userId) setAuth(token, userId, updated.name, email ?? updated.email)
+          // Keep the cached auth identity (greeting, sidebar) in sync.
+          if (token && userId) setAuth(token, userId, updated.displayName, email ?? updated.email)
         },
         onError: (err: unknown) => {
           addToast(err instanceof Error ? err.message : 'Failed to update profile.', 'error')
+        },
+      },
+    )
+  }
+
+  const handleChangePassword = () => {
+    if (!currentPassword) { addToast('Enter your current password.', 'error'); return }
+    if (newPassword !== confirmPassword) { addToast('The two new passwords do not match.', 'error'); return }
+
+    changePassword(
+      { currentPassword, newPassword },
+      {
+        onSuccess: () => {
+          addToast('Password changed.', 'success')
+          setCurrentPassword(''); setNewPassword(''); setConfirmPassword('')
+        },
+        onError: (err: unknown) => {
+          addToast(err instanceof Error ? err.message : 'Failed to change the password.', 'error')
         },
       },
     )
@@ -60,51 +151,108 @@ export default function Profile() {
     <div className="p-4 lg:p-7 max-w-2xl">
       <div className="mb-6">
         <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">Profile</h1>
-        <p className="text-xs text-zinc-600">Your details · used across your dashboard and analytics</p>
+        <p className="text-xs text-zinc-600">Your details and account security</p>
       </div>
 
       {isError ? (
         <div className="px-4 py-3 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
           Failed to load your profile. Please try again later.
         </div>
+      ) : isLoading ? (
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-40 w-full" />
+        </div>
       ) : (
-        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-6 flex flex-col gap-4">
-          {isLoading ? (
-            <>
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </>
-          ) : (
-            <>
-              <Field label="Name">
-                <input value={name} onChange={(e) => setName(e.target.value)} className={FIELD} placeholder="Your name" />
-              </Field>
+        <div className="flex flex-col gap-4">
 
-              <Field label="Email" hint="Email cannot be changed here.">
-                <input value={profile?.email ?? ''} disabled className={`${FIELD} opacity-60 cursor-not-allowed`} />
-              </Field>
-
-              <Field label="Instrument" hint="e.g. NQ, ES, NAS100">
-                <input value={instrument} onChange={(e) => setInstrument(e.target.value)} className={FIELD} placeholder="NQ Futures" />
-              </Field>
-
-              <div className="flex justify-end pt-2">
-                <button
-                  onClick={handleSave}
-                  disabled={isPending}
-                  className="px-4 py-1.5 rounded-md text-xs font-medium bg-white text-black hover:bg-white/90 transition-all disabled:opacity-60 flex items-center gap-1.5"
-                >
-                  {isPending && (
-                    <svg className="animate-spin" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="10"/>
-                    </svg>
+          <Card title="Your details">
+            <div className="flex items-center gap-4">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover border border-white/[0.07]" />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-700 to-violet-700 flex items-center justify-center text-lg font-bold shrink-0">
+                  {initials(firstName, lastName)}
+                </div>
+              )}
+              <div className="flex flex-col gap-1.5">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => fileInput.current?.click()}
+                    className="px-3 py-1.5 rounded-md text-[11px] text-zinc-300 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all"
+                  >
+                    {avatarUrl ? 'Change photo' : 'Upload photo'}
+                  </button>
+                  {avatarUrl && (
+                    <button
+                      onClick={() => { setAvatarUrl(null); if (fileInput.current) fileInput.current.value = '' }}
+                      className="px-3 py-1.5 rounded-md text-[11px] text-zinc-500 border border-white/[0.07] hover:text-red-400 hover:border-red-500/20 transition-all"
+                    >
+                      Remove
+                    </button>
                   )}
-                  {isPending ? 'Saving…' : 'Save Changes'}
-                </button>
+                </div>
+                <span className="text-[10px] text-zinc-700">Square crop, resized to {AVATAR_SIZE}px. Saved when you press Save Changes.</span>
               </div>
-            </>
-          )}
+              <input
+                ref={fileInput}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handlePick(e.target.files?.[0])}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="First name">
+                <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className={FIELD} placeholder="Ahmed" />
+              </Field>
+              <Field label="Last name" hint="Optional.">
+                <input value={lastName} onChange={(e) => setLastName(e.target.value)} className={FIELD} placeholder="Bejaoui" />
+              </Field>
+            </div>
+
+            <Field label="Email" hint="Email cannot be changed here.">
+              <input value={profile?.email ?? ''} disabled className={`${FIELD} opacity-60 cursor-not-allowed`} />
+            </Field>
+
+            <div className="flex justify-end pt-1">
+              <button
+                onClick={handleSave}
+                disabled={isPending}
+                className="px-4 py-1.5 rounded-md text-xs font-medium bg-white text-black hover:bg-white/90 transition-all disabled:opacity-60"
+              >
+                {isPending ? 'Saving…' : 'Save Changes'}
+              </button>
+            </div>
+          </Card>
+
+          <Card title="Password" subtitle="At least 8 characters, with an uppercase letter, a number and a symbol.">
+            <Field label="Current password">
+              <input type="password" autoComplete="current-password" value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)} className={FIELD} placeholder="••••••••" />
+            </Field>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="New password">
+                <input type="password" autoComplete="new-password" value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)} className={FIELD} placeholder="••••••••" />
+              </Field>
+              <Field label="Repeat new password">
+                <input type="password" autoComplete="new-password" value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)} className={FIELD} placeholder="••••••••" />
+              </Field>
+            </div>
+            <div className="flex justify-end pt-1">
+              <button
+                onClick={handleChangePassword}
+                disabled={pwPending}
+                className="px-4 py-1.5 rounded-md text-xs font-medium border border-white/[0.07] text-zinc-300 hover:bg-[#1a1a1d] transition-all disabled:opacity-60"
+              >
+                {pwPending ? 'Changing…' : 'Change Password'}
+              </button>
+            </div>
+          </Card>
+
         </div>
       )}
     </div>

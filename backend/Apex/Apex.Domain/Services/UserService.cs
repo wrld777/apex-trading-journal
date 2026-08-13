@@ -33,11 +33,32 @@ namespace Apex.Domain.Services
             if (user is null)
                 return Result<ProfileResponse>.Failure(Error.FromUserError(UserErrors.NotFound(userId)));
 
-            user.Name = request.Name;
-            user.Instrument = request.Instrument;
+            user.FirstName = request.FirstName;
+            user.LastName = request.LastName;
+            user.AvatarUrl = string.IsNullOrWhiteSpace(request.AvatarUrl) ? null : request.AvatarUrl;
 
             var updated = await _userRepository.UpdateAsync(user, ct);
             return Result<ProfileResponse>.Success(_mapper.Map<ProfileResponse>(updated));
+        }
+
+        public async Task<Result<bool>> ChangePasswordAsync(Guid userId, ChangePasswordRequest request, CancellationToken ct)
+        {
+            var user = await _userRepository.GetByIdAsync(userId, ct);
+            if (user is null)
+                return Result<bool>.Failure(Error.FromUserError(UserErrors.NotFound(userId)));
+
+            if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+                return Result<bool>.Failure(Error.FromUserError(UserErrors.CurrentPasswordWrong));
+
+            // Cambiare la password con quella già in uso non è un errore di sistema,
+            // ma quasi sempre è un fraintendimento: meglio dirlo che fingere successo.
+            if (BCrypt.Net.BCrypt.Verify(request.NewPassword, user.PasswordHash))
+                return Result<bool>.Failure(Error.FromUserError(UserErrors.NewPasswordSameAsCurrent));
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            await _userRepository.UpdateAsync(user, ct);
+
+            return Result<bool>.Success(true);
         }
     }
 }

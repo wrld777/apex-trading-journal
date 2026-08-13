@@ -48,4 +48,20 @@ public class UserController : ControllerBase
 
         return Ok(result.Value);
     }
+
+    // PUT /api/user/me/password — changes the password, verifying the current one.
+    [Authorize]
+    [HttpPut("me/password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken ct)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+
+        var result = await _userService.ChangePasswordAsync(userId, request, ct);
+        if (!result.IsSuccess)
+            return BadRequest(result.Error);
+
+        return NoContent();
+    }
 }

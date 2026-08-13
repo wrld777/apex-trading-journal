@@ -8,5 +8,6 @@ namespace Apex.Domain.Contracts
     {
         Task<Result<ProfileResponse>> GetProfileAsync(Guid userId, CancellationToken ct);
         Task<Result<ProfileResponse>> UpdateProfileAsync(Guid userId, UpdateProfileRequest request, CancellationToken ct);
+        Task<Result<bool>> ChangePasswordAsync(Guid userId, ChangePasswordRequest request, CancellationToken ct);
     }
 }
