@@ -4,9 +4,13 @@ import { useLocation, useNavigate } from 'react-router-dom'
 // selettore della Dashboard, il range da/a di Analytics — e una scritta fissa
 // qui finisce solo per contraddirle. "May 2025" è rimasta appesa per un anno.
 const PAGE_META: Record<string, [string, string]> = {
-  '/':          ['Dashboard', ''],
-  '/log-trade': ['Log Trade', 'New Entry'],
-  '/analytics': ['Analytics', ''],
+  '/':                   ['Dashboard', ''],
+  '/log-trade':          ['Log Trade', 'New Entry'],
+  '/analytics':          ['Analytics', ''],
+  '/trades':             ['Trade Log', ''],
+  '/strategies':         ['Strategie', ''],
+  '/strategy-insights':  ['Strategy Insights', ''],
+  '/profile':            ['Profile', ''],
 }
 
 interface TopbarProps {

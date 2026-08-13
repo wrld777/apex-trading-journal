@@ -186,17 +186,33 @@ function DayOfWeekChart({ dow }: { dow: DayOfWeekStatsDto[] }) {
   const maxAbs = Math.max(...bars.map(b => Math.abs(b.pnl)), 1)
 
   return (
-    <div className="flex items-end gap-2 h-[100px] pb-1">
-      {bars.map(b => {
-        const pos = b.pnl >= 0
-        const h = (Math.abs(b.pnl) / maxAbs) * 90
-        return (
-          <div key={b.day} className="flex-1 flex flex-col items-center gap-1" title={`${b.day}: ${fmtPnl(b.pnl)}`}>
-            <div className={`w-full rounded-t-sm ${pos ? 'bg-green-500/50' : 'bg-red-500/45'}`} style={{ height: Math.max(h, b.pnl !== 0 ? 4 : 0) }} />
-            <div className="text-[9px] text-zinc-700">{b.day}</div>
-          </div>
-        )
-      })}
+    <div>
+      {/* Prima le barre crescevano tutte verso l'alto dalla stessa base e i
+          giorni in perdita si distinguevano solo dal colore: un lunedì negativo
+          sembrava un lunedì buono. Ora lo zero è una riga e il segno è la
+          direzione in cui la barra cresce. */}
+      <div className="relative flex gap-2 h-[100px]">
+        <div className="absolute inset-x-0 top-1/2 h-px bg-white/[0.08]" />
+        {bars.map(b => {
+          const pos = b.pnl >= 0
+          const h = b.pnl === 0 ? 0 : Math.max((Math.abs(b.pnl) / maxAbs) * 46, 3)
+          return (
+            <div key={b.day} className="flex-1 flex flex-col relative" title={`${b.day}: ${fmtPnl(b.pnl)}`}>
+              <div className="h-1/2 flex items-end">
+                {pos && <div className="w-full rounded-t-sm bg-green-500/50" style={{ height: h }} />}
+              </div>
+              <div className="h-1/2 flex items-start">
+                {!pos && <div className="w-full rounded-b-sm bg-red-500/45" style={{ height: h }} />}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <div className="flex gap-2 mt-1.5">
+        {bars.map(b => (
+          <div key={b.day} className="flex-1 text-center text-[9px] text-zinc-700">{b.day}</div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -277,14 +293,19 @@ function Calendar({ daily, refDate }: { daily: DailyPnLDto[]; refDate: Date }) {
     )
   }
 
+  // `grid-cols-7` stirava le celle a tutta larghezza: con `aspect-square`
+  // diventavano quadrati da ~170px e il calendario occupava schermate intere.
+  // Un tetto per colonna le lascia crescere fin dove serve e poi le ferma.
+  const columns = { gridTemplateColumns: 'repeat(7, minmax(0, 76px))', justifyContent: 'start' as const }
+
   return (
     <div>
-      <div className="grid grid-cols-7 gap-0.5 mb-1">
+      <div className="grid gap-1 mb-1" style={columns}>
         {weekDays.map((d, i) => (
           <div key={i} className="text-center text-[9px] text-zinc-700 uppercase tracking-widest pb-1">{d}</div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-0.5">{cells}</div>
+      <div className="grid gap-1" style={columns}>{cells}</div>
     </div>
   )
 }
@@ -294,7 +315,8 @@ function kpiBar(s: StatsDto) {
   return [
     { label: 'Net P&L',       value: fmtPnl(s.netPnL),                  color: s.netPnL >= 0 ? 'text-green-500' : 'text-red-500' },
     { label: 'Win Rate',      value: `${fmt(s.winRate, 1)}%`,           color: 'text-white' },
-    { label: 'Avg RR',        value: `${fmt(s.avgRR, 2)}R`,             color: 'text-white' },
+    // Niente "R" in coda: il RR è un rapporto fra distanze, non un R-multiplo.
+    { label: 'Avg RR',        value: fmt(s.avgRR, 2),                   color: 'text-white' },
     { label: 'Profit Factor', value: s.totalTrades === 0 ? '—' : s.profitFactor === null ? '∞' : fmt(s.profitFactor, 2), color: 'text-white' },
     { label: 'Max DD',        value: `-$${fmt(Math.abs(s.maxDrawdown))}`, color: 'text-red-500' },
     { label: 'Avg Hold',      value: `${fmt(s.avgHoldMinutes, 0)} min`, color: 'text-white' },
