@@ -295,7 +295,7 @@ function kpiBar(s: StatsDto) {
     { label: 'Net P&L',       value: fmtPnl(s.netPnL),                  color: s.netPnL >= 0 ? 'text-green-500' : 'text-red-500' },
     { label: 'Win Rate',      value: `${fmt(s.winRate, 1)}%`,           color: 'text-white' },
     { label: 'Avg RR',        value: `${fmt(s.avgRR, 2)}R`,             color: 'text-white' },
-    { label: 'Profit Factor', value: fmt(s.profitFactor, 2),            color: 'text-white' },
+    { label: 'Profit Factor', value: s.totalTrades === 0 ? '—' : s.profitFactor === null ? '∞' : fmt(s.profitFactor, 2), color: 'text-white' },
     { label: 'Max DD',        value: `-$${fmt(Math.abs(s.maxDrawdown))}`, color: 'text-red-500' },
     { label: 'Avg Hold',      value: `${fmt(s.avgHoldMinutes, 0)} min`, color: 'text-white' },
     { label: 'Best Streak',   value: `${s.bestStreak}W`,                color: 'text-white' },

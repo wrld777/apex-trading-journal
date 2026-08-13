@@ -1,4 +1,5 @@
-import { Fragment } from 'react'
+import { Fragment, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import KpiCard from '../../components/ui/KpiCard'
 import { Skeleton, KpiCardSkeleton, TableSkeleton } from '../../components/ui/Skeleton'
 import EmptyState from '../../components/ui/EmptyState'
@@ -220,10 +221,67 @@ function fmtR(n: number) {
   return `${n >= 0 ? '+' : '−'}${fmt(Math.abs(n), 2)}R`
 }
 
+/* ── PERIODO ── */
+type PeriodKey = '1D' | '1W' | '1M' | '3M' | 'ALL'
+
+const PERIODS: PeriodKey[] = ['1D', '1W', '1M', '3M', 'ALL']
+
+const PERIOD_LABEL: Record<PeriodKey, string> = {
+  '1D': 'Today',
+  '1W': 'Last 7 days',
+  '1M': 'Last 30 days',
+  '3M': 'Last 3 months',
+  ALL: 'All time',
+}
+
+const PERIOD_DAYS: Record<Exclude<PeriodKey, 'ALL'>, number> = {
+  '1D': 0, '1W': 6, '1M': 29, '3M': 89,
+}
+
+/**
+ * Estremi da mandare a /api/stats. Il backend filtra solo se ci sono *entrambi*,
+ * quindi "ALL" si esprime omettendoli, non con una data lontana.
+ */
+function rangeFor(period: PeriodKey): { from?: string; to?: string } {
+  if (period === 'ALL') return {}
+  const to = new Date()
+  const from = new Date(to)
+  from.setDate(from.getDate() - PERIOD_DAYS[period])
+  from.setHours(0, 0, 0, 0)
+  return { from: from.toISOString(), to: to.toISOString() }
+}
+
+function PeriodPicker({ value, onChange }: { value: PeriodKey; onChange: (p: PeriodKey) => void }) {
+  return (
+    <div className="flex items-center gap-1 bg-[#141416] border border-white/[0.07] rounded-md p-0.5">
+      {PERIODS.map(p => (
+        <button
+          key={p}
+          onClick={() => onChange(p)}
+          aria-pressed={value === p}
+          title={PERIOD_LABEL[p]}
+          className={`px-2.5 py-1 rounded text-[10px] uppercase tracking-widest transition-all ${
+            value === p ? 'bg-[#1f1f23] text-white' : 'text-zinc-600 hover:text-zinc-400'
+          }`}
+        >
+          {p === 'ALL' ? 'All' : p}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 /* ── MAIN ── */
 export default function Dashboard() {
   const name = useAuthStore((s) => s.name)
-  const { data, isLoading, isError } = useStats()
+  const [period, setPeriod] = useState<PeriodKey>('ALL')
+  const range = useMemo(() => rangeFor(period), [period])
+
+  const { data, isLoading, isError } = useStats(range.from, range.to)
+  // La heatmap promette "Last 13 Weeks": deve restare fuori dal filtro, o con 1D
+  // si svuoterebbe smentendo la propria etichetta. Query separata, cache separata.
+  const { data: allTime } = useStats()
+
   // RecentTrades only needs the latest few; page 1 (default sort: entryTime desc) covers it.
   const { data: tradesPage, isLoading: tradesLoading, isError: tradesError } = useTrades({ pageSize: 8 })
   const trades = tradesPage?.items
@@ -233,8 +291,11 @@ export default function Dashboard() {
 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
-  // No data once stats have loaded successfully with zero trades.
-  const noData = !isLoading && !isError && (data?.totalTrades ?? 0) === 0
+  // Due vuoti diversi: chi non ha mai registrato un trade va invitato a farlo,
+  // chi ne ha ma non in questo periodo va solo avvisato che il filtro è stretto.
+  const statsReady = !isLoading && !isError
+  const neverTraded = statsReady && (allTime?.totalTrades ?? 0) === 0
+  const emptyPeriod = statsReady && !neverTraded && (data?.totalTrades ?? 0) === 0
 
   return (
     <div className="p-4 lg:p-7">
@@ -247,10 +308,9 @@ export default function Dashboard() {
           </h1>
           <p className="text-xs text-zinc-600">{today} · {instrument}</p>
         </div>
-        <div className="flex gap-2">
-          <button className="px-3 py-1.5 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all">May 2025</button>
-          <button className="px-3 py-1.5 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all">All Time</button>
-        </div>
+        {/* Un solo selettore per tutta la pagina: due controlli di periodo sulla
+            stessa schermata finirebbero per contraddirsi. */}
+        <PeriodPicker value={period} onChange={setPeriod} />
       </div>
 
       {/* Error banner */}
@@ -260,7 +320,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {noData ? (
+      {neverTraded ? (
         <EmptyState
           title="No trades yet"
           description="Log your first trade to start tracking your performance, equity curve and analytics."
@@ -270,6 +330,15 @@ export default function Dashboard() {
         />
       ) : (
       <>
+
+      {emptyPeriod && (
+        <div className="mb-3.5 px-4 py-3 rounded-[10px] bg-[#111113] border border-white/[0.04] text-xs text-zinc-500 flex items-center justify-between gap-3 flex-wrap">
+          <span>No trades in this period — showing zeros for {PERIOD_LABEL[period].toLowerCase()}.</span>
+          <button onClick={() => setPeriod('ALL')} className="text-[11px] text-zinc-400 px-2 py-1 rounded border border-white/[0.07] hover:bg-[#1a1a1d] transition-all">
+            Show all time
+          </button>
+        </div>
+      )}
 
       {/* KPI Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-3.5 mb-3.5">
@@ -312,7 +381,7 @@ export default function Dashboard() {
               deltaUp={data ? data.expectancyR >= 0 : undefined}
             >
               <div className="text-[10px] text-zinc-700 mt-2">
-                Per trade{data ? ` · ${data.rTradeCount} trades` : ''}
+                Per trade{data ? ` · ${data.rTradeCount} ${data.rTradeCount === 1 ? 'trade' : 'trades'}` : ''}
               </div>
             </KpiCard>
 
@@ -350,11 +419,19 @@ export default function Dashboard() {
               </div>
             </KpiCard>
 
+            {/* Tre casi distinti: nessun trade (non c'è dato), trade tutti vinti
+                (rapporto infinito), altrimenti il rapporto vero. */}
             <KpiCard
               label="Profit Factor"
-              value={data ? fmt(data.profitFactor, 2) : '—'}
-              delta={data ? (data.profitFactor >= 2 ? 'Excellent' : data.profitFactor >= 1 ? 'Good' : 'Negative edge') : undefined}
-              deltaUp={data ? data.profitFactor >= 1 : undefined}
+              value={!data || data.totalTrades === 0 ? '—' : data.profitFactor === null ? '∞' : fmt(data.profitFactor, 2)}
+              delta={
+                !data || data.totalTrades === 0
+                  ? undefined
+                  : data.profitFactor === null
+                    ? 'No losing trades'
+                    : data.profitFactor >= 2 ? 'Excellent' : data.profitFactor >= 1 ? 'Good' : 'Negative edge'
+              }
+              deltaUp={data && data.totalTrades > 0 ? (data.profitFactor === null || data.profitFactor >= 1) : undefined}
             >
               <div className="h-7 mt-2">
                 <svg viewBox="0 0 100 28" className="w-full h-7" preserveAspectRatio="none">
@@ -375,16 +452,9 @@ export default function Dashboard() {
       <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] mb-3.5 hover:border-white/[0.07] transition-colors">
         <div className="flex items-center justify-between mb-4">
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Equity Curve</div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-[10px] text-zinc-600">Live</span>
-            <div className="w-px h-3 bg-white/[0.04] mx-1" />
-            {['1D','1W','1M','3M'].map(t => (
-              <button key={t} className={`text-[10px] px-1.5 py-0.5 rounded border transition-all ${
-                t === '1W' ? 'bg-[#1a1a1d] border-white/[0.07] text-white' : 'border-white/[0.07] text-zinc-600 hover:text-zinc-400'
-              }`}>{t}</button>
-            ))}
-          </div>
+          {/* Il periodo lo decide il selettore in testa alla pagina: qui si dichiara
+              soltanto cosa si sta guardando. */}
+          <span className="text-[10px] text-zinc-600">{PERIOD_LABEL[period]}</span>
         </div>
         {isLoading ? (
           <Skeleton className="h-[180px] w-full" />
@@ -424,7 +494,7 @@ export default function Dashboard() {
         <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
           <div className="flex items-center justify-between mb-4">
             <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Setup Performance</div>
-            <button className="text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-white/[0.07] hover:text-zinc-400 transition-all">View All</button>
+            <Link to="/analytics" className="text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-white/[0.07] hover:text-zinc-400 transition-all">View All</Link>
           </div>
           {isLoading ? (
             <div className="flex flex-col gap-2">
@@ -489,7 +559,7 @@ export default function Dashboard() {
       <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] mb-3.5 hover:border-white/[0.07] transition-colors">
         <div className="flex items-center justify-between mb-4">
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Recent Trades</div>
-          <button className="text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-white/[0.07] hover:text-zinc-400 transition-all">View All →</button>
+          <Link to="/trades" className="text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-white/[0.07] hover:text-zinc-400 transition-all">View All →</Link>
         </div>
         {tradesLoading ? (
           <TableSkeleton />
@@ -514,7 +584,7 @@ export default function Dashboard() {
         </div>
         <div className="overflow-x-auto">
           <div className="min-w-[500px]">
-            <Heatmap daily={data?.dailyPnL ?? []} />
+            <Heatmap daily={allTime?.dailyPnL ?? []} />
           </div>
         </div>
       </div>

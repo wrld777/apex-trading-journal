@@ -13,7 +13,8 @@ public class StatsDto
     public int RTradeCount { get; set; }
     public decimal WinRate { get; set; }
     public decimal AvgRR { get; set; }
-    public decimal ProfitFactor { get; set; }
+    // null quando non ci sono trade in perdita: il rapporto non è definito.
+    public decimal? ProfitFactor { get; set; }
     public decimal MaxDrawdown { get; set; }
     public double AvgHoldMinutes { get; set; }
     public int TotalTrades { get; set; }
