@@ -29,7 +29,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 }
 
   return (
-    <div className="min-h-screen bg-[#030304] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-bg flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
 
         <div className="flex items-center gap-3 mb-8">
@@ -40,21 +40,21 @@ const handleSubmit = async (e: React.FormEvent) => {
               <rect x="9" y="1" width="4" height="12" rx="1" fill="black" opacity=".4"/>
             </svg>
           </div>
-          <span className="font-bold text-white tracking-widest text-sm">{t('brand.name')}</span>
+          <span className="font-brand font-bold text-content-strong tracking-widest text-sm">{t('brand.name')}</span>
         </div>
 
-        <h1 className="text-xl font-bold text-white mb-1">{t('auth.welcomeBack')}</h1>
-        <p className="text-sm text-zinc-500 mb-8">{t('auth.signInSubtitle')}</p>
+        <h1 className="text-xl font-bold text-content-strong mb-1">{t('auth.welcomeBack')}</h1>
+        <p className="text-sm text-content-secondary mb-8">{t('auth.signInSubtitle')}</p>
 
         {justRegistered && (
-          <p className="text-xs text-green-400 bg-green-400/10 border border-green-400/20 rounded-md px-3 py-2 mb-4">
+          <p className="text-xs text-pos bg-pos/10 border border-pos/20 rounded-md px-3 py-2 mb-4">
             {t('auth.registered')}
           </p>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-zinc-500 tracking-wide">{t('auth.email')}</label>
+            <label className="text-xs text-content-secondary tracking-wide">{t('auth.email')}</label>
             <input
               type="email"
               required
@@ -64,12 +64,12 @@ const handleSubmit = async (e: React.FormEvent) => {
                 setError(null)
               }}
               placeholder={t('auth.emailPlaceholder')}
-              className="bg-[#141416] border border-white/10 rounded-md px-3 py-2.5 text-sm text-white outline-none focus:border-white/25 placeholder:text-zinc-600 transition-colors"
+              className="bg-surface-2 border border-white/10 rounded-md px-3 py-2.5 text-sm text-content-strong outline-none focus:border-white/25 placeholder:text-content-muted transition-colors"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-zinc-500 tracking-wide">{t('auth.password')}</label>
+            <label className="text-xs text-content-secondary tracking-wide">{t('auth.password')}</label>
             <input
               type="password"
               required
@@ -79,12 +79,12 @@ const handleSubmit = async (e: React.FormEvent) => {
                 setError(null)
               }}
               placeholder="••••••••"
-              className="bg-[#141416] border border-white/10 rounded-md px-3 py-2.5 text-sm text-white outline-none focus:border-white/25 placeholder:text-zinc-600 transition-colors"
+              className="bg-surface-2 border border-white/10 rounded-md px-3 py-2.5 text-sm text-content-strong outline-none focus:border-white/25 placeholder:text-content-muted transition-colors"
             />
           </div>
 
           {error && (
-            <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-md px-3 py-2">
+            <p className="text-xs text-neg bg-neg/10 border border-neg/20 rounded-md px-3 py-2">
               {error}
             </p>
           )}
@@ -98,9 +98,9 @@ const handleSubmit = async (e: React.FormEvent) => {
           </button>
         </form>
 
-        <p className="text-xs text-zinc-600 text-center mt-6">
+        <p className="text-xs text-content-muted text-center mt-6">
           {t('auth.noAccount')}{' '}
-          <Link to="/register" className="text-zinc-400 hover:text-white transition-colors">
+          <Link to="/register" className="text-content-secondary hover:text-content-strong transition-colors">
             {t('auth.signUp')}
           </Link>
         </p>

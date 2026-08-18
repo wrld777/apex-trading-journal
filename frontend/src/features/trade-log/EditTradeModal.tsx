@@ -22,7 +22,7 @@ const EMOTIONAL_STATES = [
   'Distracted',
 ]
 
-const FIELD = 'bg-[#141416] border border-white/[0.07] rounded-md px-3 py-2 text-[13px] text-white outline-none w-full transition-all focus:border-white/[0.18] focus:bg-[#1a1a1d] placeholder:text-zinc-700 [color-scheme:dark]'
+const FIELD = 'bg-surface-2 border border-line-2 rounded-md px-3 py-2 text-[13px] text-content-strong outline-none w-full transition-all focus:border-line-control focus:bg-surface-3 placeholder:text-content-faint [color-scheme:dark]'
 
 // ISO (UTC) → value for <input type="datetime-local"> (treats stored time as UTC wall-clock).
 function isoToLocalInput(iso: string | null): string {
@@ -133,7 +133,7 @@ export default function EditTradeModal({ trade, open, onClose }: {
           <button
             onClick={onClose}
             disabled={isPending}
-            className="px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-50"
+            className="px-3 py-1.5 rounded-md text-xs text-content-secondary border border-line-2 hover:bg-surface-3 transition-all disabled:opacity-50"
           >
             {t('common.cancel')}
           </button>
@@ -156,15 +156,15 @@ export default function EditTradeModal({ trade, open, onClose }: {
         <div className="grid grid-cols-2 gap-3">
           {isSimpleManualExit ? (
             <label className="flex flex-col gap-1.5">
-              <span className="text-[11px] text-zinc-600 tracking-[0.04em]">{t('logTrade.exitPriceLabel')}</span>
+              <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.exitPriceLabel')}</span>
               <input type="number" step="0.25" placeholder="0.00" value={exitPrice} onChange={(e) => setExitPrice(e.target.value)} className={FIELD} />
             </label>
           ) : (
             <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] text-zinc-600 tracking-[0.04em]">{t('tradeLog.exits')}</span>
+              <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('tradeLog.exits')}</span>
               <div className="flex flex-col gap-1 pt-1">
                 {exits.map((e, i) => (
-                  <span key={i} className="text-[11px] text-zinc-400 font-mono">
+                  <span key={i} className="text-[11px] text-content-secondary font-mono">
                     {e.contracts}× {OUTCOME_LABELS[e.outcome]} @ {e.price}
                   </span>
                 ))}
@@ -172,13 +172,13 @@ export default function EditTradeModal({ trade, open, onClose }: {
             </div>
           )}
           <label className="flex flex-col gap-1.5">
-            <span className="text-[11px] text-zinc-600 tracking-[0.04em]">{t('logTrade.exitTime')}</span>
+            <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.exitTime')}</span>
             <input type="datetime-local" value={exitTime} onChange={(e) => setExitTime(e.target.value)} className={FIELD} />
           </label>
         </div>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-[11px] text-zinc-600 tracking-[0.04em]">{t('logTrade.emotionalState')}</span>
+          <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.emotionalState')}</span>
           <select
             value={emotionalState}
             onChange={(e) => setEmotionalState(e.target.value)}
@@ -189,28 +189,28 @@ export default function EditTradeModal({ trade, open, onClose }: {
         </label>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-[11px] text-zinc-600 tracking-[0.04em]">{t('logTrade.rationale')}</span>
+          <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.rationale')}</span>
           <textarea rows={3} placeholder={t('logTrade.rationalePlaceholder')} value={rationale} onChange={(e) => setRationale(e.target.value)} className={`${FIELD} resize-y`} />
         </label>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-[11px] text-zinc-600 tracking-[0.04em]">{t('logTrade.mistakes')}</span>
+          <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.mistakes')}</span>
           <textarea rows={2} placeholder={t('logTrade.mistakesPlaceholder')} value={mistakes} onChange={(e) => setMistakes(e.target.value)} className={`${FIELD} resize-y`} />
         </label>
 
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] text-zinc-600 tracking-[0.04em]">{t('logTrade.screenshots')}</span>
+          <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.screenshots')}</span>
           <ScreenshotInput value={screenshots} onChange={setScreenshots} />
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] text-zinc-600 tracking-[0.04em]">{t('logTrade.tags')}</span>
+          <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.tags')}</span>
           <div
-            className="flex flex-wrap gap-1.5 p-2 bg-[#141416] border border-white/[0.07] rounded-md min-h-[40px] items-center cursor-text focus-within:border-white/[0.18] transition-all"
+            className="flex flex-wrap gap-1.5 p-2 bg-surface-2 border border-line-2 rounded-md min-h-[40px] items-center cursor-text focus-within:border-line-control transition-all"
             onClick={() => document.getElementById('edit-tag-input')?.focus()}
           >
             {tags.map((tag) => (
-              <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] border bg-[#1a1a1d] border-white/[0.07] text-zinc-400">
+              <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] border bg-surface-3 border-line-2 text-content-secondary">
                 {tag}
                 <button onClick={(e) => { e.stopPropagation(); removeTag(tag) }} className="hover:opacity-70 ml-0.5">×</button>
               </span>
@@ -221,7 +221,7 @@ export default function EditTradeModal({ trade, open, onClose }: {
               onChange={(e) => setTagInput(e.target.value)}
               onKeyDown={addTag}
               placeholder={t('logTrade.tagPlaceholder')}
-              className="bg-transparent border-none outline-none text-xs text-white placeholder:text-zinc-700 flex-1 min-w-[80px] px-1"
+              className="bg-transparent border-none outline-none text-xs text-content-strong placeholder:text-content-faint flex-1 min-w-[80px] px-1"
             />
           </div>
         </div>

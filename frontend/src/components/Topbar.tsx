@@ -26,13 +26,13 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
   const meta = metaKey ? t(metaKey) : ''
 
   return (
-    <header className="h-[52px] bg-[#080809] border-b border-white/[0.04] flex items-center px-4 lg:px-6 gap-3 sticky top-0 z-50">
+    <header className="h-[52px] bg-bg border-b border-line flex items-center px-4 lg:px-6 gap-3 sticky top-0 z-sticky">
 
       {/* Hamburger — visible only on mobile */}
       <button
         onClick={onMenuClick}
         aria-label={t('nav.openNavigation')}
-        className="lg:hidden bg-[#141416] border border-white/[0.07] rounded-md p-1.5 text-zinc-400 hover:text-white transition-colors"
+        className="lg:hidden bg-surface-2 border border-line-2 rounded-md p-1.5 text-content-secondary hover:text-content-strong transition-colors"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <line x1="1" y1="3"  x2="13" y2="3"  stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
@@ -41,9 +41,9 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
         </svg>
       </button>
 
-      <span className="font-display font-semibold text-sm text-white tracking-tight">{title}</span>
+      <span className="font-sans font-semibold text-sm text-content-strong tracking-tight">{title}</span>
       {meta && (
-        <span className="text-[11px] text-zinc-600 before:content-['/'] before:mr-1.5 before:text-zinc-700">
+        <span className="text-[11px] text-content-muted before:content-['/'] before:mr-1.5 before:text-content-faint">
           {meta}
         </span>
       )}
@@ -51,7 +51,7 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
       <div className="flex-1" />
 
       <div className="flex items-center gap-2">
-        <button className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] hover:text-white transition-all">
+        <button className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-content-secondary border border-line-2 hover:bg-surface-3 hover:text-content-strong transition-all">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
             <circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.2"/>
             <line x1="8" y1="8" x2="11" y2="11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>

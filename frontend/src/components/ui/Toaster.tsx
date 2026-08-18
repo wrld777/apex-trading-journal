@@ -1,9 +1,9 @@
 import { useToastStore, type ToastType } from '../../store/toastStore'
 
 const STYLES: Record<ToastType, string> = {
-  success: 'bg-green-500/10 border-green-500/25 text-green-400',
-  error:   'bg-red-500/10 border-red-500/25 text-red-400',
-  info:    'bg-[#1a1a1d] border-white/[0.1] text-zinc-300',
+  success: 'bg-pos/10 border-pos/25 text-pos',
+  error:   'bg-neg/10 border-neg/25 text-neg',
+  info:    'bg-surface-3 border-line-control text-content',
 }
 
 function Icon({ type }: { type: ToastType }) {
@@ -38,7 +38,7 @@ export default function Toaster() {
   if (toasts.length === 0) return null
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2">
+    <div className="fixed bottom-5 right-5 z-toast flex flex-col gap-2">
       {toasts.map((t) => (
         <div
           key={t.id}

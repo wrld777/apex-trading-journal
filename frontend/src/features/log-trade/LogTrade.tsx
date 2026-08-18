@@ -23,7 +23,7 @@ function RuleCheckItem({
 }) {
   return (
     <div
-      className="flex items-center gap-2.5 py-2 border-b border-white/[0.04] last:border-0 cursor-pointer select-none group"
+      className="flex items-center gap-2.5 py-2 border-b border-line last:border-0 cursor-pointer select-none group"
       onClick={() => onToggle(rule.id)}
       role="checkbox"
       aria-checked={checked}
@@ -31,7 +31,7 @@ function RuleCheckItem({
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onToggle(rule.id) }}
     >
       <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all ${
-        checked ? 'bg-green-500 border-green-500' : 'border-white/[0.11] group-hover:border-white/[0.18]'
+        checked ? 'bg-pos border-pos' : 'border-line-control group-hover:border-line-control'
       }`}>
         {checked && (
           <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
@@ -39,11 +39,11 @@ function RuleCheckItem({
           </svg>
         )}
       </div>
-      <span className={`text-xs transition-colors ${checked ? 'text-zinc-600 line-through' : 'text-zinc-400'}`}>
+      <span className={`text-xs transition-colors ${checked ? 'text-content-muted line-through' : 'text-content-secondary'}`}>
         {rule.label}
       </span>
       {rule.required && (
-        <span className="ml-auto shrink-0 text-[9px] font-medium tracking-[0.08em] px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-500/90">
+        <span className="ml-auto shrink-0 text-[9px] font-medium tracking-[0.08em] px-1.5 py-0.5 rounded bg-warn/10 border border-warn/20 text-warn/90">
           {t('strategies.required')}
         </span>
       )}
@@ -54,7 +54,7 @@ function RuleCheckItem({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-[11px] text-zinc-600 tracking-[0.04em]">{label}</label>
+      <label className="text-[11px] text-content-muted tracking-[0.04em]">{label}</label>
       {children}
     </div>
   )
@@ -64,8 +64,8 @@ function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`bg-[#141416] border border-white/[0.07] rounded-md px-3 py-2 text-[13px] text-white outline-none w-full transition-all
-        focus:border-white/[0.18] focus:bg-[#1a1a1d] placeholder:text-zinc-700 ${props.className ?? ''}`}
+      className={`bg-surface-2 border border-line-2 rounded-md px-3 py-2 text-[13px] text-content-strong outline-none w-full transition-all
+        focus:border-line-control focus:bg-surface-3 placeholder:text-content-faint ${props.className ?? ''}`}
     />
   )
 }
@@ -74,7 +74,7 @@ function Select({ children, ...props }: React.SelectHTMLAttributes<HTMLSelectEle
   return (
     <select
       {...props}
-      className="bg-[#141416] border border-white/[0.07] rounded-md px-3 py-2 text-[13px] text-white outline-none w-full cursor-pointer transition-all focus:border-white/[0.18] appearance-none"
+      className="bg-surface-2 border border-line-2 rounded-md px-3 py-2 text-[13px] text-content-strong outline-none w-full cursor-pointer transition-all focus:border-line-control appearance-none"
       style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2352525b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
         backgroundRepeat: 'no-repeat',
@@ -90,8 +90,8 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
       {...props}
-      className={`bg-[#141416] border border-white/[0.07] rounded-md px-3 py-2 text-[13px] text-white outline-none w-full transition-all resize-y
-        focus:border-white/[0.18] focus:bg-[#1a1a1d] placeholder:text-zinc-700 ${props.className ?? ''}`}
+      className={`bg-surface-2 border border-line-2 rounded-md px-3 py-2 text-[13px] text-content-strong outline-none w-full transition-all resize-y
+        focus:border-line-control focus:bg-surface-3 placeholder:text-content-faint ${props.className ?? ''}`}
     />
   )
 }
@@ -99,7 +99,7 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-3.5">
-      <span className="text-[10px] font-medium tracking-[0.12em] uppercase text-zinc-700">{children}</span>
+      <span className="text-[10px] font-medium tracking-[0.12em] uppercase text-content-faint">{children}</span>
       <div className="flex-1 h-px bg-white/[0.04]" />
     </div>
   )
@@ -107,7 +107,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 function FormCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-6">
+    <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-6">
       {children}
     </div>
   )
@@ -263,9 +263,9 @@ export default function LogTrade() {
   const removeTag = (tag: string) => setTags(prev => prev.filter(t => t !== tag))
 
   const tagColor = (tag: string) => {
-    if (['fvg', 'breaker', 'ob'].includes(tag)) return 'bg-green-500/10 border-green-500/20 text-green-500'
-    if (['london-session', 'ny-session', 'killzone'].includes(tag)) return 'bg-blue-500/10 border-blue-500/20 text-blue-500'
-    return 'bg-[#1a1a1d] border-white/[0.07] text-zinc-400'
+    if (['fvg', 'breaker', 'ob'].includes(tag)) return 'bg-pos/10 border-pos/20 text-pos'
+    if (['london-session', 'ny-session', 'killzone'].includes(tag)) return 'bg-brand/10 border-brand/20 text-brand'
+    return 'bg-surface-3 border-line-2 text-content-secondary'
   }
 
   const resetForm = () => {
@@ -376,14 +376,14 @@ export default function LogTrade() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">{t('logTrade.title')}</h1>
-          <p className="text-xs text-zinc-600">{t('logTrade.subtitle')}</p>
+          <h1 className="font-sans font-bold text-xl tracking-tight text-content-strong leading-none mb-1">{t('logTrade.title')}</h1>
+          <p className="text-xs text-content-muted">{t('logTrade.subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={resetForm}
             disabled={isPending}
-            className="px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-50"
+            className="px-3 py-1.5 rounded-md text-xs text-content-secondary border border-line-2 hover:bg-surface-3 transition-all disabled:opacity-50"
           >
             {t('logTrade.reset')}
           </button>
@@ -410,22 +410,22 @@ export default function LogTrade() {
           <FormCard>
             <SectionTitle>{t('logTrade.sectionTradeDetails')}</SectionTitle>
             <div className="mb-3.5">
-              <label className="text-[11px] text-zinc-600 tracking-[0.04em] block mb-1.5">{t('logTrade.direction')}</label>
+              <label className="text-[11px] text-content-muted tracking-[0.04em] block mb-1.5">{t('logTrade.direction')}</label>
               <div className="flex gap-1.5">
                 <button
                   onClick={() => setDirection('Long')}
                   className={`flex-1 py-2 rounded-md border text-xs font-medium tracking-[0.04em] transition-all ${
                     direction === 'Long'
-                      ? 'bg-green-500/12 border-green-500/25 text-green-500'
-                      : 'bg-[#141416] border-white/[0.07] text-zinc-600 hover:border-white/[0.11] hover:text-zinc-400'
+                      ? 'bg-pos/12 border-pos/25 text-pos'
+                      : 'bg-surface-2 border-line-2 text-content-muted hover:border-line-control hover:text-content-secondary'
                   }`}
                 >{t('logTrade.long')}</button>
                 <button
                   onClick={() => setDirection('Short')}
                   className={`flex-1 py-2 rounded-md border text-xs font-medium tracking-[0.04em] transition-all ${
                     direction === 'Short'
-                      ? 'bg-red-500/12 border-red-500/25 text-red-500'
-                      : 'bg-[#141416] border-white/[0.07] text-zinc-600 hover:border-white/[0.11] hover:text-zinc-400'
+                      ? 'bg-neg/12 border-neg/25 text-neg'
+                      : 'bg-surface-2 border-line-2 text-content-muted hover:border-line-control hover:text-content-secondary'
                   }`}
                 >{t('logTrade.short')}</button>
               </div>
@@ -450,15 +450,15 @@ export default function LogTrade() {
                   </Select>
                 </Field>
                 {strategyInstrumentIds.length > 0 && (
-                  <p className="text-[10px] text-zinc-600 mt-1.5">
+                  <p className="text-[10px] text-content-muted mt-1.5">
                     Limitato ai {visibleInstruments.length} strumenti di{' '}
-                    <span className="text-zinc-400">{selectedStrategy?.name}</span>.
+                    <span className="text-content-secondary">{selectedStrategy?.name}</span>.
                   </p>
                 )}
                 {/* The point value is the whole reason this is a catalog and not free
                     text: showing it makes the P&L scale explicit before submitting. */}
                 {selectedInstrument && (
-                  <p className="text-[10px] text-zinc-600 mt-1.5">
+                  <p className="text-[10px] text-content-muted mt-1.5">
                     {selectedInstrument.currency} {selectedInstrument.pointValue} per point ·
                     tick {selectedInstrument.tickSize} = {selectedInstrument.currency} {selectedInstrument.tickValue}
                   </p>
@@ -534,7 +534,7 @@ export default function LogTrade() {
                       className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
                         outcome === o.value
                           ? 'bg-white text-black border-white'
-                          : 'text-zinc-400 border-white/[0.07] hover:border-white/[0.18] hover:text-zinc-200'
+                          : 'text-content-secondary border-line-2 hover:border-line-control hover:text-content'
                       }`}
                     >
                       {o.label}
@@ -555,11 +555,11 @@ export default function LogTrade() {
                     </Field>
                   </div>
                 ) : outcome !== '' ? (
-                  <p className="text-[11px] text-zinc-600 mb-2">
+                  <p className="text-[11px] text-content-muted mb-2">
                     {t('logTrade.derivedPrice', { level: outcomePriceLabel })}
                   </p>
                 ) : (
-                  <p className="text-[11px] text-zinc-600 mb-2">{t('logTrade.chooseOutcome')}</p>
+                  <p className="text-[11px] text-content-muted mb-2">{t('logTrade.chooseOutcome')}</p>
                 )}
               </>
             ) : (
@@ -601,7 +601,7 @@ export default function LogTrade() {
                       onClick={() => removePartial(p.key)}
                       disabled={partials.length === 1}
                       aria-label={t('logTrade.removeExit', { n: i + 1 })}
-                      className="p-1 rounded-md text-zinc-600 hover:text-red-400 hover:bg-red-500/[0.08] transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+                      className="p-1 rounded-md text-content-muted hover:text-neg hover:bg-neg/[0.08] transition-all disabled:opacity-30 disabled:hover:bg-transparent"
                     >
                       <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
                         <path d="M2.5 3.5h9M5.5 3.5V2.3h3v1.2M3.5 3.5l.5 8h6l.5-8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -614,7 +614,7 @@ export default function LogTrade() {
                   <button
                     type="button"
                     onClick={addPartial}
-                    className="px-2.5 py-1 rounded-md text-[11px] text-zinc-400 border border-dashed border-white/[0.12] hover:bg-[#1a1a1d] hover:text-zinc-200 transition-all"
+                    className="px-2.5 py-1 rounded-md text-[11px] text-content-secondary border border-dashed border-line-control hover:bg-surface-3 hover:text-content transition-all"
                   >
                     {t('logTrade.addExit')}
                   </button>
@@ -623,8 +623,8 @@ export default function LogTrade() {
                   <span
                     className={`text-[11px] ${
                       quantityNumber > 0 && partialContracts === quantityNumber
-                        ? 'text-zinc-600'
-                        : 'text-amber-500/90'
+                        ? 'text-content-muted'
+                        : 'text-warn/90'
                     }`}
                   >
                     {t('logTrade.contractsTally', { done: partialContracts, total: quantityNumber || '—' })}
@@ -636,7 +636,7 @@ export default function LogTrade() {
             <button
               type="button"
               onClick={togglePartials}
-              className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors underline underline-offset-2"
+              className="text-[11px] text-content-secondary hover:text-content transition-colors underline underline-offset-2"
             >
               {partialsOpen ? t('logTrade.backToSingleExit') : t('logTrade.scaledOut')}
             </button>
@@ -686,7 +686,7 @@ export default function LogTrade() {
             </div>
             <Field label={t('logTrade.tags')}>
               <div
-                className="flex flex-wrap gap-1.5 p-2 bg-[#141416] border border-white/[0.07] rounded-md min-h-[40px] items-center cursor-text focus-within:border-white/[0.18] transition-all"
+                className="flex flex-wrap gap-1.5 p-2 bg-surface-2 border border-line-2 rounded-md min-h-[40px] items-center cursor-text focus-within:border-line-control transition-all"
                 onClick={() => document.getElementById('tag-input')?.focus()}
               >
                 {tags.map(tag => (
@@ -701,7 +701,7 @@ export default function LogTrade() {
                   onChange={e => setTagInput(e.target.value)}
                   onKeyDown={addTag}
                   placeholder={t('logTrade.tagPlaceholder')}
-                  className="bg-transparent border-none outline-none text-xs text-white placeholder:text-zinc-700 flex-1 min-w-[80px] px-1"
+                  className="bg-transparent border-none outline-none text-xs text-content-strong placeholder:text-content-faint flex-1 min-w-[80px] px-1"
                 />
               </div>
             </Field>
@@ -740,21 +740,21 @@ export default function LogTrade() {
                       />
                     ))}
                   </div>
-                  <div className="mt-3 pt-3 border-t border-white/[0.04] flex items-center justify-between">
-                    <span className="text-[11px] text-zinc-700">{checkedCount}/{selectedStrategy.rules.length} followed</span>
-                    <div className="flex-1 mx-3 h-1 bg-[#1a1a1d] rounded-full overflow-hidden">
+                  <div className="mt-3 pt-3 border-t border-line flex items-center justify-between">
+                    <span className="text-[11px] text-content-faint">{checkedCount}/{selectedStrategy.rules.length} followed</span>
+                    <div className="flex-1 mx-3 h-1 bg-surface-3 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-green-500 rounded-full transition-all duration-500"
+                        className="h-full bg-pos rounded-full transition-all duration-500"
                         style={{ width: `${(checkedCount / selectedStrategy.rules.length) * 100}%` }}
                       />
                     </div>
                   </div>
                 </div>
               ) : (
-                <p className="text-[11px] text-zinc-600 mt-3.5">{t('logTrade.strategyNoRules')}</p>
+                <p className="text-[11px] text-content-muted mt-3.5">{t('logTrade.strategyNoRules')}</p>
               )
             ) : (
-              <p className="text-[11px] text-zinc-600 mt-3.5 leading-relaxed">
+              <p className="text-[11px] text-content-muted mt-3.5 leading-relaxed">
                 {t('logTrade.strategyHint')}
               </p>
             )}

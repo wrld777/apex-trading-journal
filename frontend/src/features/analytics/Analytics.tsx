@@ -85,7 +85,7 @@ const DOW_SHORT: Record<string, string> = {
 }
 
 function EmptyChart({ height = 180 }: { height?: number }) {
-  return <div style={{ height }} className="flex items-center justify-center text-xs text-zinc-600">{tr('analytics.noRange')}</div>
+  return <div style={{ height }} className="flex items-center justify-center text-xs text-content-muted">{tr('analytics.noRange')}</div>
 }
 
 /* ── CUMULATIVE P&L ── */
@@ -110,7 +110,7 @@ function CumulativePnLChart({ daily }: { daily: DailyPnLDto[] }) {
 
   const last = vals[n - 1]
   const pos = last >= 0
-  const stroke = pos ? '#22c55e' : '#ef4444'
+  const stroke = pos ? 'rgb(var(--c-pos))' : 'rgb(var(--c-neg))'
   const zeroY = y(0)
 
   return (
@@ -127,7 +127,7 @@ function CumulativePnLChart({ daily }: { daily: DailyPnLDto[] }) {
       <polygon points={area} fill="url(#an-eq)" />
       <polyline points={line} fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       <line x1="0" y1={zeroY} x2={W} y2={zeroY} stroke="rgba(255,255,255,0.12)" strokeDasharray="3,3" strokeWidth="1" />
-      <text x="4" y={Math.max(y(maxV) + 4, 10)} fill="rgba(255,255,255,0.25)" fontSize="9" fontFamily="monospace">{fmtPnl(maxV)}</text>
+      <text x="4" y={Math.max(y(maxV) + 4, 10)} fill="rgb(var(--c-text-faint))" fontSize="9" fontFamily="monospace">{fmtPnl(maxV)}</text>
       <text x="4" y={zeroY - 3} fill="rgba(255,255,255,0.2)" fontSize="9" fontFamily="monospace">$0</text>
     </svg>
   )
@@ -168,11 +168,11 @@ function DrawdownChart({ daily }: { daily: DailyPnLDto[] }) {
       </defs>
       <line x1="0" y1={topY} x2={W} y2={topY} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
       <polygon points={area} fill="url(#dd-grad)" />
-      <polyline points={line} fill="none" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points={line} fill="none" stroke="rgb(var(--c-neg))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       {maxDD > 0 && (
         <>
-          <circle cx={maxX} cy={maxY} r="3" fill="#ef4444" />
-          <text x={Math.min(maxX + 4, W - 40)} y={maxY + 14} fill="rgba(239,68,68,0.6)" fontSize="9" fontFamily="monospace">
+          <circle cx={maxX} cy={maxY} r="3" fill="rgb(var(--c-neg))" />
+          <text x={Math.min(maxX + 4, W - 40)} y={maxY + 14} fill="rgb(var(--c-neg) / 0.6)" fontSize="9" fontFamily="monospace">
             −{maxDD.toFixed(2)}R
           </text>
         </>
@@ -201,10 +201,10 @@ function DayOfWeekChart({ dow }: { dow: DayOfWeekStatsDto[] }) {
           return (
             <div key={b.day} className="flex-1 flex flex-col relative" title={`${b.day}: ${fmtPnl(b.pnl)}`}>
               <div className="h-1/2 flex items-end">
-                {pos && <div className="w-full rounded-t-sm bg-green-500/50" style={{ height: h }} />}
+                {pos && <div className="w-full rounded-t-sm bg-pos/50" style={{ height: h }} />}
               </div>
               <div className="h-1/2 flex items-start">
-                {!pos && <div className="w-full rounded-b-sm bg-red-500/45" style={{ height: h }} />}
+                {!pos && <div className="w-full rounded-b-sm bg-neg/45" style={{ height: h }} />}
               </div>
             </div>
           )
@@ -212,7 +212,7 @@ function DayOfWeekChart({ dow }: { dow: DayOfWeekStatsDto[] }) {
       </div>
       <div className="flex gap-2 mt-1.5">
         {bars.map(b => (
-          <div key={b.day} className="flex-1 text-center text-[9px] text-zinc-700">{b.day}</div>
+          <div key={b.day} className="flex-1 text-center text-[9px] text-content-faint">{b.day}</div>
         ))}
       </div>
     </div>
@@ -230,20 +230,20 @@ function WinLossDonut({ winCount, lossCount, winRate }: { winCount: number; loss
     <>
       <div className="flex items-center justify-center py-2">
         <svg width="90" height="90" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="38" fill="none" stroke="#141416" strokeWidth="18" />
-          <circle cx="50" cy="50" r="38" fill="none" stroke="#22c55e" strokeWidth="18"
+          <circle cx="50" cy="50" r="38" fill="none" stroke="rgb(var(--c-surface-2))" strokeWidth="18" />
+          <circle cx="50" cy="50" r="38" fill="none" stroke="rgb(var(--c-pos))" strokeWidth="18"
             strokeDasharray={`${winDash} ${C - winDash}`} strokeDashoffset="0" strokeLinecap="round"
             transform="rotate(-90 50 50)" />
-          <circle cx="50" cy="50" r="38" fill="none" stroke="#ef4444" strokeWidth="18"
+          <circle cx="50" cy="50" r="38" fill="none" stroke="rgb(var(--c-neg))" strokeWidth="18"
             strokeDasharray={`${lossDash} ${C - lossDash}`} strokeDashoffset={`${-winDash}`} strokeLinecap="round"
             transform="rotate(-90 50 50)" />
-          <text x="50" y="47" textAnchor="middle" fill="#f4f4f5" fontSize="13" fontFamily="Syne, sans-serif" fontWeight="700">{fmt(winRate, 1)}%</text>
-          <text x="50" y="59" textAnchor="middle" fill="#3f3f46" fontSize="7" fontFamily="monospace">{tr('analytics.winRateRing')}</text>
+          <text x="50" y="47" textAnchor="middle" fill="rgb(var(--c-text-strong))" fontSize="13" fontFamily="var(--font-mono)" fontWeight="700">{fmt(winRate, 1)}%</text>
+          <text x="50" y="59" textAnchor="middle" fill="rgb(var(--c-text-faint))" fontSize="7" fontFamily="var(--font-mono)">{tr('analytics.winRateRing')}</text>
         </svg>
       </div>
       <div className="flex justify-center gap-4">
-        <div className="flex items-center gap-1.5 text-[11px] text-zinc-600"><div className="w-1.5 h-1.5 rounded-full bg-green-500" />{tr('analytics.wins', { count: winCount })}</div>
-        <div className="flex items-center gap-1.5 text-[11px] text-zinc-600"><div className="w-1.5 h-1.5 rounded-full bg-red-500" />{tr('analytics.losses', { count: lossCount })}</div>
+        <div className="flex items-center gap-1.5 text-[11px] text-content-muted"><div className="w-1.5 h-1.5 rounded-full bg-pos" />{tr('analytics.wins', { count: winCount })}</div>
+        <div className="flex items-center gap-1.5 text-[11px] text-content-muted"><div className="w-1.5 h-1.5 rounded-full bg-neg" />{tr('analytics.losses', { count: lossCount })}</div>
       </div>
     </>
   )
@@ -272,12 +272,12 @@ function Calendar({ daily, refDate }: { daily: DailyPnLDto[]; refDate: Date }) {
 
   for (let d = 1; d <= daysInMonth; d++) {
     const pnl = pnlByDay.get(d)
-    let cls = 'bg-[#141416] text-zinc-700'
+    let cls = 'bg-surface-2 text-content-faint'
     if (pnl !== undefined && pnl !== 0) {
       const strong = Math.abs(pnl) > 0.6 * maxAbs
       cls = pnl > 0
-        ? (strong ? 'bg-green-500/22 text-green-500 border border-green-500/25' : 'bg-green-500/12 text-green-500 border border-green-500/15')
-        : 'bg-red-500/10 text-red-500 border border-red-500/12'
+        ? (strong ? 'bg-pos/22 text-pos border border-pos/25' : 'bg-pos/12 text-pos border border-pos/15')
+        : 'bg-neg/10 text-neg border border-neg/12'
     }
     const pnlStr = pnl !== undefined && pnl !== 0
       ? (pnl > 0 ? `+$${(pnl / 1000).toFixed(1)}k` : `-$${(Math.abs(pnl) / 1000).toFixed(1)}k`)
@@ -304,7 +304,7 @@ function Calendar({ daily, refDate }: { daily: DailyPnLDto[]; refDate: Date }) {
     <div>
       <div className="grid gap-1 mb-1" style={columns}>
         {weekDays.map((d, i) => (
-          <div key={i} className="text-center text-[9px] text-zinc-700 uppercase tracking-widest pb-1">{d}</div>
+          <div key={i} className="text-center text-[9px] text-content-faint uppercase tracking-widest pb-1">{d}</div>
         ))}
       </div>
       <div className="grid gap-1" style={columns}>{cells}</div>
@@ -315,25 +315,25 @@ function Calendar({ daily, refDate }: { daily: DailyPnLDto[]; refDate: Date }) {
 /* ── KPI / KEY STATS BUILDERS ── */
 function kpiBar(s: StatsDto) {
   return [
-    { label: tr('dash.netPnl'),       value: fmtPnl(s.netPnL),                  color: s.netPnL >= 0 ? 'text-green-500' : 'text-red-500' },
-    { label: tr('dash.winRate'),      value: `${fmt(s.winRate, 1)}%`,           color: 'text-white' },
+    { label: tr('dash.netPnl'),       value: fmtPnl(s.netPnL),                  color: s.netPnL >= 0 ? 'text-pos' : 'text-neg' },
+    { label: tr('dash.winRate'),      value: `${fmt(s.winRate, 1)}%`,           color: 'text-content-strong' },
     // Niente "R" in coda: il RR è un rapporto fra distanze, non un R-multiplo.
-    { label: tr('dash.avgRR'),        value: fmt(s.avgRR, 2),                   color: 'text-white' },
-    { label: tr('dash.profitFactor'), value: s.totalTrades === 0 ? '—' : s.profitFactor === null ? '∞' : fmt(s.profitFactor, 2), color: 'text-white' },
-    { label: tr('analytics.maxDd'),        value: `-$${fmt(Math.abs(s.maxDrawdown))}`, color: 'text-red-500' },
-    { label: tr('analytics.avgHold'),      value: tr('analytics.minutes', { count: fmt(s.avgHoldMinutes, 0) }), color: 'text-white' },
-    { label: tr('analytics.bestStreak'),   value: `${s.bestStreak}W`,                color: 'text-white' },
+    { label: tr('dash.avgRR'),        value: fmt(s.avgRR, 2),                   color: 'text-content-strong' },
+    { label: tr('dash.profitFactor'), value: s.totalTrades === 0 ? '—' : s.profitFactor === null ? '∞' : fmt(s.profitFactor, 2), color: 'text-content-strong' },
+    { label: tr('analytics.maxDd'),        value: `-$${fmt(Math.abs(s.maxDrawdown))}`, color: 'text-neg' },
+    { label: tr('analytics.avgHold'),      value: tr('analytics.minutes', { count: fmt(s.avgHoldMinutes, 0) }), color: 'text-content-strong' },
+    { label: tr('analytics.bestStreak'),   value: `${s.bestStreak}W`,                color: 'text-content-strong' },
   ]
 }
 function keyStats(s: StatsDto) {
   return [
-    { label: tr('analytics.avgWinner'),   value: `+$${fmt(s.avgWin)}`,             color: 'text-green-500' },
-    { label: tr('analytics.avgLoser'),    value: `-$${fmt(Math.abs(s.avgLoss))}`,  color: 'text-red-500' },
-    { label: tr('analytics.largestWin'),  value: `+$${fmt(s.bestTrade)}`,          color: 'text-green-500' },
-    { label: tr('analytics.largestLoss'), value: `-$${fmt(Math.abs(s.worstTrade))}`, color: 'text-red-500' },
-    { label: tr('analytics.avgHold'),     value: tr('analytics.minutes', { count: fmt(s.avgHoldMinutes, 0) }), color: 'text-white' },
-    { label: tr('analytics.bestStreak'),  value: `${s.bestStreak}W`,               color: 'text-white' },
-    { label: tr('analytics.worstStreak'), value: `${s.worstStreak}L`,              color: 'text-red-500' },
+    { label: tr('analytics.avgWinner'),   value: `+$${fmt(s.avgWin)}`,             color: 'text-pos' },
+    { label: tr('analytics.avgLoser'),    value: `-$${fmt(Math.abs(s.avgLoss))}`,  color: 'text-neg' },
+    { label: tr('analytics.largestWin'),  value: `+$${fmt(s.bestTrade)}`,          color: 'text-pos' },
+    { label: tr('analytics.largestLoss'), value: `-$${fmt(Math.abs(s.worstTrade))}`, color: 'text-neg' },
+    { label: tr('analytics.avgHold'),     value: tr('analytics.minutes', { count: fmt(s.avgHoldMinutes, 0) }), color: 'text-content-strong' },
+    { label: tr('analytics.bestStreak'),  value: `${s.bestStreak}W`,               color: 'text-content-strong' },
+    { label: tr('analytics.worstStreak'), value: `${s.worstStreak}L`,              color: 'text-neg' },
   ]
 }
 
@@ -389,7 +389,7 @@ export default function Analytics() {
     })
     .reduce((sum, d) => sum + d.pnL, 0)
 
-  const dateInput = 'bg-[#141416] border border-white/[0.07] rounded-md px-2 py-1.5 text-[11px] text-zinc-300 outline-none focus:border-white/[0.18] [color-scheme:dark]'
+  const dateInput = 'bg-surface-2 border border-line-2 rounded-md px-2 py-1.5 text-[11px] text-content outline-none focus:border-line-control [color-scheme:dark]'
 
   return (
     <div className="p-4 lg:p-7">
@@ -397,25 +397,25 @@ export default function Analytics() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
-          <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">{tr('analytics.title')}</h1>
-          <p className="text-xs text-zinc-600">{tr('analytics.subtitle', { count: data?.totalTrades ?? 0 })}</p>
+          <h1 className="font-sans font-bold text-xl tracking-tight text-content-strong leading-none mb-1">{tr('analytics.title')}</h1>
+          <p className="text-xs text-content-muted">{tr('analytics.subtitle', { count: data?.totalTrades ?? 0 })}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={handleExport}
             disabled={exportRows.length === 0}
             title={exportRows.length === 0 ? tr('analytics.exportNone') : tr('analytics.exportCount', { count: exportRows.length })}
-            className="px-3 py-1.5 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-3 py-1.5 rounded-md text-[11px] text-content-secondary border border-line-2 hover:bg-surface-3 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {tr('analytics.exportCsv')}
           </button>
           <input type="date" value={from} max={to || undefined} onChange={e => setFrom(e.target.value)} className={dateInput} aria-label={tr('analytics.fromDate')} />
-          <span className="text-zinc-700 text-xs">→</span>
+          <span className="text-content-faint text-xs">→</span>
           <input type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} className={dateInput} aria-label={tr('analytics.toDate')} />
           {(from || to) && (
             <button
               onClick={() => { setFrom(''); setTo('') }}
-              className="px-2.5 py-1.5 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all"
+              className="px-2.5 py-1.5 rounded-md text-[11px] text-content-secondary border border-line-2 hover:bg-surface-3 transition-all"
             >
               {tr('analytics.clear')}
             </button>
@@ -425,13 +425,13 @@ export default function Analytics() {
 
       {/* Error banner */}
       {isError && (
-        <div className="mb-4 px-4 py-3 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+        <div className="mb-4 px-4 py-3 rounded-md bg-neg/10 border border-neg/20 text-neg text-xs">
           {tr('analytics.loadFailed')}
         </div>
       )}
 
       {/* KPI Bar */}
-      <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 mb-4">
+      <div className="bg-surface border border-line rounded-[10px] p-4 mb-4">
         {isLoading || !data ? (
           <div className="flex flex-wrap gap-6">
             {Array.from({ length: 7 }).map((_, i) => (
@@ -443,8 +443,8 @@ export default function Analytics() {
             <div className="grid grid-cols-2 gap-3 sm:hidden">
               {kpiBar(data).map(k => (
                 <div key={k.label} className="flex flex-col gap-0.5">
-                  <div className={`font-display font-bold text-lg tracking-tight ${k.color}`}>{k.value}</div>
-                  <div className="text-[10px] text-zinc-700 uppercase tracking-widest">{k.label}</div>
+                  <div className={`font-mono font-medium text-lg tracking-tight ${k.color}`}>{k.value}</div>
+                  <div className="text-[10px] text-content-faint uppercase tracking-widest">{k.label}</div>
                 </div>
               ))}
             </div>
@@ -452,8 +452,8 @@ export default function Analytics() {
               {kpiBar(data).map((k, i, arr) => (
                 <div key={k.label} className="flex items-center gap-6 lg:gap-8">
                   <div className="flex flex-col gap-0.5">
-                    <div className={`font-display font-bold text-lg lg:text-[20px] tracking-tight ${k.color}`}>{k.value}</div>
-                    <div className="text-[10px] text-zinc-700 uppercase tracking-widest">{k.label}</div>
+                    <div className={`font-mono font-medium text-lg lg:text-[20px] tracking-tight ${k.color}`}>{k.value}</div>
+                    <div className="text-[10px] text-content-faint uppercase tracking-widest">{k.label}</div>
                   </div>
                   {i < arr.length - 1 && <div className="w-px h-9 bg-white/[0.04]" />}
                 </div>
@@ -465,26 +465,26 @@ export default function Analytics() {
 
       {/* Cumulative P&L + Drawdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 mb-3.5">
-        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">{tr('analytics.cumulativePnl')}</div>
+        <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] hover:border-line-2 transition-colors">
+          <div className="text-[11px] text-content-muted uppercase tracking-widest mb-4">{tr('analytics.cumulativePnl')}</div>
           {isLoading ? <Skeleton className="h-[180px] w-full" /> : <CumulativePnLChart daily={data?.dailyPnL ?? []} />}
         </div>
 
-        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">{tr('analytics.drawdown')}</div>
+        <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] hover:border-line-2 transition-colors">
+          <div className="text-[11px] text-content-muted uppercase tracking-widest mb-4">{tr('analytics.drawdown')}</div>
           {isLoading ? <Skeleton className="h-[180px] w-full" /> : <DrawdownChart daily={data?.dailyPnL ?? []} />}
         </div>
       </div>
 
       {/* Day of Week + Win/Loss + Key Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mb-3.5">
-        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">{tr('analytics.byDayOfWeek')}</div>
+        <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] hover:border-line-2 transition-colors">
+          <div className="text-[11px] text-content-muted uppercase tracking-widest mb-4">{tr('analytics.byDayOfWeek')}</div>
           {isLoading ? <Skeleton className="h-[100px] w-full" /> : <DayOfWeekChart dow={data?.dayOfWeekStats ?? []} />}
         </div>
 
-        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-2">{tr('analytics.winLossSplit')}</div>
+        <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] hover:border-line-2 transition-colors">
+          <div className="text-[11px] text-content-muted uppercase tracking-widest mb-2">{tr('analytics.winLossSplit')}</div>
           {isLoading || !data ? (
             <div className="flex items-center justify-center py-2"><Skeleton className="h-[90px] w-[90px] rounded-full" /></div>
           ) : (
@@ -492,15 +492,15 @@ export default function Analytics() {
           )}
         </div>
 
-        <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors sm:col-span-2 lg:col-span-1">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-3">{tr('analytics.keyStats')}</div>
+        <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] hover:border-line-2 transition-colors sm:col-span-2 lg:col-span-1">
+          <div className="text-[11px] text-content-muted uppercase tracking-widest mb-3">{tr('analytics.keyStats')}</div>
           {isLoading || !data ? (
             <div className="flex flex-col gap-2">{Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-6 w-full" />)}</div>
           ) : (
             <div className="flex flex-col">
               {keyStats(data).map(s => (
-                <div key={s.label} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                  <span className="text-xs text-zinc-500">{s.label}</span>
+                <div key={s.label} className="flex items-center justify-between py-2 border-b border-line last:border-0">
+                  <span className="text-xs text-content-secondary">{s.label}</span>
                   <span className={`text-xs font-mono font-medium ${s.color}`}>{s.value}</span>
                 </div>
               ))}
@@ -510,13 +510,13 @@ export default function Analytics() {
       </div>
 
       {/* Monthly Calendar */}
-      <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
+      <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] hover:border-line-2 transition-colors">
         <div className="flex items-center justify-between mb-4">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest">{tr('analytics.calendar', { month: monthLabel })}</div>
+          <div className="text-[11px] text-content-muted uppercase tracking-widest">{tr('analytics.calendar', { month: monthLabel })}</div>
           <span className={`inline-flex px-2 py-0.5 rounded text-[10px] border ${
-            mtd >= 0 ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'
+            mtd >= 0 ? 'bg-pos/10 border-pos/20 text-pos' : 'bg-neg/10 border-neg/20 text-neg'
           }`}>
-            {fmtPnl(mtd)} MTD
+            <span className="font-mono">{fmtPnl(mtd)}</span>&nbsp;MTD
           </span>
         </div>
         {isLoading ? <Skeleton className="h-[200px] w-full" /> : <Calendar daily={data?.dailyPnL ?? []} refDate={refDate} />}

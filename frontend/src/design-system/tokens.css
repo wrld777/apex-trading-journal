@@ -1,0 +1,124 @@
+/**
+ * Token di design — unica fonte dei valori visivi.
+ *
+ * I colori sono TRIPLETTE RGB, non stringhe `#hex`, perché Tailwind possa
+ * comporli con l'opacità: `rgb(var(--c-surface) / <alpha-value>)` in
+ * `tailwind.config.js` fa funzionare `bg-surface/50` come su un colore nativo.
+ * Con un `#hex` in una variabile, i modificatori `/opacità` smettono di valere
+ * in silenzio — ed erano usati ovunque nel progetto.
+ *
+ * Regola: nessun `#hex` nei componenti. Se un valore serve e non è qui, si
+ * aggiunge qui.
+ *
+ * L'app è a tema scuro unico. I token stanno su `:root` senza media query:
+ * quando servirà un tema chiaro basterà ridefinire questo stesso elenco sotto
+ * `:root[data-theme="light"]`, senza toccare un solo componente.
+ */
+
+:root {
+  /* ── Superfici ─────────────────────────────────────────────────────────
+     Quattro livelli, dal fondo pagina al rilievo. `surface-2` è il fondo dei
+     campi, `surface-3` lo stato hover: erano #141416 e #1a1a1d sparsi a mano. */
+  --c-bg:              8 9 12;      /* #08090c — pagina e cornice (sidebar, topbar) */
+  --c-surface:        16 19 25;     /* #101319 — card e pannelli                    */
+  --c-surface-2:      23 27 35;     /* #171b23 — campi, input, celle                */
+  --c-surface-3:      31 36 46;     /* #1f242e — hover, stato attivo                */
+
+  /* ── Testo ─────────────────────────────────────────────────────────────
+     Rampa a cinque livelli. I rapporti sono misurati su `surface` (#101319);
+     su `bg` sono leggermente migliori. La soglia WCAG AA per il testo normale
+     è 4,5:1 — la vecchia rampa zinc-600/700 stava a 2,44:1 e 1,81:1, cioè
+     sotto della metà. Il livello `faint` sta sopra 3:1, quindi è ammesso solo
+     su testo grande o su elementi non testuali (assi, tacche). */
+  --c-text-strong:   228 232 240;   /* #e4e8f0 — 15,14:1 — valori in evidenza      */
+  --c-text:          195 201 214;   /* #c3c9d6 — 11,20:1 — testo corrente          */
+  --c-text-secondary:162 169 184;   /* #a2a9b8 —  7,88:1 — celle, date, secondario */
+  --c-text-muted:    136 144 161;   /* #8890a1 —  5,80:1 — etichette, aiuti        */
+  --c-text-faint:    106 114 134;   /* #6a7286 —  3,86:1 — assi, tacche, testo XL  */
+
+  /* ── Bordi ─────────────────────────────────────────────────────────────
+     `border` separa, `border-2` delimita, `control` è il bordo dei comandi:
+     3,01:1 sulla superficie, la soglia WCAG per gli elementi non testuali. */
+  --c-border:         35 40 51;     /* #232833 — filetti, separatori di riga */
+  --c-border-2:       59 67 83;     /* #3b4353 — contorno dei contenitori    */
+  --c-control:        87 98 116;    /* #576274 — contorno di input e comandi */
+
+  /* ── Marca ─────────────────────────────────────────────────────────────
+     Un colore solo, distinto da verde e rosso: quelli dicono il segno del
+     risultato e non possono fare anche da accento. 5,06:1, quindi si può
+     usare anche sul testo e non solo sulle superfici. */
+  --c-brand:          91 124 250;   /* #5b7cfa */
+  --c-brand-ink:       8 9 12;      /* testo sopra un pieno di marca */
+
+  /* ── Semantici ─────────────────────────────────────────────────────────
+     Valori invariati rispetto a oggi (#22c55e / #ef4444 / #f59e0b): passano
+     già AA su fondo scuro (8,28:1 e 5,01:1), quindi non c'è una ragione di
+     accessibilità per cambiarli adesso. Qui vengono solo centralizzati.
+     La distinzione fra tinta-per-testo e tinta-per-pieno — oggi il bottone
+     rosso ha testo bianco a 3,76:1, sotto soglia — si risolve insieme al
+     componente Button. */
+  --c-pos:            34 197 94;    /* #22c55e */
+  --c-neg:           239  68  68;   /* #ef4444 */
+  --c-warn:          245 158  11;   /* #f59e0b */
+  --c-neutral:       113 113 122;   /* #71717a — esito in pareggio */
+
+  /* ── Spaziatura ────────────────────────────────────────────────────────
+     Base 4. Sostituisce i valori arbitrari (p-[18px], mb-3.5, gap-2.5). */
+  --space-1:  0.25rem;   /*  4px */
+  --space-2:  0.5rem;    /*  8px */
+  --space-3:  0.75rem;   /* 12px */
+  --space-4:  1rem;      /* 16px */
+  --space-5:  1.25rem;   /* 20px */
+  --space-6:  1.5rem;    /* 24px */
+  --space-8:  2rem;      /* 32px */
+  --space-10: 2.5rem;    /* 40px */
+  --space-12: 3rem;      /* 48px */
+  --space-16: 4rem;      /* 64px */
+
+  /* ── Raggi ─────────────────────────────────────────────────────────────
+     Due soli valori: i comandi e i contenitori. Prima oscillavano fra 4, 6,
+     8, 10 e 12px senza criterio. */
+  --radius-sm:   4px;    /* badge, chip, tacche      */
+  --radius:      6px;    /* bottoni, input, select   */
+  --radius-lg:  10px;    /* card, pannelli, modali   */
+  --radius-full: 999px;
+
+  /* ── Tipografia ────────────────────────────────────────────────────────
+     Sans per l'interfaccia, monospaziato per i numeri: le cifre si
+     incolonnano e i valori si confrontano a colpo d'occhio. `brand` resta
+     Syne finché non si rifà il marchio: è usato solo per la scritta "Rubric"
+     nella sidebar. */
+  --font-sans:  'DM Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:  'DM Mono', ui-monospace, 'SFMono-Regular', 'Cascadia Mono', monospace;
+  --font-brand: 'Syne', var(--font-sans);
+
+  /* Scala a sette gradini: prima erano 9, 10, 11, 12, 13, 15, 18, 22, 26px
+     scelti caso per caso. */
+  --text-2xs: 0.6875rem;  /* 11px — micro-etichette, tacche  */
+  --text-xs:  0.75rem;    /* 12px — didascalie, celle dense  */
+  --text-sm:  0.8125rem;  /* 13px — testo corrente dei form  */
+  --text-md:  0.9375rem;  /* 15px — testo corrente           */
+  --text-lg:  1.125rem;   /* 18px — intestazioni di sezione  */
+  --text-xl:  1.5rem;     /* 24px — titoli di pagina         */
+  --text-2xl: 2rem;       /* 32px — numero in evidenza       */
+
+  /* ── Piani ─────────────────────────────────────────────────────────────
+     Erano z-50, z-[99] e z-[100] scritti a mano: la sidebar mobile finiva
+     sopra i modali. */
+  --z-base:     0;
+  --z-sticky:  10;   /* topbar                     */
+  --z-drawer:  20;   /* sidebar mobile e overlay   */
+  --z-modal:   30;   /* dialoghi                   */
+  --z-toast:   40;   /* notifiche, sempre in cima  */
+
+  /* ── Movimento ─────────────────────────────────────────────────────────
+     Una durata sola. Le transizioni servono a spiegare un cambiamento di
+     stato, non a fare spettacolo. */
+  --ease:     cubic-bezier(0.4, 0, 0.2, 1);
+  --duration: 150ms;
+}
+
+/* Chi ha chiesto meno animazioni al sistema operativo le riceve. */
+@media (prefers-reduced-motion: reduce) {
+  :root { --duration: 0ms; }
+}

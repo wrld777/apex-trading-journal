@@ -7,7 +7,7 @@ export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex min-h-screen bg-[#030304] overflow-x-hidden">
+    <div className="flex min-h-screen bg-bg overflow-x-hidden">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex flex-col flex-1 lg:ml-[220px] min-w-0">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />

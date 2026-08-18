@@ -26,7 +26,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#030304] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-bg flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
 
         <div className="flex items-center gap-3 mb-8">
@@ -37,51 +37,51 @@ export default function RegisterPage() {
               <rect x="9" y="1" width="4" height="12" rx="1" fill="black" opacity=".4"/>
             </svg>
           </div>
-          <span className="font-display font-bold text-white tracking-widest text-sm">{t('brand.name')}</span>
+          <span className="font-brand font-bold text-content-strong tracking-widest text-sm">{t('brand.name')}</span>
         </div>
 
-        <h1 className="text-xl font-bold text-white mb-1">{t('auth.createAccount')}</h1>
-        <p className="text-sm text-zinc-500 mb-8">{t('auth.createAccountSubtitle')}</p>
+        <h1 className="text-xl font-bold text-content-strong mb-1">{t('auth.createAccount')}</h1>
+        <p className="text-sm text-content-secondary mb-8">{t('auth.createAccountSubtitle')}</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-zinc-500 tracking-wide">{t('auth.firstName')}</label>
+              <label className="text-xs text-content-secondary tracking-wide">{t('auth.firstName')}</label>
               <input
                 type="text"
                 required
                 value={form.firstName}
                 onChange={(e) => setForm({ ...form, firstName: e.target.value })}
                 placeholder={t('auth.firstNamePlaceholder')}
-                className="bg-[#141416] border border-white/10 rounded-md px-3 py-2.5 text-sm text-white outline-none focus:border-white/25 placeholder:text-zinc-600 transition-colors"
+                className="bg-surface-2 border border-white/10 rounded-md px-3 py-2.5 text-sm text-content-strong outline-none focus:border-white/25 placeholder:text-content-muted transition-colors"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-zinc-500 tracking-wide">{t('auth.lastName')}</label>
+              <label className="text-xs text-content-secondary tracking-wide">{t('auth.lastName')}</label>
               <input
                 type="text"
                 value={form.lastName}
                 onChange={(e) => setForm({ ...form, lastName: e.target.value })}
                 placeholder={t('auth.lastNamePlaceholder')}
-                className="bg-[#141416] border border-white/10 rounded-md px-3 py-2.5 text-sm text-white outline-none focus:border-white/25 placeholder:text-zinc-600 transition-colors"
+                className="bg-surface-2 border border-white/10 rounded-md px-3 py-2.5 text-sm text-content-strong outline-none focus:border-white/25 placeholder:text-content-muted transition-colors"
               />
             </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-zinc-500 tracking-wide">{t('auth.email')}</label>
+            <label className="text-xs text-content-secondary tracking-wide">{t('auth.email')}</label>
             <input
               type="email"
               required
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               placeholder={t('auth.emailPlaceholder')}
-              className="bg-[#141416] border border-white/10 rounded-md px-3 py-2.5 text-sm text-white outline-none focus:border-white/25 placeholder:text-zinc-600 transition-colors"
+              className="bg-surface-2 border border-white/10 rounded-md px-3 py-2.5 text-sm text-content-strong outline-none focus:border-white/25 placeholder:text-content-muted transition-colors"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-zinc-500 tracking-wide">{t('auth.password')}</label>
+            <label className="text-xs text-content-secondary tracking-wide">{t('auth.password')}</label>
             <input
               type="password"
               required
@@ -89,12 +89,12 @@ export default function RegisterPage() {
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               placeholder="••••••••"
-              className="bg-[#141416] border border-white/10 rounded-md px-3 py-2.5 text-sm text-white outline-none focus:border-white/25 placeholder:text-zinc-600 transition-colors"
+              className="bg-surface-2 border border-white/10 rounded-md px-3 py-2.5 text-sm text-content-strong outline-none focus:border-white/25 placeholder:text-content-muted transition-colors"
             />
           </div>
 
           {error && (
-            <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-md px-3 py-2">
+            <p className="text-xs text-neg bg-neg/10 border border-neg/20 rounded-md px-3 py-2">
               {error}
             </p>
           )}
@@ -108,9 +108,9 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <p className="text-xs text-zinc-600 text-center mt-6">
+        <p className="text-xs text-content-muted text-center mt-6">
           {t('auth.haveAccount')}{' '}
-          <Link to="/login" className="text-zinc-400 hover:text-white transition-colors">
+          <Link to="/login" className="text-content-secondary hover:text-content-strong transition-colors">
             {t('auth.signIn')}
           </Link>
         </p>

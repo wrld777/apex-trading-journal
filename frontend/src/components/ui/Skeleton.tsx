@@ -6,7 +6,7 @@ export function Skeleton({ className = '' }: { className?: string }) {
 /** Skeleton matching a KPI card's footprint. */
 export function KpiCardSkeleton() {
   return (
-    <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-[18px]">
+    <div className="bg-surface border border-line rounded-[10px] p-[18px]">
       <Skeleton className="h-3 w-16 mb-4" />
       <Skeleton className="h-7 w-24 mb-2" />
       <Skeleton className="h-3 w-20" />

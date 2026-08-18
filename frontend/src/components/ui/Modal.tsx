@@ -30,23 +30,23 @@ export default function Modal({ open, onClose, title, children, footer, maxWidth
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={title}
     >
       <div
-        className={`w-full ${maxWidth} bg-[#111113] border border-white/[0.07] rounded-[12px] shadow-2xl max-h-[90vh] flex flex-col`}
+        className={`w-full ${maxWidth} bg-surface border border-line-2 rounded-[12px] shadow-2xl max-h-[90vh] flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.04]">
-          <h2 className="font-display font-semibold text-[15px] tracking-tight text-white">{title}</h2>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-line">
+          <h2 className="font-sans font-semibold text-[15px] tracking-tight text-content-strong">{title}</h2>
           <button
             onClick={onClose}
             aria-label={t('common.close')}
-            className="text-zinc-600 hover:text-zinc-300 transition-colors"
+            className="text-content-muted hover:text-content transition-colors"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <line x1="4" y1="4" x2="12" y2="12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -60,7 +60,7 @@ export default function Modal({ open, onClose, title, children, footer, maxWidth
 
         {/* Footer */}
         {footer && (
-          <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-white/[0.04]">
+          <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-line">
             {footer}
           </div>
         )}

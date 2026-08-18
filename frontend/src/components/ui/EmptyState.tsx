@@ -26,9 +26,9 @@ export default function EmptyState({
 }: EmptyStateProps) {
   return (
     <div className={`flex flex-col items-center justify-center text-center py-12 px-4 ${className}`}>
-      <div className="text-zinc-700 mb-3">{icon ?? <DefaultIcon />}</div>
-      <div className="text-sm font-medium text-zinc-300 mb-1">{title}</div>
-      {description && <div className="text-xs text-zinc-600 max-w-xs mb-4">{description}</div>}
+      <div className="text-content-faint mb-3">{icon ?? <DefaultIcon />}</div>
+      <div className="text-sm font-medium text-content mb-1">{title}</div>
+      {description && <div className="text-xs text-content-muted max-w-xs mb-4">{description}</div>}
       {actionLabel && actionTo && (
         <Link
           to={actionTo}

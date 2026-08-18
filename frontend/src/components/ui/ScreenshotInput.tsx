@@ -29,7 +29,7 @@ function isLoadableImage(url: string): Promise<boolean> {
 }
 
 const FIELD =
-  'bg-[#141416] border border-white/[0.07] rounded-md px-3 py-2 text-[13px] text-white outline-none w-full transition-all focus:border-white/[0.18] focus:bg-[#1a1a1d] placeholder:text-zinc-700'
+  'bg-surface-2 border border-line-2 rounded-md px-3 py-2 text-[13px] text-content-strong outline-none w-full transition-all focus:border-line-control focus:bg-surface-3 placeholder:text-content-faint'
 
 // ── Componente ────────────────────────────────────────────────────────────────
 
@@ -99,7 +99,7 @@ export default function ScreenshotInput({ value, onChange }: {
         </button>
       </div>
 
-      <p className="text-[11px] text-zinc-700">
+      <p className="text-[11px] text-content-faint">
         {t('screenshot.hint')}
       </p>
 
@@ -111,14 +111,14 @@ export default function ScreenshotInput({ value, onChange }: {
                 <img
                   src={src}
                   alt={t('screenshot.alt')}
-                  className="w-full h-full object-cover rounded-md border border-white/[0.07]"
+                  className="w-full h-full object-cover rounded-md border border-line-2"
                 />
               </a>
               <button
                 type="button"
                 onClick={() => remove(src)}
                 aria-label={t('screenshot.removeAria')}
-                className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500"
+                className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-content-strong flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-neg"
               >
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                   <line x1="2.5" y1="2.5" x2="7.5" y2="7.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />

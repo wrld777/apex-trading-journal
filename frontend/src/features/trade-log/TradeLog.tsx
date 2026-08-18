@@ -28,7 +28,7 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { year: '2-digit', month: 'short', day: 'numeric' })
 }
 
-const INPUT = 'bg-[#141416] border border-white/[0.07] rounded-md px-2.5 py-1.5 text-[12px] text-zinc-300 outline-none focus:border-white/[0.18] [color-scheme:dark]'
+const INPUT = 'bg-surface-2 border border-line-2 rounded-md px-2.5 py-1.5 text-[12px] text-content outline-none focus:border-line-control [color-scheme:dark]'
 
 type SortKey = 'date' | 'pnl' | 'rr'
 type SortDir = 'asc' | 'desc'
@@ -36,9 +36,9 @@ const PAGE_SIZE = 15
 
 function StatusBadge({ status }: { status: TradeDto['status'] }) {
   const map: Record<TradeDto['status'], string> = {
-    Win:       'bg-green-500/10 border-green-500/20 text-green-500',
-    Loss:      'bg-red-500/10 border-red-500/20 text-red-500',
-    BreakEven: 'bg-zinc-500/10 border-zinc-500/20 text-zinc-400',
+    Win:       'bg-pos/10 border-pos/20 text-pos',
+    Loss:      'bg-neg/10 border-neg/20 text-neg',
+    BreakEven: 'bg-neutral2/10 border-neutral2/20 text-content-secondary',
   }
   return <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] border ${map[status]}`}>{status}</span>
 }
@@ -60,7 +60,7 @@ function ExitOutcomeTag({ exits }: { exits: TradeDto['exits'] }) {
     : labels[exits[0].outcome]
   if (!text) return null
 
-  return <span className="ml-1.5 text-[9px] text-zinc-600 uppercase tracking-wide">{text}</span>
+  return <span className="ml-1.5 text-[9px] text-content-muted uppercase tracking-wide">{text}</span>
 }
 
 function SortHeader({ label, col, sort, onSort, align = 'left' }: {
@@ -70,11 +70,11 @@ function SortHeader({ label, col, sort, onSort, align = 'left' }: {
   return (
     <th
       onClick={() => onSort(col)}
-      className={`font-medium pb-2 px-3 cursor-pointer select-none hover:text-zinc-400 transition-colors ${align === 'right' ? 'text-right' : 'text-left'}`}
+      className={`font-medium pb-2 px-3 cursor-pointer select-none hover:text-content-secondary transition-colors ${align === 'right' ? 'text-right' : 'text-left'}`}
     >
       <span className="inline-flex items-center gap-1">
         {label}
-        <span className={active ? 'text-zinc-400' : 'text-zinc-700'}>{active ? (sort.dir === 'asc' ? '▲' : '▼') : '↕'}</span>
+        <span className={active ? 'text-content-secondary' : 'text-content-faint'}>{active ? (sort.dir === 'asc' ? '▲' : '▼') : '↕'}</span>
       </span>
     </th>
   )
@@ -181,15 +181,15 @@ export default function TradeLog() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
-          <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">{tr('tradeLog.title')}</h1>
-          <p className="text-xs text-zinc-600">
+          <h1 className="font-sans font-bold text-xl tracking-tight text-content-strong leading-none mb-1">{tr('tradeLog.title')}</h1>
+          <p className="text-xs text-content-muted">
             {isLoading ? tr('common.loading') : tr(hasFilters ? 'tradeLog.countFiltered' : 'tradeLog.count', { count: total })}
           </p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-3 mb-3.5 flex flex-wrap items-center gap-2">
+      <div className="bg-surface border border-line rounded-[10px] p-3 mb-3.5 flex flex-wrap items-center gap-2">
         <select value={symbol} onChange={e => setSymbol(e.target.value)} className={INPUT}>
           <option value="">{tr('tradeLog.filterSymbol')}</option>
           {symbols.map(s => <option key={s} value={s}>{s}</option>)}
@@ -214,21 +214,21 @@ export default function TradeLog() {
           <option value="BreakEven">{tr('tradeLog.statusBreakEven')}</option>
         </select>
         <input type="date" value={from} max={to || undefined} onChange={e => setFrom(e.target.value)} className={INPUT} aria-label={tr('tradeLog.fromDate')} />
-        <span className="text-zinc-700 text-xs">→</span>
+        <span className="text-content-faint text-xs">→</span>
         <input type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} className={INPUT} aria-label={tr('tradeLog.toDate')} />
         {hasFilters && (
-          <button onClick={clearFilters} className="px-2.5 py-1.5 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all">
+          <button onClick={clearFilters} className="px-2.5 py-1.5 rounded-md text-[11px] text-content-secondary border border-line-2 hover:bg-surface-3 transition-all">
             {tr('common.clear')}
           </button>
         )}
       </div>
 
       {/* Table */}
-      <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px]">
+      <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px]">
         {isLoading ? (
           <TableSkeleton rows={10} />
         ) : isError ? (
-          <div className="text-xs text-red-400 py-6 text-center">{tr('tradeLog.loadFailed')}</div>
+          <div className="text-xs text-neg py-6 text-center">{tr('tradeLog.loadFailed')}</div>
         ) : total === 0 && !hasFilters ? (
           <EmptyState
             title={tr('tradeLog.emptyTitle')}
@@ -237,13 +237,13 @@ export default function TradeLog() {
             actionTo="/log-trade"
           />
         ) : total === 0 ? (
-          <div className="text-xs text-zinc-600 py-8 text-center">{tr('tradeLog.noMatch')}</div>
+          <div className="text-xs text-content-muted py-8 text-center">{tr('tradeLog.noMatch')}</div>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[940px] text-left">
                 <thead>
-                  <tr className="text-[10px] text-zinc-700 uppercase tracking-[0.06em] border-b border-white/[0.04]">
+                  <tr className="text-[10px] text-content-faint uppercase tracking-[0.06em] border-b border-line">
                     <SortHeader label={tr('tradeLog.colDate')} col="date" sort={sort} onSort={onSort} />
                     <th className="font-medium pb-2 px-3">{tr('tradeLog.colSymbol')}</th>
                     <th className="font-medium pb-2 px-3">{tr('tradeLog.colSide')}</th>
@@ -261,29 +261,29 @@ export default function TradeLog() {
                 </thead>
                 <tbody>
                   {rows.map(t => (
-                    <tr key={t.id} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02] transition-colors">
-                      <td className="py-2.5 px-3 text-[11px] text-zinc-500 whitespace-nowrap">{fmtDate(t.entryTime)}</td>
-                      <td className="py-2.5 px-3 text-xs font-medium text-white">{t.symbol}</td>
+                    <tr key={t.id} className="border-b border-line last:border-0 hover:bg-white/[0.02] transition-colors">
+                      <td className="py-2.5 px-3 text-[11px] text-content-secondary whitespace-nowrap">{fmtDate(t.entryTime)}</td>
+                      <td className="py-2.5 px-3 text-xs font-medium text-content-strong">{t.symbol}</td>
                       <td className="py-2.5 px-3">
-                        <span className={`text-[11px] font-medium ${t.direction === 'Long' ? 'text-green-500' : 'text-red-500'}`}>
+                        <span className={`text-[11px] font-medium ${t.direction === 'Long' ? 'text-pos' : 'text-neg'}`}>
                           {t.direction === 'Long' ? 'LONG' : 'SHORT'}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3 text-[11px] text-zinc-400">{t.setup}</td>
-                      <td className="py-2.5 px-3 text-[11px] text-zinc-500">{t.session}</td>
-                      <td className="py-2.5 px-3 text-[11px] text-zinc-500 text-right font-mono">{t.quantity}</td>
-                      <td className="py-2.5 px-3 text-[11px] text-zinc-500 text-right font-mono">{fmtNum(t.entryPrice, 2)}</td>
-                      <td className="py-2.5 px-3 text-[11px] text-zinc-500 text-right font-mono">
+                      <td className="py-2.5 px-3 text-[11px] text-content-secondary">{t.setup}</td>
+                      <td className="py-2.5 px-3 text-[11px] text-content-secondary">{t.session}</td>
+                      <td className="py-2.5 px-3 text-[11px] text-content-secondary text-right font-mono">{t.quantity}</td>
+                      <td className="py-2.5 px-3 text-[11px] text-content-secondary text-right font-mono">{fmtNum(t.entryPrice, 2)}</td>
+                      <td className="py-2.5 px-3 text-[11px] text-content-secondary text-right font-mono">
                         {fmtNum(t.exitPrice, 2)}
                         {/* Come si è chiuso (#96): sui parziali il prezzo è una media,
                             quindi da solo direbbe poco. */}
                         <ExitOutcomeTag exits={t.exits} />
                       </td>
-                      <td className={`py-2.5 px-3 text-[11px] text-right font-mono ${t.pnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>{fmtPnl(t.pnL)}</td>
+                      <td className={`py-2.5 px-3 text-[11px] text-right font-mono ${t.pnL >= 0 ? 'text-pos' : 'text-neg'}`}>{fmtPnl(t.pnL)}</td>
                       <td className={`py-2.5 px-3 text-[11px] text-right font-mono ${
-                        t.rMultiple === null ? 'text-zinc-700' : t.rMultiple >= 0 ? 'text-green-500' : 'text-red-500'
+                        t.rMultiple === null ? 'text-content-faint' : t.rMultiple >= 0 ? 'text-pos' : 'text-neg'
                       }`}>{fmtR(t.rMultiple)}</td>
-                      <td className="py-2.5 px-3 text-[11px] text-zinc-400 text-right font-mono">{fmtNum(t.riskReward, 2)}</td>
+                      <td className="py-2.5 px-3 text-[11px] text-content-secondary text-right font-mono">{fmtNum(t.riskReward, 2)}</td>
                       <td className="py-2.5 px-3 text-right"><StatusBadge status={t.status} /></td>
                       <td className="py-2.5 px-3">
                         <div className="flex items-center justify-end gap-1">
@@ -291,7 +291,7 @@ export default function TradeLog() {
                             onClick={() => setEditTrade(t)}
                             aria-label={tr('tradeLog.editAria')}
                             title={tr('common.edit')}
-                            className="p-1.5 rounded-md text-zinc-500 hover:text-white hover:bg-white/[0.06] transition-all"
+                            className="p-1.5 rounded-md text-content-secondary hover:text-content-strong hover:bg-white/[0.06] transition-all"
                           >
                             <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
                               <path d="M9.5 2.5l2 2L5 11l-2.5.5L3 9l6.5-6.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
@@ -301,7 +301,7 @@ export default function TradeLog() {
                             onClick={() => setPendingDelete(t)}
                             aria-label={tr('tradeLog.deleteAria')}
                             title={tr('common.delete')}
-                            className="p-1.5 rounded-md text-zinc-500 hover:text-red-400 hover:bg-red-500/[0.08] transition-all"
+                            className="p-1.5 rounded-md text-content-secondary hover:text-neg hover:bg-neg/[0.08] transition-all"
                           >
                             <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
                               <path d="M2.5 3.5h9M5.5 3.5V2.3h3v1.2M3.5 3.5l.5 8h6l.5-8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -316,22 +316,22 @@ export default function TradeLog() {
             </div>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/[0.04]">
-              <span className="text-[11px] text-zinc-600">
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-line">
+              <span className="text-[11px] text-content-muted">
                 {tr('tradeLog.page', { page, total: totalPages })}
               </span>
               <div className="flex gap-1.5">
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page <= 1}
-                  className="px-2.5 py-1 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-2.5 py-1 rounded-md text-[11px] text-content-secondary border border-line-2 hover:bg-surface-3 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {tr('tradeLog.prev')}
                 </button>
                 <button
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  className="px-2.5 py-1 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-2.5 py-1 rounded-md text-[11px] text-content-secondary border border-line-2 hover:bg-surface-3 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {tr('tradeLog.next')}
                 </button>
@@ -359,14 +359,14 @@ export default function TradeLog() {
             <button
               onClick={() => setPendingDelete(null)}
               disabled={isDeleting}
-              className="px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-50"
+              className="px-3 py-1.5 rounded-md text-xs text-content-secondary border border-line-2 hover:bg-surface-3 transition-all disabled:opacity-50"
             >
               {tr('common.cancel')}
             </button>
             <button
               onClick={confirmDelete}
               disabled={isDeleting}
-              className="px-3 py-1.5 rounded-md text-xs font-medium bg-red-500 text-white hover:bg-red-500/90 transition-all disabled:opacity-60 flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-md text-xs font-medium bg-neg text-content-strong hover:bg-neg/90 transition-all disabled:opacity-60 flex items-center gap-1.5"
             >
               {isDeleting && (
                 <svg className="animate-spin" width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -378,7 +378,7 @@ export default function TradeLog() {
           </>
         }
       >
-        <p className="text-[13px] text-zinc-400 leading-relaxed">
+        <p className="text-[13px] text-content-secondary leading-relaxed">
           {pendingDelete && (
             tr('tradeLog.deleteBody', {
               symbol: pendingDelete.symbol,

@@ -1,14 +1,34 @@
+@import './design-system/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: 'DM Mono', monospace;
-  background-color: #030304;
-  color: #f4f4f5;
-  -webkit-font-smoothing: antialiased;
-}
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    background-color: rgb(var(--c-bg));
+    color: rgb(var(--c-text));
+    -webkit-font-smoothing: antialiased;
+  }
 
-html, body {
-  overflow-x: hidden;
+  html, body {
+    overflow-x: hidden;
+  }
+
+  /* Il monospaziato serve a incolonnare le cifre: senza `tabular-nums` le
+     larghezze restano proporzionali e le colonne di numeri ballano comunque.
+     Legandolo alla classe si ottiene ovunque, senza ripeterlo su ogni cella. */
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Prima c'era un solo `focus-visible` in tutto il progetto, su 49 bottoni:
+     chi naviga da tastiera non vedeva dove si trovava. Questa è la rete di
+     sicurezza; i componenti possono raffinarla, non serve che la ripetano. */
+  :focus-visible {
+    outline: 2px solid rgb(var(--c-brand));
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
 }

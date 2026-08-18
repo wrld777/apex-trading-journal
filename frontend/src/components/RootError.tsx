@@ -5,13 +5,13 @@ export default function RootError() {
   const error = useRouteError()
   if (isRouteErrorResponse(error) && error.status === 404) {
     return (
-      <div className="min-h-screen bg-[#030304] flex items-center justify-center text-zinc-500 text-sm">
+      <div className="min-h-screen bg-bg flex items-center justify-center text-content-secondary text-sm">
         {t('error.notFound')}
       </div>
     )
   }
   return (
-    <div className="min-h-screen bg-[#030304] flex items-center justify-center text-red-400 text-sm">
+    <div className="min-h-screen bg-bg flex items-center justify-center text-neg text-sm">
       {t('error.unexpected')}
     </div>
   )
