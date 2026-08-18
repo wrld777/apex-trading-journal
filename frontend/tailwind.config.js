@@ -42,7 +42,11 @@ export default {
           ink:       withAlpha('--c-brand-ink'),
         },
         pos:         withAlpha('--c-pos'),
-        neg:         withAlpha('--c-neg'),
+        neg: {
+          DEFAULT:   withAlpha('--c-neg'),
+          solid:     withAlpha('--c-neg-solid'),
+          ink:       withAlpha('--c-on-neg'),
+        },
         warn:        withAlpha('--c-warn'),
         neutral2:    withAlpha('--c-neutral'),
       },

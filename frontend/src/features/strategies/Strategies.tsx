@@ -1,15 +1,14 @@
 import { useState } from 'react'
 import { useStrategies, useDeleteStrategy } from '../../hooks/useStrategies'
 import { useInstruments } from '../../hooks/useInstruments'
-import { Skeleton } from '../../components/ui/Skeleton'
-import EmptyState from '../../components/ui/EmptyState'
-import Modal from '../../components/ui/Modal'
+
 import StrategyModal from './StrategyModal'
 import { useStrategyStats } from '../../hooks/useAnalytics'
 import { useToastStore } from '../../store/toastStore'
 import type { StrategyDto } from '../../types/strategy'
 import type { MetricsBlockDto } from '../../types/analytics'
 import { t, tPlural } from '../../i18n'
+import { Button, Card, EmptyState, Modal, Skeleton } from '../../design-system'
 
 function fmtR(n: number) {
   return `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(2)}R`
@@ -54,7 +53,7 @@ function StrategyCard({
     .filter((s): s is string => s !== undefined)
     .sort()
   return (
-    <div className="bg-surface border border-line rounded-[10px] p-4 flex flex-col gap-3 hover:border-line-2 transition-colors">
+    <Card interactive className="flex flex-col gap-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="text-sm font-medium text-content-strong truncate">{strategy.name}</h3>
@@ -119,13 +118,13 @@ function StrategyCard({
           ))}
         </ul>
       </div>
-    </div>
+    </Card>
   )
 }
 
 function SkeletonCard() {
   return (
-    <div className="bg-surface border border-line rounded-[10px] p-4 flex flex-col gap-3">
+    <Card className="flex flex-col gap-3">
       <Skeleton className="h-4 w-32" />
       <Skeleton className="h-3 w-48" />
       <div className="pt-2 border-t border-line flex flex-col gap-2">
@@ -133,7 +132,7 @@ function SkeletonCard() {
         <Skeleton className="h-3 w-5/6" />
         <Skeleton className="h-3 w-3/4" />
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -189,12 +188,12 @@ export default function Strategies() {
             {isLoading ? t('common.loading') : tPlural(list.length, 'strategies.countOne', 'strategies.count')}
           </p>
         </div>
-        <button
+        <Button variant="primary" className="self-start sm:self-auto"
           onClick={openCreate}
-          className="px-3 py-1.5 rounded-md text-xs font-medium bg-white text-black hover:bg-white/90 transition-all self-start sm:self-auto"
+          
         >
           {t('strategies.new')}
-        </button>
+        </Button>
       </div>
 
       {/* Content */}
@@ -205,24 +204,24 @@ export default function Strategies() {
           <SkeletonCard />
         </div>
       ) : isError ? (
-        <div className="bg-surface border border-line rounded-[10px] p-4">
+        <Card>
           <div className="text-xs text-neg py-6 text-center">{t('strategies.loadFailed')}</div>
-        </div>
+        </Card>
       ) : list.length === 0 ? (
-        <div className="bg-surface border border-line rounded-[10px] p-4">
+        <Card>
           <EmptyState
             title={t('strategies.emptyTitle')}
             description={t('strategies.emptyBody')}
           />
           <div className="flex justify-center -mt-4 pb-2">
-            <button
+            <Button variant="primary"
               onClick={openCreate}
-              className="px-3 py-1.5 rounded-md text-xs font-medium bg-white text-black hover:bg-white/90 transition-all"
+              
             >
               {t('strategies.new')}
-            </button>
+            </Button>
           </div>
-        </div>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
           {list.map((s) => (
@@ -253,25 +252,12 @@ export default function Strategies() {
         maxWidth="max-w-sm"
         footer={
           <>
-            <button
-              onClick={() => setPendingDelete(null)}
-              disabled={isDeleting}
-              className="px-3 py-1.5 rounded-md text-xs text-content-secondary border border-line-2 hover:bg-surface-3 transition-all disabled:opacity-50"
-            >
+            <Button onClick={() => setPendingDelete(null)} disabled={isDeleting}>
               {t('common.cancel')}
-            </button>
-            <button
-              onClick={confirmDelete}
-              disabled={isDeleting}
-              className="px-3 py-1.5 rounded-md text-xs font-medium bg-neg text-content-strong hover:bg-neg/90 transition-all disabled:opacity-60 flex items-center gap-1.5"
-            >
-              {isDeleting && (
-                <svg className="animate-spin" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="10" />
-                </svg>
-              )}
-              {isDeleting ? t('common.saving') : t('common.delete')}
-            </button>
+            </Button>
+            <Button variant="danger" onClick={confirmDelete} loading={isDeleting}>
+              {isDeleting ? t('common.deleting') : t('common.delete')}
+            </Button>
           </>
         }
       >

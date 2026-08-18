@@ -62,6 +62,14 @@
   --c-warn:          245 158  11;   /* #f59e0b */
   --c-neutral:       113 113 122;   /* #71717a — esito in pareggio */
 
+  /* Tinta-per-pieno e inchiostro sopra. Il rosso chiaro va bene sul testo
+     ma come fondo di un bottone regge solo 3,76:1 col bianco, sotto soglia:
+     il pieno usa una tinta piu scura (4,83:1). Sul blu di marca e sul verde
+     vale il contrario, e l'inchiostro scuro a passare. */
+  --c-neg-solid:     220  38  38;   /* #dc2626 — fondo distruttivo, testo bianco 4,83:1 */
+  --c-on-neg:        255 255 255;
+
+
   /* ── Spaziatura ────────────────────────────────────────────────────────
      Base 4. Sostituisce i valori arbitrari (p-[18px], mb-3.5, gap-2.5). */
   --space-1:  0.25rem;   /*  4px */

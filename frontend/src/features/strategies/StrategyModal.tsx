@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import Modal from '../../components/ui/Modal'
+
 import { useCreateStrategy, useUpdateStrategy } from '../../hooks/useStrategies'
 import { useInstruments } from '../../hooks/useInstruments'
 import { useToastStore } from '../../store/toastStore'
 import type { StrategyDto } from '../../types/strategy'
 import { t } from '../../i18n'
+import { Button, Input, Modal, Textarea } from '../../design-system'
 
 interface StrategyModalProps {
   open: boolean
@@ -23,7 +24,6 @@ interface RuleDraft {
   required: boolean
 }
 
-const INPUT =
   'bg-surface-2 border border-line-2 rounded-md px-2.5 py-1.5 text-[13px] text-content outline-none focus:border-line-control placeholder:text-content-faint w-full'
 
 let ruleKeySeq = 1
@@ -133,25 +133,12 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
       maxWidth="max-w-xl"
       footer={
         <>
-          <button
-            onClick={onClose}
-            disabled={isPending}
-            className="px-3 py-1.5 rounded-md text-xs text-content-secondary border border-line-2 hover:bg-surface-3 transition-all disabled:opacity-50"
-          >
+          <Button onClick={onClose} disabled={isPending}>
             {t('common.cancel')}
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={isPending}
-            className="px-3 py-1.5 rounded-md text-xs font-medium bg-white text-black hover:bg-white/90 transition-all disabled:opacity-60 flex items-center gap-1.5"
-          >
-            {isPending && (
-              <svg className="animate-spin" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="10" />
-              </svg>
-            )}
+          </Button>
+          <Button variant="primary" onClick={handleSubmit} loading={isPending}>
             {isEdit ? t('common.save') : t('common.create')}
-          </button>
+          </Button>
         </>
       }
     >
@@ -159,11 +146,10 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
         {/* Name */}
         <div className="flex flex-col gap-1.5">
           <label className="text-[11px] text-content-secondary uppercase tracking-wide">{t('strategyModal.name')}</label>
-          <input
+          <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t('strategyModal.namePlaceholder')}
-            className={INPUT}
             autoFocus
           />
         </div>
@@ -171,12 +157,11 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
         {/* Description */}
         <div className="flex flex-col gap-1.5">
           <label className="text-[11px] text-content-secondary uppercase tracking-wide">{t('strategyModal.description')}</label>
-          <textarea
+          <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder={t('strategyModal.descriptionPlaceholder')}
-            rows={2}
-            className={`${INPUT} resize-none`}
+            rows={2} className="resize-none"
           />
         </div>
 
@@ -210,7 +195,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
                       title={t('strategyModal.instrumentTitle', { name: ins.instrumentName, currency: ins.currency, pointValue: ins.pointValue })}
                       className={`px-2 py-1 rounded-md text-[11px] font-medium border transition-all ${
                         active
-                          ? 'bg-white text-black border-white'
+                          ? 'bg-brand text-brand-ink border-brand'
                           : 'text-content-secondary border-line-2 hover:border-line-control hover:text-content'
                       }`}
                     >
@@ -254,11 +239,10 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
                   >▼</button>
                 </div>
 
-                <input
+                <Input
                   value={rule.label}
                   onChange={(e) => updateRule(rule.key, { label: e.target.value })}
-                  placeholder={t('strategyModal.rulePlaceholder', { n: i + 1 })}
-                  className={`${INPUT} flex-1`}
+                  placeholder={t('strategyModal.rulePlaceholder', { n: i + 1 })} className="flex-1"
                 />
 
                 <label
@@ -289,12 +273,12 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
             ))}
           </div>
 
-          <button
+          <Button size="sm" className="self-start mt-1 border-dashed"
             onClick={() => setRules((rs) => [...rs, newRule()])}
-            className="self-start mt-1 px-2.5 py-1 rounded-md text-[11px] text-content-secondary border border-dashed border-line-control hover:bg-surface-3 hover:text-content transition-all"
+            
           >
             {t('strategyModal.addRule')}
-          </button>
+          </Button>
         </div>
 
         {error && <p className="text-[12px] text-neg">{error}</p>}

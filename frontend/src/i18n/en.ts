@@ -29,6 +29,8 @@ export const en = {
   'common.close': 'Close',
   'common.clear': 'Clear',
   'common.deleting': 'Deleting…',
+  'toast.region': 'Notifications',
+  'toast.dismiss': 'Dismiss notification',
   'common.viewAll': 'View All',
   'common.optional': 'Optional.',
   'common.trade': 'trade',

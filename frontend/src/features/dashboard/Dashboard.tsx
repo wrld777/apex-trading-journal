@@ -1,8 +1,7 @@
 import { Fragment, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import KpiCard from '../../components/ui/KpiCard'
-import { Skeleton, KpiCardSkeleton, TableSkeleton } from '../../components/ui/Skeleton'
-import EmptyState from '../../components/ui/EmptyState'
+
 import { useStats } from '../../hooks/useStats'
 import { useTrades } from '../../hooks/useTrades'
 import { useProfile } from '../../hooks/useProfile'
@@ -10,6 +9,9 @@ import { useAuthStore } from '../../store/authStore'
 import type { TradeDto } from '../../types/trade'
 import type { DailyPnLDto } from '../../types/stats'
 import { t, tPlural, type TranslationKey } from '../../i18n'
+
+import TradeStatusBadge from '../../components/TradeStatusBadge'
+import { Button, Card, EmptyState, KpiCardSkeleton, Skeleton, TBody, TH, THead, TR, Table, TableSkeleton, TableWrap } from '../../design-system'
 
 const HM_COLOR: Record<string, string> = {
   'hm-0':  'bg-surface-2',
@@ -147,14 +149,6 @@ function EquityCurve({ daily }: { daily: DailyPnLDto[] }) {
 }
 
 /* ── RECENT TRADES TABLE ── */
-function StatusBadge({ status }: { status: TradeDto['status'] }) {
-  const map: Record<TradeDto['status'], string> = {
-    Win:       'bg-pos/10 border-pos/20 text-pos',
-    Loss:      'bg-neg/10 border-neg/20 text-neg',
-    BreakEven: 'bg-neutral2/10 border-neutral2/20 text-content-secondary',
-  }
-  return <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] border ${map[status]}`}>{status}</span>
-}
 
 function RecentTrades({ trades }: { trades: TradeDto[] }) {
   if (trades.length === 0) {
@@ -173,23 +167,23 @@ function RecentTrades({ trades }: { trades: TradeDto[] }) {
     .slice(0, 8)
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[560px] text-left">
-        <thead>
-          <tr className="text-[10px] text-content-faint uppercase tracking-[0.06em]">
-            <th className="font-medium pb-2 pr-3">{t('dash.colSymbol')}</th>
-            <th className="font-medium pb-2 pr-3">{t('dash.colSide')}</th>
-            <th className="font-medium pb-2 pr-3">{t('dash.colDate')}</th>
-            <th className="font-medium pb-2 pr-3">{t('dash.colSetup')}</th>
-            <th className="font-medium pb-2 pr-3 text-right">{t('dash.colQty')}</th>
-            <th className="font-medium pb-2 pr-3 text-right">{t('dash.colR')}</th>
-            <th className="font-medium pb-2 pr-3 text-right">{t('dash.colPnl')}</th>
-            <th className="font-medium pb-2 text-right">{t('dash.colStatus')}</th>
+    <TableWrap>
+      <Table className="min-w-[560px]">
+        <THead>
+          <tr>
+            <TH>{t('dash.colSymbol')}</TH>
+            <TH>{t('dash.colSide')}</TH>
+            <TH>{t('dash.colDate')}</TH>
+            <TH>{t('dash.colSetup')}</TH>
+            <TH numeric>{t('dash.colQty')}</TH>
+            <TH numeric>{t('dash.colR')}</TH>
+            <TH numeric>{t('dash.colPnl')}</TH>
+            <TH numeric>{t('dash.colStatus')}</TH>
           </tr>
-        </thead>
-        <tbody>
+        </THead>
+        <TBody>
           {rows.map(trade => (
-            <tr key={trade.id} className="border-t border-line hover:bg-white/[0.02] transition-colors">
+            <TR key={trade.id}>
               <td className="py-2.5 pr-3 text-xs font-medium text-content-strong">{trade.symbol}</td>
               <td className="py-2.5 pr-3">
                 <span className={`text-[11px] font-medium ${trade.direction === 'Long' ? 'text-pos' : 'text-neg'}`}>
@@ -210,12 +204,12 @@ function RecentTrades({ trades }: { trades: TradeDto[] }) {
               <td className={`py-2.5 pr-3 text-[11px] text-right font-mono ${trade.pnL >= 0 ? 'text-pos' : 'text-neg'}`}>
                 {fmtPnl(trade.pnL)}
               </td>
-              <td className="py-2.5 text-right"><StatusBadge status={trade.status} /></td>
-            </tr>
+              <td className="py-2.5 text-right"><TradeStatusBadge status={trade.status} /></td>
+            </TR>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </TBody>
+      </Table>
+    </TableWrap>
   )
 }
 
@@ -306,7 +300,6 @@ export default function Dashboard() {
   const trades = tradesPage?.items
   const { data: profile } = useProfile()
 
-
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
   // Due vuoti diversi: chi non ha mai registrato un trade va invitato a farlo,
@@ -352,9 +345,9 @@ export default function Dashboard() {
       {emptyPeriod && (
         <div className="mb-3.5 px-4 py-3 rounded-[10px] bg-surface border border-line text-xs text-content-secondary flex items-center justify-between gap-3 flex-wrap">
           <span>{t('dash.emptyPeriod', { period: t(PERIOD_LABEL[period]).toLowerCase() })}</span>
-          <button onClick={() => setPeriod('ALL')} className="text-[11px] text-content-secondary px-2 py-1 rounded border border-line-2 hover:bg-surface-3 transition-all">
+          <Button size="sm" onClick={() => setPeriod('ALL')} >
             {t('dash.showAllTime')}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -467,7 +460,7 @@ export default function Dashboard() {
       </div>
 
       {/* Equity Curve */}
-      <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] mb-3.5 hover:border-line-2 transition-colors">
+      <Card interactive className="mb-3.5">
         <div className="flex items-center justify-between mb-4">
           <div className="text-[11px] text-content-muted uppercase tracking-widest">{t('dash.equityCurve')}</div>
           {/* Il periodo lo decide il selettore in testa alla pagina: qui si dichiara
@@ -479,13 +472,13 @@ export default function Dashboard() {
         ) : (
           <EquityCurve daily={data?.dailyPnL ?? []} />
         )}
-      </div>
+      </Card>
 
       {/* Sessions + Setups + Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5 mb-3.5">
 
         {/* Sessions */}
-        <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] hover:border-line-2 transition-colors">
+        <Card interactive>
           <div className="text-[11px] text-content-muted uppercase tracking-widest mb-4">{t('dash.sessions')}</div>
           {isLoading ? (
             <div className="flex flex-col gap-2">
@@ -506,10 +499,10 @@ export default function Dashboard() {
               ))}
             </div>
           )}
-        </div>
+        </Card>
 
         {/* Setup Performance */}
-        <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] hover:border-line-2 transition-colors">
+        <Card interactive>
           <div className="flex items-center justify-between mb-4">
             <div className="text-[11px] text-content-muted uppercase tracking-widest">{t('dash.setupPerformance')}</div>
             <Link to="/analytics" className="text-[10px] text-content-muted px-1.5 py-0.5 rounded border border-line-2 hover:text-content-secondary transition-all">{t('common.viewAll')}</Link>
@@ -552,10 +545,10 @@ export default function Dashboard() {
               })}
             </div>
           )}
-        </div>
+        </Card>
 
         {/* Statistics */}
-        <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] hover:border-line-2 transition-colors">
+        <Card interactive>
           <div className="text-[11px] text-content-muted uppercase tracking-widest mb-4">{t('dash.statistics')}</div>
           {isLoading ? (
             <div className="grid grid-cols-2 gap-2">
@@ -578,11 +571,11 @@ export default function Dashboard() {
               ))}
             </div>
           )}
-        </div>
+        </Card>
       </div>
 
       {/* Recent Trades */}
-      <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] mb-3.5 hover:border-line-2 transition-colors">
+      <Card interactive className="mb-3.5">
         <div className="flex items-center justify-between mb-4">
           <div className="text-[11px] text-content-muted uppercase tracking-widest">{t('dash.recentTrades')}</div>
           <Link to="/trades" className="text-[10px] text-content-muted px-1.5 py-0.5 rounded border border-line-2 hover:text-content-secondary transition-all">{t('common.viewAll')} →</Link>
@@ -594,10 +587,10 @@ export default function Dashboard() {
         ) : (
           <RecentTrades trades={trades ?? []} />
         )}
-      </div>
+      </Card>
 
       {/* Heatmap */}
-      <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] hover:border-line-2 transition-colors">
+      <Card interactive>
         <div className="flex items-center justify-between mb-4">
           <div className="text-[11px] text-content-muted uppercase tracking-widest">{t('dash.heatmap')}</div>
           <div className="hidden sm:flex items-center gap-1 text-[10px] text-content-faint">
@@ -611,7 +604,7 @@ export default function Dashboard() {
         <div className="overflow-x-auto">
           <Heatmap daily={allTime?.dailyPnL ?? []} />
         </div>
-      </div>
+      </Card>
 
       </>
       )}

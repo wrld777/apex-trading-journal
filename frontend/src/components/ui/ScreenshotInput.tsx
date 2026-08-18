@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useToastStore } from '../../store/toastStore'
 import { t } from '../../i18n'
+import { Button, Input } from '../../design-system'
 
 // ── Validazione URL ───────────────────────────────────────────────────────────
 
@@ -28,7 +29,6 @@ function isLoadableImage(url: string): Promise<boolean> {
   })
 }
 
-const FIELD =
   'bg-surface-2 border border-line-2 rounded-md px-3 py-2 text-[13px] text-content-strong outline-none w-full transition-all focus:border-line-control focus:bg-surface-3 placeholder:text-content-faint'
 
 // ── Componente ────────────────────────────────────────────────────────────────
@@ -75,28 +75,22 @@ export default function ScreenshotInput({ value, onChange }: {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-2">
-        <input
+        <Input
           type="url"
           inputMode="url"
           placeholder={t('screenshot.placeholder')}
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={onKeyDown}
-          className={FIELD}
         />
-        <button
+        <Button loading={checking} variant="primary" className="shrink-0"
           type="button"
           onClick={() => void add()}
           disabled={checking || !url.trim()}
-          className="shrink-0 px-3 py-2 rounded-md text-xs font-medium bg-white text-black hover:bg-white/90 transition-all disabled:opacity-50 flex items-center gap-1.5"
+          
         >
-          {checking && (
-            <svg className="animate-spin" width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="10" />
-            </svg>
-          )}
           {checking ? t('screenshot.checking') : t('screenshot.add')}
-        </button>
+        </Button>
       </div>
 
       <p className="text-[11px] text-content-faint">

@@ -7,6 +7,7 @@ import ScreenshotInput from '../../components/ui/ScreenshotInput'
 import type { Direction, TradeOutcome } from '../../types/trade'
 import type { StrategyRuleDto } from '../../types/strategy'
 import { t } from '../../i18n'
+import { Button, Card, Field, Input, Select, Textarea } from '../../design-system'
 
 // ── Small UI helpers ──────────────────────────────────────────────────────────
 
@@ -51,64 +52,11 @@ function RuleCheckItem({
   )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-[11px] text-content-muted tracking-[0.04em]">{label}</label>
-      {children}
-    </div>
-  )
-}
-
-function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <input
-      {...props}
-      className={`bg-surface-2 border border-line-2 rounded-md px-3 py-2 text-[13px] text-content-strong outline-none w-full transition-all
-        focus:border-line-control focus:bg-surface-3 placeholder:text-content-faint ${props.className ?? ''}`}
-    />
-  )
-}
-
-function Select({ children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) {
-  return (
-    <select
-      {...props}
-      className="bg-surface-2 border border-line-2 rounded-md px-3 py-2 text-[13px] text-content-strong outline-none w-full cursor-pointer transition-all focus:border-line-control appearance-none"
-      style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2352525b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'right 12px center',
-      }}
-    >
-      {children}
-    </select>
-  )
-}
-
-function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return (
-    <textarea
-      {...props}
-      className={`bg-surface-2 border border-line-2 rounded-md px-3 py-2 text-[13px] text-content-strong outline-none w-full transition-all resize-y
-        focus:border-line-control focus:bg-surface-3 placeholder:text-content-faint ${props.className ?? ''}`}
-    />
-  )
-}
-
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-3.5">
       <span className="text-[10px] font-medium tracking-[0.12em] uppercase text-content-faint">{children}</span>
       <div className="flex-1 h-px bg-white/[0.04]" />
-    </div>
-  )
-}
-
-function FormCard({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-6">
-      {children}
     </div>
   )
 }
@@ -380,25 +328,12 @@ export default function LogTrade() {
           <p className="text-xs text-content-muted">{t('logTrade.subtitle')}</p>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={resetForm}
-            disabled={isPending}
-            className="px-3 py-1.5 rounded-md text-xs text-content-secondary border border-line-2 hover:bg-surface-3 transition-all disabled:opacity-50"
-          >
+          <Button onClick={resetForm} disabled={isPending}>
             {t('logTrade.reset')}
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={isPending}
-            className="px-3 py-1.5 rounded-md text-xs font-medium bg-white text-black hover:bg-white/90 transition-all disabled:opacity-60 flex items-center gap-1.5"
-          >
-            {isPending && (
-              <svg className="animate-spin" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="10"/>
-              </svg>
-            )}
+          </Button>
+          <Button variant="primary" onClick={handleSubmit} loading={isPending}>
             {isPending ? t('logTrade.submitting') : t('logTrade.submit')}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -407,7 +342,7 @@ export default function LogTrade() {
         {/* ── LEFT ── */}
         <div className="flex flex-col gap-3.5">
 
-          <FormCard>
+          <Card>
             <SectionTitle>{t('logTrade.sectionTradeDetails')}</SectionTitle>
             <div className="mb-3.5">
               <label className="text-[11px] text-content-muted tracking-[0.04em] block mb-1.5">{t('logTrade.direction')}</label>
@@ -533,7 +468,7 @@ export default function LogTrade() {
                       title={o.hint}
                       className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
                         outcome === o.value
-                          ? 'bg-white text-black border-white'
+                          ? 'bg-brand text-brand-ink border-brand'
                           : 'text-content-secondary border-line-2 hover:border-line-control hover:text-content'
                       }`}
                     >
@@ -640,13 +575,13 @@ export default function LogTrade() {
             >
               {partialsOpen ? t('logTrade.backToSingleExit') : t('logTrade.scaledOut')}
             </button>
-          </FormCard>
+          </Card>
 
           {/* I valori delle tendine qui sotto restano stringhe fisse e non passano
               dal dizionario: vengono salvati così com'è sul trade e i filtri del
               Trade Log ci fanno match. Tradurli scollegherebbe i trade già
               registrati dai loro filtri — sono dati, non interfaccia. */}
-          <FormCard>
+          <Card>
             <SectionTitle>{t('logTrade.sectionContext')}</SectionTitle>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3.5">
               <Field label={t('logTrade.session')}>
@@ -705,18 +640,18 @@ export default function LogTrade() {
                 />
               </div>
             </Field>
-          </FormCard>
+          </Card>
         </div>
 
         {/* ── RIGHT ── */}
         <div className="flex flex-col gap-3.5">
 
-          <FormCard>
+          <Card>
             <SectionTitle>{t('logTrade.sectionScreenshot')}</SectionTitle>
             <ScreenshotInput value={screenshots} onChange={setScreenshots} />
-          </FormCard>
+          </Card>
 
-          <FormCard>
+          <Card>
             <SectionTitle>{t('logTrade.sectionStrategy')}</SectionTitle>
             <Field label={t('logTrade.strategy')}>
               <Select value={strategyId} onChange={(e) => selectStrategy(e.target.value)}>
@@ -758,9 +693,9 @@ export default function LogTrade() {
                 {t('logTrade.strategyHint')}
               </p>
             )}
-          </FormCard>
+          </Card>
 
-          <FormCard>
+          <Card>
             <SectionTitle>{t('logTrade.sectionNotes')}</SectionTitle>
             <div className="flex flex-col gap-3">
               <Field label={t('logTrade.rationale')}>
@@ -790,7 +725,7 @@ export default function LogTrade() {
                 />
               </Field>
             </div>
-          </FormCard>
+          </Card>
 
         </div>
       </div>

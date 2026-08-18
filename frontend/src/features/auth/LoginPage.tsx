@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { authService } from '../../services/authService'
 import { useAuthStore } from '../../store/authStore'
 import { t } from '../../i18n'
+import { Button, Field, Input } from '../../design-system'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -53,9 +54,8 @@ const handleSubmit = async (e: React.FormEvent) => {
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-content-secondary tracking-wide">{t('auth.email')}</label>
-            <input
+          <Field label={t('auth.email')}>
+            <Input
               type="email"
               required
               value={form.email}
@@ -64,13 +64,11 @@ const handleSubmit = async (e: React.FormEvent) => {
                 setError(null)
               }}
               placeholder={t('auth.emailPlaceholder')}
-              className="bg-surface-2 border border-white/10 rounded-md px-3 py-2.5 text-sm text-content-strong outline-none focus:border-white/25 placeholder:text-content-muted transition-colors"
             />
-          </div>
+          </Field>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-content-secondary tracking-wide">{t('auth.password')}</label>
-            <input
+          <Field label={t('auth.password')}>
+            <Input
               type="password"
               required
               value={form.password}
@@ -79,9 +77,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                 setError(null)
               }}
               placeholder="••••••••"
-              className="bg-surface-2 border border-white/10 rounded-md px-3 py-2.5 text-sm text-content-strong outline-none focus:border-white/25 placeholder:text-content-muted transition-colors"
             />
-          </div>
+          </Field>
 
           {error && (
             <p className="text-xs text-neg bg-neg/10 border border-neg/20 rounded-md px-3 py-2">
@@ -89,13 +86,13 @@ const handleSubmit = async (e: React.FormEvent) => {
             </p>
           )}
 
-          <button
+          <Button variant="primary" size="lg" block className="mt-2"
             type="submit"
             disabled={loading}
-            className="mt-2 bg-white text-black font-medium text-sm rounded-md py-2.5 hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            
           >
             {loading ? t('auth.signingIn') : t('auth.signIn')}
-          </button>
+          </Button>
         </form>
 
         <p className="text-xs text-content-muted text-center mt-6">

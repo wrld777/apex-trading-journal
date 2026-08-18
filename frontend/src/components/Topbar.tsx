@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { t, type TranslationKey } from '../i18n'
+import { Button } from '../design-system'
 
 // Nessuna etichetta di periodo quassù: il periodo lo scelgono le pagine — il
 // selettore della Dashboard, il range da/a di Analytics — e una scritta fissa
@@ -58,12 +59,12 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
           </svg>
           {t('nav.search')}
         </button>
-        <button
+        <Button variant="primary"
           onClick={() => navigate('/log-trade')}
-          className="px-3 py-1.5 rounded-md text-xs font-medium bg-white text-black hover:bg-white/90 transition-all"
+          
         >
           + {t('nav.logTrade')}
-        </button>
+        </Button>
       </div>
     </header>
   )

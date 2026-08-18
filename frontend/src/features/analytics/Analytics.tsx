@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
-import { Skeleton } from '../../components/ui/Skeleton'
+
 import { useStats } from '../../hooks/useStats'
 import { useTrades } from '../../hooks/useTrades'
 import type { DailyPnLDto, DayOfWeekStatsDto, StatsDto } from '../../types/stats'
 import type { TradeDto } from '../../types/trade'
 import { t as tr } from '../../i18n'
+import { Button, Card, Skeleton } from '../../design-system'
 
 /* ── HELPERS ── */
 function fmt(n: number, decimals = 0) {
@@ -413,12 +414,12 @@ export default function Analytics() {
           <span className="text-content-faint text-xs">→</span>
           <input type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} className={dateInput} aria-label={tr('analytics.toDate')} />
           {(from || to) && (
-            <button
+            <Button size="sm"
               onClick={() => { setFrom(''); setTo('') }}
-              className="px-2.5 py-1.5 rounded-md text-[11px] text-content-secondary border border-line-2 hover:bg-surface-3 transition-all"
+              
             >
               {tr('analytics.clear')}
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -431,7 +432,7 @@ export default function Analytics() {
       )}
 
       {/* KPI Bar */}
-      <div className="bg-surface border border-line rounded-[10px] p-4 mb-4">
+      <Card className="mb-4">
         {isLoading || !data ? (
           <div className="flex flex-wrap gap-6">
             {Array.from({ length: 7 }).map((_, i) => (
@@ -461,38 +462,38 @@ export default function Analytics() {
             </div>
           </>
         )}
-      </div>
+      </Card>
 
       {/* Cumulative P&L + Drawdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 mb-3.5">
-        <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] hover:border-line-2 transition-colors">
+        <Card interactive>
           <div className="text-[11px] text-content-muted uppercase tracking-widest mb-4">{tr('analytics.cumulativePnl')}</div>
           {isLoading ? <Skeleton className="h-[180px] w-full" /> : <CumulativePnLChart daily={data?.dailyPnL ?? []} />}
-        </div>
+        </Card>
 
-        <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] hover:border-line-2 transition-colors">
+        <Card interactive>
           <div className="text-[11px] text-content-muted uppercase tracking-widest mb-4">{tr('analytics.drawdown')}</div>
           {isLoading ? <Skeleton className="h-[180px] w-full" /> : <DrawdownChart daily={data?.dailyPnL ?? []} />}
-        </div>
+        </Card>
       </div>
 
       {/* Day of Week + Win/Loss + Key Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mb-3.5">
-        <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] hover:border-line-2 transition-colors">
+        <Card interactive>
           <div className="text-[11px] text-content-muted uppercase tracking-widest mb-4">{tr('analytics.byDayOfWeek')}</div>
           {isLoading ? <Skeleton className="h-[100px] w-full" /> : <DayOfWeekChart dow={data?.dayOfWeekStats ?? []} />}
-        </div>
+        </Card>
 
-        <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] hover:border-line-2 transition-colors">
+        <Card interactive>
           <div className="text-[11px] text-content-muted uppercase tracking-widest mb-2">{tr('analytics.winLossSplit')}</div>
           {isLoading || !data ? (
             <div className="flex items-center justify-center py-2"><Skeleton className="h-[90px] w-[90px] rounded-full" /></div>
           ) : (
             <WinLossDonut winCount={data.winCount} lossCount={data.lossCount} winRate={data.winRate} />
           )}
-        </div>
+        </Card>
 
-        <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] hover:border-line-2 transition-colors sm:col-span-2 lg:col-span-1">
+        <Card interactive className="sm:col-span-2 lg:col-span-1">
           <div className="text-[11px] text-content-muted uppercase tracking-widest mb-3">{tr('analytics.keyStats')}</div>
           {isLoading || !data ? (
             <div className="flex flex-col gap-2">{Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-6 w-full" />)}</div>
@@ -506,11 +507,11 @@ export default function Analytics() {
               ))}
             </div>
           )}
-        </div>
+        </Card>
       </div>
 
       {/* Monthly Calendar */}
-      <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-[18px] hover:border-line-2 transition-colors">
+      <Card interactive>
         <div className="flex items-center justify-between mb-4">
           <div className="text-[11px] text-content-muted uppercase tracking-widest">{tr('analytics.calendar', { month: monthLabel })}</div>
           <span className={`inline-flex px-2 py-0.5 rounded text-[10px] border ${
@@ -520,7 +521,7 @@ export default function Analytics() {
           </span>
         </div>
         {isLoading ? <Skeleton className="h-[200px] w-full" /> : <Calendar daily={data?.dailyPnL ?? []} refDate={refDate} />}
-      </div>
+      </Card>
 
     </div>
   )

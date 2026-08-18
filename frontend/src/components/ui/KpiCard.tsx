@@ -1,3 +1,6 @@
+import { Card } from '../../design-system'
+
+
 interface KpiCardProps {
   label: string
   value: string
@@ -8,7 +11,7 @@ interface KpiCardProps {
 
 export default function KpiCard({ label, value, delta, deltaUp, children }: KpiCardProps) {
   return (
-    <div className="bg-surface border border-line rounded-[10px] p-[18px] relative overflow-hidden hover:border-line-2 transition-colors">
+    <Card interactive>
       <div className="text-[11px] text-content-muted tracking-[0.04em] mb-[14px] uppercase">{label}</div>
       <div className={`font-mono font-medium text-[26px] tracking-tight leading-none mb-1.5 ${
         deltaUp === true ? 'text-pos' : deltaUp === false ? 'text-neg' : 'text-content-strong'
@@ -29,6 +32,6 @@ export default function KpiCard({ label, value, delta, deltaUp, children }: KpiC
         </div>
       )}
       {children}
-    </div>
+    </Card>
   )
 }

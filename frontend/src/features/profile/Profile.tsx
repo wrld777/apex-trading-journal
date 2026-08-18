@@ -2,36 +2,13 @@ import { useRef, useState } from 'react'
 import { useChangePassword, useProfile, useUpdateProfile } from '../../hooks/useProfile'
 import { useAuthStore } from '../../store/authStore'
 import { useToastStore } from '../../store/toastStore'
-import { Skeleton } from '../../components/ui/Skeleton'
-import { t } from '../../i18n'
 
-const FIELD = 'bg-surface-2 border border-line-2 rounded-md px-3 py-2 text-[13px] text-content-strong outline-none w-full transition-all focus:border-line-control focus:bg-surface-3 placeholder:text-content-faint'
+import { t } from '../../i18n'
+import { Button, Card, CardHeader, Field, Input, Skeleton } from '../../design-system'
 
 /** Lato più lungo dell'avatar dopo il ridimensionamento. */
 const AVATAR_SIZE = 256
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024
-
-function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-[11px] text-content-muted tracking-[0.04em]">{label}</span>
-      {children}
-      {hint && <span className="text-[10px] text-content-faint">{hint}</span>}
-    </label>
-  )
-}
-
-function Card({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
-  return (
-    <div className="bg-surface border border-line rounded-[10px] p-4 lg:p-6 flex flex-col gap-4">
-      <div>
-        <div className="text-[11px] text-content-muted uppercase tracking-widest">{title}</div>
-        {subtitle && <div className="text-[10px] text-content-faint mt-1">{subtitle}</div>}
-      </div>
-      {children}
-    </div>
-  )
-}
 
 function initials(first: string, last: string) {
   const a = first.trim()[0] ?? ''
@@ -167,7 +144,8 @@ export default function Profile() {
       ) : (
         <div className="flex flex-col gap-4">
 
-          <Card title={t('profile.yourDetails')}>
+          <Card className="flex flex-col gap-4">
+            <CardHeader title={t('profile.yourDetails')} />
             <div className="flex items-center gap-4">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover border border-line-2" />
@@ -206,51 +184,52 @@ export default function Profile() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label={t('auth.firstName')}>
-                <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className={FIELD} placeholder={t('auth.firstNamePlaceholder')} />
+                <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder={t('auth.firstNamePlaceholder')} />
               </Field>
               <Field label={t('auth.lastName')} hint={t('common.optional')}>
-                <input value={lastName} onChange={(e) => setLastName(e.target.value)} className={FIELD} placeholder={t('auth.lastNamePlaceholder')} />
+                <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder={t('auth.lastNamePlaceholder')} />
               </Field>
             </div>
 
             <Field label={t('auth.email')} hint={t('profile.emailHint')}>
-              <input value={profile?.email ?? ''} disabled className={`${FIELD} opacity-60 cursor-not-allowed`} />
+              <Input value={profile?.email ?? ''} disabled className="opacity-60 cursor-not-allowed" />
             </Field>
 
             <div className="flex justify-end pt-1">
-              <button
+              <Button variant="primary"
                 onClick={handleSave}
                 disabled={isPending}
-                className="px-4 py-1.5 rounded-md text-xs font-medium bg-white text-black hover:bg-white/90 transition-all disabled:opacity-60"
+                
               >
                 {isPending ? t('common.saving') : t('common.saveChanges')}
-              </button>
+              </Button>
             </div>
           </Card>
 
-          <Card title={t('profile.passwordSection')} subtitle={t('profile.passwordRules')}>
+          <Card className="flex flex-col gap-4">
+            <CardHeader title={t('profile.passwordSection')} subtitle={t('profile.passwordRules')} />
             <Field label={t('profile.currentPassword')}>
-              <input type="password" autoComplete="current-password" value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)} className={FIELD} placeholder="••••••••" />
+              <Input type="password" autoComplete="current-password" value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)} placeholder="••••••••" />
             </Field>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label={t('profile.newPassword')}>
-                <input type="password" autoComplete="new-password" value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)} className={FIELD} placeholder="••••••••" />
+                <Input type="password" autoComplete="new-password" value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" />
               </Field>
               <Field label={t('profile.repeatPassword')}>
-                <input type="password" autoComplete="new-password" value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)} className={FIELD} placeholder="••••••••" />
+                <Input type="password" autoComplete="new-password" value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" />
               </Field>
             </div>
             <div className="flex justify-end pt-1">
-              <button
+              <Button
                 onClick={handleChangePassword}
                 disabled={pwPending}
-                className="px-4 py-1.5 rounded-md text-xs font-medium border border-line-2 text-content hover:bg-surface-3 transition-all disabled:opacity-60"
+                
               >
                 {pwPending ? t('profile.changingPassword') : t('profile.changePassword')}
-              </button>
+              </Button>
             </div>
           </Card>
 

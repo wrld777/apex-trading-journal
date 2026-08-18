@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
-import { Skeleton } from '../../components/ui/Skeleton'
+
 import { t } from '../../i18n'
-import EmptyState from '../../components/ui/EmptyState'
+
 import { useDiscipline, useRuleImpact, useStrategyStats } from '../../hooks/useAnalytics'
 import type {
   DisciplinePointDto,
@@ -10,6 +10,7 @@ import type {
   RuleImpactDto,
   StrategyStatsDto,
 } from '../../types/analytics'
+import { EmptyState, Skeleton } from '../../design-system'
 
 /* ── HELPERS ── */
 function fmt(n: number, decimals = 0) {

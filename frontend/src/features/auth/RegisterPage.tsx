@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { authService } from '../../services/authService'
 import { t } from '../../i18n'
+import { Button, Field, Input } from '../../design-system'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -45,53 +46,45 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-content-secondary tracking-wide">{t('auth.firstName')}</label>
-              <input
+            <Field label={t('auth.firstName')}>
+              <Input
                 type="text"
                 required
                 value={form.firstName}
                 onChange={(e) => setForm({ ...form, firstName: e.target.value })}
                 placeholder={t('auth.firstNamePlaceholder')}
-                className="bg-surface-2 border border-white/10 rounded-md px-3 py-2.5 text-sm text-content-strong outline-none focus:border-white/25 placeholder:text-content-muted transition-colors"
               />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-content-secondary tracking-wide">{t('auth.lastName')}</label>
-              <input
+            </Field>
+            <Field label={t('auth.lastName')}>
+              <Input
                 type="text"
                 value={form.lastName}
                 onChange={(e) => setForm({ ...form, lastName: e.target.value })}
                 placeholder={t('auth.lastNamePlaceholder')}
-                className="bg-surface-2 border border-white/10 rounded-md px-3 py-2.5 text-sm text-content-strong outline-none focus:border-white/25 placeholder:text-content-muted transition-colors"
               />
-            </div>
+            </Field>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-content-secondary tracking-wide">{t('auth.email')}</label>
-            <input
+          <Field label={t('auth.email')}>
+            <Input
               type="email"
               required
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               placeholder={t('auth.emailPlaceholder')}
-              className="bg-surface-2 border border-white/10 rounded-md px-3 py-2.5 text-sm text-content-strong outline-none focus:border-white/25 placeholder:text-content-muted transition-colors"
             />
-          </div>
+          </Field>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-content-secondary tracking-wide">{t('auth.password')}</label>
-            <input
+          <Field label={t('auth.password')}>
+            <Input
               type="password"
               required
               minLength={6}
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               placeholder="••••••••"
-              className="bg-surface-2 border border-white/10 rounded-md px-3 py-2.5 text-sm text-content-strong outline-none focus:border-white/25 placeholder:text-content-muted transition-colors"
             />
-          </div>
+          </Field>
 
           {error && (
             <p className="text-xs text-neg bg-neg/10 border border-neg/20 rounded-md px-3 py-2">
@@ -99,13 +92,13 @@ export default function RegisterPage() {
             </p>
           )}
 
-          <button
+          <Button variant="primary" size="lg" block className="mt-2"
             type="submit"
             disabled={loading}
-            className="mt-2 bg-white text-black font-medium text-sm rounded-md py-2.5 hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            
           >
             {loading ? t('auth.signingUp') : t('auth.signUp')}
-          </button>
+          </Button>
         </form>
 
         <p className="text-xs text-content-muted text-center mt-6">

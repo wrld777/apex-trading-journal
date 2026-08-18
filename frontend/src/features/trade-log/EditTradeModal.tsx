@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import Modal from '../../components/ui/Modal'
+
 import ScreenshotInput from '../../components/ui/ScreenshotInput'
 import { useUpdateTrade } from '../../hooks/useTrades'
 import { useToastStore } from '../../store/toastStore'
 import type { TradeDto, TradeOutcome, UpdateTradeRequest } from '../../types/trade'
 import { t } from '../../i18n'
+import { Button, Input, Modal, Select, Textarea } from '../../design-system'
 
 const OUTCOME_LABELS: Record<TradeOutcome, string> = {
   TakeProfit: t('tradeLog.exitTp'),
@@ -21,8 +22,6 @@ const EMOTIONAL_STATES = [
   'Revenge Mode',
   'Distracted',
 ]
-
-const FIELD = 'bg-surface-2 border border-line-2 rounded-md px-3 py-2 text-[13px] text-content-strong outline-none w-full transition-all focus:border-line-control focus:bg-surface-3 placeholder:text-content-faint [color-scheme:dark]'
 
 // ISO (UTC) → value for <input type="datetime-local"> (treats stored time as UTC wall-clock).
 function isoToLocalInput(iso: string | null): string {
@@ -130,25 +129,12 @@ export default function EditTradeModal({ trade, open, onClose }: {
       title={trade ? t('tradeLog.editTitleTrade', { symbol: trade.symbol, direction: trade.direction }) : t('tradeLog.editTitle')}
       footer={
         <>
-          <button
-            onClick={onClose}
-            disabled={isPending}
-            className="px-3 py-1.5 rounded-md text-xs text-content-secondary border border-line-2 hover:bg-surface-3 transition-all disabled:opacity-50"
-          >
+          <Button onClick={onClose} disabled={isPending}>
             {t('common.cancel')}
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={isPending}
-            className="px-3 py-1.5 rounded-md text-xs font-medium bg-white text-black hover:bg-white/90 transition-all disabled:opacity-60 flex items-center gap-1.5"
-          >
-            {isPending && (
-              <svg className="animate-spin" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="10"/>
-              </svg>
-            )}
+          </Button>
+          <Button variant="primary" onClick={handleSave} loading={isPending}>
             {isPending ? t('common.saving') : t('common.saveChanges')}
-          </button>
+          </Button>
         </>
       }
     >
@@ -157,7 +143,7 @@ export default function EditTradeModal({ trade, open, onClose }: {
           {isSimpleManualExit ? (
             <label className="flex flex-col gap-1.5">
               <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.exitPriceLabel')}</span>
-              <input type="number" step="0.25" placeholder="0.00" value={exitPrice} onChange={(e) => setExitPrice(e.target.value)} className={FIELD} />
+              <Input type="number" step="0.25" placeholder="0.00" value={exitPrice} onChange={(e) => setExitPrice(e.target.value)} />
             </label>
           ) : (
             <div className="flex flex-col gap-1.5">
@@ -173,29 +159,28 @@ export default function EditTradeModal({ trade, open, onClose }: {
           )}
           <label className="flex flex-col gap-1.5">
             <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.exitTime')}</span>
-            <input type="datetime-local" value={exitTime} onChange={(e) => setExitTime(e.target.value)} className={FIELD} />
+            <Input type="datetime-local" value={exitTime} onChange={(e) => setExitTime(e.target.value)} />
           </label>
         </div>
 
         <label className="flex flex-col gap-1.5">
           <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.emotionalState')}</span>
-          <select
+          <Select
             value={emotionalState}
-            onChange={(e) => setEmotionalState(e.target.value)}
-            className={`${FIELD} cursor-pointer appearance-none`}
+            onChange={(e) => setEmotionalState(e.target.value)} className="cursor-pointer appearance-none"
           >
             {EMOTIONAL_STATES.map((s) => <option key={s}>{s}</option>)}
-          </select>
+          </Select>
         </label>
 
         <label className="flex flex-col gap-1.5">
           <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.rationale')}</span>
-          <textarea rows={3} placeholder={t('logTrade.rationalePlaceholder')} value={rationale} onChange={(e) => setRationale(e.target.value)} className={`${FIELD} resize-y`} />
+          <Textarea rows={3} placeholder={t('logTrade.rationalePlaceholder')} value={rationale} onChange={(e) => setRationale(e.target.value)} className="resize-y" />
         </label>
 
         <label className="flex flex-col gap-1.5">
           <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.mistakes')}</span>
-          <textarea rows={2} placeholder={t('logTrade.mistakesPlaceholder')} value={mistakes} onChange={(e) => setMistakes(e.target.value)} className={`${FIELD} resize-y`} />
+          <Textarea rows={2} placeholder={t('logTrade.mistakesPlaceholder')} value={mistakes} onChange={(e) => setMistakes(e.target.value)} className="resize-y" />
         </label>
 
         <div className="flex flex-col gap-1.5">
