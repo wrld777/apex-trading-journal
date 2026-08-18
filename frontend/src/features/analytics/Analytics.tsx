@@ -370,7 +370,7 @@ export default function Analytics() {
   const handleExport = () => {
     if (exportRows.length === 0) return
     const stamp = new Date().toISOString().slice(0, 10)
-    downloadCsv(`apex-trades-${stamp}.csv`, tradesToCsv(exportRows))
+    downloadCsv(`rubric-trades-${stamp}.csv`, tradesToCsv(exportRows))
   }
 
   const refDate = useMemo(() => {

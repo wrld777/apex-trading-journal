@@ -44,7 +44,7 @@ function RuleCheckItem({
       </span>
       {rule.required && (
         <span className="ml-auto shrink-0 text-[9px] font-medium tracking-[0.08em] px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-500/90">
-          OBBL.
+          {t('strategies.required')}
         </span>
       )}
     </div>

@@ -65,7 +65,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <rect x="1" y="9" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
               <rect x="9" y="9" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
             </svg>
-            Dashboard
+            {t('nav.dashboard')}
           </NavLink>
 
           <NavLink to="/analytics" onClick={onClose} className={({ isActive }) =>
@@ -78,7 +78,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <polyline points="2,12 6,7 9,10 14,4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Analytics
+            {t('nav.analytics')}
           </NavLink>
 
           <p className="text-[10px] text-zinc-700 uppercase tracking-widest px-2 pb-2 mt-4">{t('nav.trades')}</p>
@@ -95,7 +95,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <line x1="8" y1="5" x2="8" y2="11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
               <line x1="5" y1="8" x2="11" y2="8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
             </svg>
-            Log Trade
+            {t('nav.logTrade')}
           </NavLink>
 
           <NavLink to="/trades" onClick={onClose} className={({ isActive }) =>
@@ -110,7 +110,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
               <line x1="2" y1="12" x2="14" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
             </svg>
-            Trade Log
+            {t('nav.tradeLog')}
           </NavLink>
 
           <NavLink to="/strategies" onClick={onClose} className={({ isActive }) =>
@@ -124,7 +124,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <path d="M3 4h10M3 8h10M3 12h6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
               <path d="M12.5 11l1.2 1.2 2-2.2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Strategie
+            {t('nav.strategies')}
           </NavLink>
 
           <NavLink to="/strategy-insights" onClick={onClose} className={({ isActive }) =>
@@ -139,7 +139,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <path d="M8 8V3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
               <path d="M8 8l3.2 2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
             </svg>
-            Insights
+            {t('nav.insights')}
           </NavLink>
         </div>
 
