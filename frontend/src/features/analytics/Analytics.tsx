@@ -80,7 +80,8 @@ function drawdownSeries(values: number[]): number[] {
 
 const DOW_ORDER = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 const DOW_SHORT: Record<string, string> = {
-  Monday: 'Mon', Tuesday: 'Tue', Wednesday: 'Wed', Thursday: 'Thu', Friday: 'Fri',
+  Monday: tr('analytics.dowMon'), Tuesday: tr('analytics.dowTue'), Wednesday: tr('analytics.dowWed'),
+  Thursday: tr('analytics.dowThu'), Friday: tr('analytics.dowFri'),
 }
 
 function EmptyChart({ height = 180 }: { height?: number }) {
@@ -237,7 +238,7 @@ function WinLossDonut({ winCount, lossCount, winRate }: { winCount: number; loss
             strokeDasharray={`${lossDash} ${C - lossDash}`} strokeDashoffset={`${-winDash}`} strokeLinecap="round"
             transform="rotate(-90 50 50)" />
           <text x="50" y="47" textAnchor="middle" fill="#f4f4f5" fontSize="13" fontFamily="Syne, sans-serif" fontWeight="700">{fmt(winRate, 1)}%</text>
-          <text x="50" y="59" textAnchor="middle" fill="#3f3f46" fontSize="7" fontFamily="monospace">WIN RATE</text>
+          <text x="50" y="59" textAnchor="middle" fill="#3f3f46" fontSize="7" fontFamily="monospace">{tr('analytics.winRateRing')}</text>
         </svg>
       </div>
       <div className="flex justify-center gap-4">

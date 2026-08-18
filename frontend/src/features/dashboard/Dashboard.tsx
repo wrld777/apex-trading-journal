@@ -512,7 +512,7 @@ export default function Dashboard() {
         <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
           <div className="flex items-center justify-between mb-4">
             <div className="text-[11px] text-zinc-600 uppercase tracking-widest">{t('dash.setupPerformance')}</div>
-            <Link to="/analytics" className="text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-white/[0.07] hover:text-zinc-400 transition-all">View All</Link>
+            <Link to="/analytics" className="text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-white/[0.07] hover:text-zinc-400 transition-all">{t('common.viewAll')}</Link>
           </div>
           {isLoading ? (
             <div className="flex flex-col gap-2">
@@ -530,8 +530,11 @@ export default function Dashboard() {
                 const disagree = (s.r >= 0) !== (s.pnL >= 0)
                 return (
                   <div key={s.setup} className="flex items-center gap-2.5 py-2 border-b border-white/[0.04] last:border-0">
-                    <div className="text-xs text-zinc-400 flex-1 truncate">{s.setup}</div>
-                    <div className="flex-[2] h-[3px] bg-[#1a1a1d] rounded-full overflow-hidden">
+                    {/* Il nome prendeva flex-1 contro flex-[2] della barra e finiva
+                       troncato quasi sempre ("Fair Va…"): i setup hanno nomi lunghi
+                       e leggerli conta più di qualche pixel di barra. Rapporto invertito. */}
+                    <div className="text-xs text-zinc-400 flex-[2] min-w-0 truncate" title={s.setup}>{s.setup}</div>
+                    <div className="flex-1 h-[3px] bg-[#1a1a1d] rounded-full overflow-hidden">
                       <div className={`h-full rounded-full ${positive ? 'bg-green-500' : 'bg-amber-500'}`} style={{ width: `${s.winRate}%` }} />
                     </div>
                     <div className="text-[11px] w-9 text-right text-zinc-500">
@@ -582,7 +585,7 @@ export default function Dashboard() {
       <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] mb-3.5 hover:border-white/[0.07] transition-colors">
         <div className="flex items-center justify-between mb-4">
           <div className="text-[11px] text-zinc-600 uppercase tracking-widest">{t('dash.recentTrades')}</div>
-          <Link to="/trades" className="text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-white/[0.07] hover:text-zinc-400 transition-all">View All →</Link>
+          <Link to="/trades" className="text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-white/[0.07] hover:text-zinc-400 transition-all">{t('common.viewAll')} →</Link>
         </div>
         {tradesLoading ? (
           <TableSkeleton />

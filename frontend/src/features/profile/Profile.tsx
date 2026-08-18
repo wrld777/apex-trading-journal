@@ -206,10 +206,10 @@ export default function Profile() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label={t('auth.firstName')}>
-                <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className={FIELD} placeholder="Ahmed" />
+                <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className={FIELD} placeholder={t('auth.firstNamePlaceholder')} />
               </Field>
               <Field label={t('auth.lastName')} hint={t('common.optional')}>
-                <input value={lastName} onChange={(e) => setLastName(e.target.value)} className={FIELD} placeholder="Bejaoui" />
+                <input value={lastName} onChange={(e) => setLastName(e.target.value)} className={FIELD} placeholder={t('auth.lastNamePlaceholder')} />
               </Field>
             </div>
 

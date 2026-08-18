@@ -49,13 +49,15 @@ function ExitOutcomeTag({ exits }: { exits: TradeDto['exits'] }) {
   if (!exits || exits.length === 0) return null
 
   const labels: Record<TradeOutcome, string> = {
-    TakeProfit: 'TP',
-    StopLoss: 'SL',
-    BreakEven: 'BE',
+    TakeProfit: tr('tradeLog.exitTp'),
+    StopLoss: tr('tradeLog.exitSl'),
+    BreakEven: tr('tradeLog.exitBe'),
     Manual: '',
   }
 
-  const text = exits.length > 1 ? `${exits.length} uscite` : labels[exits[0].outcome]
+  const text = exits.length > 1
+    ? tr('tradeLog.exitsCount', { count: exits.length })
+    : labels[exits[0].outcome]
   if (!text) return null
 
   return <span className="ml-1.5 text-[9px] text-zinc-600 uppercase tracking-wide">{text}</span>
@@ -179,7 +181,7 @@ export default function TradeLog() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
-          <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">Trade Log</h1>
+          <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">{tr('tradeLog.title')}</h1>
           <p className="text-xs text-zinc-600">
             {isLoading ? tr('common.loading') : tr(hasFilters ? 'tradeLog.countFiltered' : 'tradeLog.count', { count: total })}
           </p>
@@ -202,21 +204,21 @@ export default function TradeLog() {
         </select>
         <select value={direction} onChange={e => setDirection(e.target.value)} className={INPUT}>
           <option value="">{tr('tradeLog.filterSide')}</option>
-          <option value="Long">Long</option>
-          <option value="Short">Short</option>
+          <option value="Long">{tr('tradeLog.sideLong')}</option>
+          <option value="Short">{tr('tradeLog.sideShort')}</option>
         </select>
         <select value={status} onChange={e => setStatus(e.target.value)} className={INPUT}>
           <option value="">{tr('tradeLog.filterStatus')}</option>
-          <option value="Win">Win</option>
-          <option value="Loss">Loss</option>
-          <option value="BreakEven">Break Even</option>
+          <option value="Win">{tr('tradeLog.statusWin')}</option>
+          <option value="Loss">{tr('tradeLog.statusLoss')}</option>
+          <option value="BreakEven">{tr('tradeLog.statusBreakEven')}</option>
         </select>
-        <input type="date" value={from} max={to || undefined} onChange={e => setFrom(e.target.value)} className={INPUT} aria-label="From date" />
+        <input type="date" value={from} max={to || undefined} onChange={e => setFrom(e.target.value)} className={INPUT} aria-label={tr('tradeLog.fromDate')} />
         <span className="text-zinc-700 text-xs">→</span>
-        <input type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} className={INPUT} aria-label="To date" />
+        <input type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} className={INPUT} aria-label={tr('tradeLog.toDate')} />
         {hasFilters && (
           <button onClick={clearFilters} className="px-2.5 py-1.5 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all">
-            Clear
+            {tr('common.clear')}
           </button>
         )}
       </div>
@@ -226,12 +228,12 @@ export default function TradeLog() {
         {isLoading ? (
           <TableSkeleton rows={10} />
         ) : isError ? (
-          <div className="text-xs text-red-400 py-6 text-center">Failed to load trades.</div>
+          <div className="text-xs text-red-400 py-6 text-center">{tr('tradeLog.loadFailed')}</div>
         ) : total === 0 && !hasFilters ? (
           <EmptyState
-            title="No trades logged yet"
-            description="Log your first trade to populate your trade log."
-            actionLabel="Log a Trade"
+            title={tr('tradeLog.emptyTitle')}
+            description={tr('tradeLog.emptyBody')}
+            actionLabel={tr('tradeLog.logATrade')}
             actionTo="/log-trade"
           />
         ) : total === 0 ? (
@@ -242,19 +244,19 @@ export default function TradeLog() {
               <table className="w-full min-w-[940px] text-left">
                 <thead>
                   <tr className="text-[10px] text-zinc-700 uppercase tracking-[0.06em] border-b border-white/[0.04]">
-                    <SortHeader label="Date" col="date" sort={sort} onSort={onSort} />
-                    <th className="font-medium pb-2 px-3">Symbol</th>
-                    <th className="font-medium pb-2 px-3">Side</th>
-                    <th className="font-medium pb-2 px-3">Setup</th>
-                    <th className="font-medium pb-2 px-3">Session</th>
-                    <th className="font-medium pb-2 px-3 text-right">Qty</th>
-                    <th className="font-medium pb-2 px-3 text-right">Entry</th>
-                    <th className="font-medium pb-2 px-3 text-right">Exit</th>
-                    <SortHeader label="P&L" col="pnl" sort={sort} onSort={onSort} align="right" />
-                    <th className="font-medium pb-2 px-3 text-right">R</th>
-                    <SortHeader label="RR" col="rr" sort={sort} onSort={onSort} align="right" />
-                    <th className="font-medium pb-2 px-3 text-right">Status</th>
-                    <th className="font-medium pb-2 px-3 text-right">Actions</th>
+                    <SortHeader label={tr('tradeLog.colDate')} col="date" sort={sort} onSort={onSort} />
+                    <th className="font-medium pb-2 px-3">{tr('tradeLog.colSymbol')}</th>
+                    <th className="font-medium pb-2 px-3">{tr('tradeLog.colSide')}</th>
+                    <th className="font-medium pb-2 px-3">{tr('tradeLog.colSetup')}</th>
+                    <th className="font-medium pb-2 px-3">{tr('tradeLog.colSession')}</th>
+                    <th className="font-medium pb-2 px-3 text-right">{tr('tradeLog.colQty')}</th>
+                    <th className="font-medium pb-2 px-3 text-right">{tr('tradeLog.colEntry')}</th>
+                    <th className="font-medium pb-2 px-3 text-right">{tr('tradeLog.colExit')}</th>
+                    <SortHeader label={tr('tradeLog.colPnl')} col="pnl" sort={sort} onSort={onSort} align="right" />
+                    <th className="font-medium pb-2 px-3 text-right">{tr('tradeLog.colR')}</th>
+                    <SortHeader label={tr('tradeLog.colRr')} col="rr" sort={sort} onSort={onSort} align="right" />
+                    <th className="font-medium pb-2 px-3 text-right">{tr('tradeLog.colStatus')}</th>
+                    <th className="font-medium pb-2 px-3 text-right">{tr('tradeLog.colActions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -287,8 +289,8 @@ export default function TradeLog() {
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => setEditTrade(t)}
-                            aria-label="Edit trade"
-                            title="Edit"
+                            aria-label={tr('tradeLog.editAria')}
+                            title={tr('common.edit')}
                             className="p-1.5 rounded-md text-zinc-500 hover:text-white hover:bg-white/[0.06] transition-all"
                           >
                             <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
@@ -297,8 +299,8 @@ export default function TradeLog() {
                           </button>
                           <button
                             onClick={() => setPendingDelete(t)}
-                            aria-label="Delete trade"
-                            title="Delete"
+                            aria-label={tr('tradeLog.deleteAria')}
+                            title={tr('common.delete')}
                             className="p-1.5 rounded-md text-zinc-500 hover:text-red-400 hover:bg-red-500/[0.08] transition-all"
                           >
                             <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
@@ -350,7 +352,7 @@ export default function TradeLog() {
       <Modal
         open={pendingDelete !== null}
         onClose={() => { if (!isDeleting) setPendingDelete(null) }}
-        title="Delete trade?"
+        title={tr('tradeLog.deleteTitle')}
         maxWidth="max-w-sm"
         footer={
           <>
@@ -359,7 +361,7 @@ export default function TradeLog() {
               disabled={isDeleting}
               className="px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-50"
             >
-              Cancel
+              {tr('common.cancel')}
             </button>
             <button
               onClick={confirmDelete}
@@ -371,14 +373,18 @@ export default function TradeLog() {
                   <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="10"/>
                 </svg>
               )}
-              {isDeleting ? 'Deleting…' : 'Delete'}
+              {isDeleting ? tr('common.deleting') : tr('common.delete')}
             </button>
           </>
         }
       >
         <p className="text-[13px] text-zinc-400 leading-relaxed">
           {pendingDelete && (
-            <>This will permanently delete the <span className="text-white font-medium">{pendingDelete.symbol}</span> {pendingDelete.direction} trade from {fmtDate(pendingDelete.entryTime)}. This action cannot be undone.</>
+            tr('tradeLog.deleteBody', {
+              symbol: pendingDelete.symbol,
+              direction: pendingDelete.direction,
+              date: fmtDate(pendingDelete.entryTime),
+            })
           )}
         </p>
       </Modal>

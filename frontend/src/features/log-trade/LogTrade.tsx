@@ -376,8 +376,8 @@ export default function LogTrade() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">Log Trade</h1>
-          <p className="text-xs text-zinc-600">New entry · Fill in all required fields</p>
+          <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">{t('logTrade.title')}</h1>
+          <p className="text-xs text-zinc-600">{t('logTrade.subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -385,7 +385,7 @@ export default function LogTrade() {
             disabled={isPending}
             className="px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-50"
           >
-            Reset
+            {t('logTrade.reset')}
           </button>
           <button
             onClick={handleSubmit}
@@ -397,7 +397,7 @@ export default function LogTrade() {
                 <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="10"/>
               </svg>
             )}
-            {isPending ? 'Submitting…' : 'Submit Trade'}
+            {isPending ? t('logTrade.submitting') : t('logTrade.submit')}
           </button>
         </div>
       </div>
@@ -408,9 +408,9 @@ export default function LogTrade() {
         <div className="flex flex-col gap-3.5">
 
           <FormCard>
-            <SectionTitle>Trade Details</SectionTitle>
+            <SectionTitle>{t('logTrade.sectionTradeDetails')}</SectionTitle>
             <div className="mb-3.5">
-              <label className="text-[11px] text-zinc-600 tracking-[0.04em] block mb-1.5">Direction</label>
+              <label className="text-[11px] text-zinc-600 tracking-[0.04em] block mb-1.5">{t('logTrade.direction')}</label>
               <div className="flex gap-1.5">
                 <button
                   onClick={() => setDirection('Long')}
@@ -419,7 +419,7 @@ export default function LogTrade() {
                       ? 'bg-green-500/12 border-green-500/25 text-green-500'
                       : 'bg-[#141416] border-white/[0.07] text-zinc-600 hover:border-white/[0.11] hover:text-zinc-400'
                   }`}
-                >LONG</button>
+                >{t('logTrade.long')}</button>
                 <button
                   onClick={() => setDirection('Short')}
                   className={`flex-1 py-2 rounded-md border text-xs font-medium tracking-[0.04em] transition-all ${
@@ -427,20 +427,20 @@ export default function LogTrade() {
                       ? 'bg-red-500/12 border-red-500/25 text-red-500'
                       : 'bg-[#141416] border-white/[0.07] text-zinc-600 hover:border-white/[0.11] hover:text-zinc-400'
                   }`}
-                >SHORT</button>
+                >{t('logTrade.short')}</button>
               </div>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3.5">
               <div className="col-span-2">
-                <Field label="Instrument *">
+                <Field label={t('logTrade.instrument')}>
                   <Select
                     value={form.instrumentId}
                     onChange={handleChange('instrumentId')}
                     disabled={instrumentsLoading}
                   >
                     <option value="">
-                      {instrumentsLoading ? 'Loading…' : '— Select instrument —'}
+                      {instrumentsLoading ? t('common.loading') : t('logTrade.selectInstrument')}
                     </option>
                     {visibleInstruments.map((i) => (
                       <option key={i.instrumentId} value={i.instrumentId}>
@@ -464,21 +464,21 @@ export default function LogTrade() {
                   </p>
                 )}
               </div>
-              <Field label="Date *">
+              <Field label={t('logTrade.date')}>
                 <Input
                   type="date"
                   value={form.date}
                   onChange={handleChange('date')}
                 />
               </Field>
-              <Field label="Time">
+              <Field label={t('logTrade.time')}>
                 <Input
                   type="time"
                   value={form.time}
                   onChange={handleChange('time')}
                 />
               </Field>
-              <Field label="Entry Price *">
+              <Field label={t('logTrade.entryPrice')}>
                 <Input
                   type="number"
                   placeholder="0.00"
@@ -487,7 +487,7 @@ export default function LogTrade() {
                   step={priceStep}
                 />
               </Field>
-              <Field label="Stop Loss *">
+              <Field label={t('logTrade.stopLoss')}>
                 <Input
                   type="number"
                   placeholder="0.00"
@@ -496,7 +496,7 @@ export default function LogTrade() {
                   step={priceStep}
                 />
               </Field>
-              <Field label="Take Profit">
+              <Field label={t('logTrade.takeProfit')}>
                 <Input
                   type="number"
                   placeholder="0.00"
@@ -505,7 +505,7 @@ export default function LogTrade() {
                   step={priceStep}
                 />
               </Field>
-              <Field label="Contracts / Qty *">
+              <Field label={t('logTrade.quantity')}>
                 <Input
                   type="number"
                   placeholder="1"
@@ -642,10 +642,14 @@ export default function LogTrade() {
             </button>
           </FormCard>
 
+          {/* I valori delle tendine qui sotto restano stringhe fisse e non passano
+              dal dizionario: vengono salvati così com'è sul trade e i filtri del
+              Trade Log ci fanno match. Tradurli scollegherebbe i trade già
+              registrati dai loro filtri — sono dati, non interfaccia. */}
           <FormCard>
-            <SectionTitle>Context</SectionTitle>
+            <SectionTitle>{t('logTrade.sectionContext')}</SectionTitle>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3.5">
-              <Field label="Session">
+              <Field label={t('logTrade.session')}>
                 <Select value={form.session} onChange={handleChange('session')}>
                   <option>New York Open (09:30)</option>
                   <option>Silver Bullet (10:00)</option>
@@ -654,7 +658,7 @@ export default function LogTrade() {
                   <option>Asia (20:00)</option>
                 </Select>
               </Field>
-              <Field label="Setup / Model">
+              <Field label={t('logTrade.setup')}>
                 <Select value={form.setup} onChange={handleChange('setup')}>
                   <option>Breaker Block</option>
                   <option>ICT Order Block</option>
@@ -664,14 +668,14 @@ export default function LogTrade() {
                   <option>VWAP Rejection</option>
                 </Select>
               </Field>
-              <Field label="HTF Bias">
+              <Field label={t('logTrade.htfBias')}>
                 <Select value={form.htfBias} onChange={handleChange('htfBias')}>
                   <option>Bullish</option>
                   <option>Bearish</option>
                   <option>Neutral</option>
                 </Select>
               </Field>
-              <Field label="Confluence Grade">
+              <Field label={t('logTrade.grade')}>
                 <Select value={form.grade} onChange={handleChange('grade')}>
                   <option>A+ Setup</option>
                   <option>A Setup</option>
@@ -680,7 +684,7 @@ export default function LogTrade() {
                 </Select>
               </Field>
             </div>
-            <Field label="Tags">
+            <Field label={t('logTrade.tags')}>
               <div
                 className="flex flex-wrap gap-1.5 p-2 bg-[#141416] border border-white/[0.07] rounded-md min-h-[40px] items-center cursor-text focus-within:border-white/[0.18] transition-all"
                 onClick={() => document.getElementById('tag-input')?.focus()}
@@ -696,7 +700,7 @@ export default function LogTrade() {
                   value={tagInput}
                   onChange={e => setTagInput(e.target.value)}
                   onKeyDown={addTag}
-                  placeholder="Add tag…"
+                  placeholder={t('logTrade.tagPlaceholder')}
                   className="bg-transparent border-none outline-none text-xs text-white placeholder:text-zinc-700 flex-1 min-w-[80px] px-1"
                 />
               </div>
@@ -708,15 +712,15 @@ export default function LogTrade() {
         <div className="flex flex-col gap-3.5">
 
           <FormCard>
-            <SectionTitle>Screenshot</SectionTitle>
+            <SectionTitle>{t('logTrade.sectionScreenshot')}</SectionTitle>
             <ScreenshotInput value={screenshots} onChange={setScreenshots} />
           </FormCard>
 
           <FormCard>
-            <SectionTitle>Strategy &amp; Adherence</SectionTitle>
-            <Field label="Strategy">
+            <SectionTitle>{t('logTrade.sectionStrategy')}</SectionTitle>
+            <Field label={t('logTrade.strategy')}>
               <Select value={strategyId} onChange={(e) => selectStrategy(e.target.value)}>
-                <option value="">— No strategy —</option>
+                <option value="">{t('logTrade.noStrategy')}</option>
                 {strategies.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
@@ -747,27 +751,27 @@ export default function LogTrade() {
                   </div>
                 </div>
               ) : (
-                <p className="text-[11px] text-zinc-600 mt-3.5">This strategy has no rules yet.</p>
+                <p className="text-[11px] text-zinc-600 mt-3.5">{t('logTrade.strategyNoRules')}</p>
               )
             ) : (
               <p className="text-[11px] text-zinc-600 mt-3.5 leading-relaxed">
-                Select a strategy to load its objective entry rules and record which you followed on this trade.
+                {t('logTrade.strategyHint')}
               </p>
             )}
           </FormCard>
 
           <FormCard>
-            <SectionTitle>Notes &amp; Psychology</SectionTitle>
+            <SectionTitle>{t('logTrade.sectionNotes')}</SectionTitle>
             <div className="flex flex-col gap-3">
-              <Field label="Trade Rationale">
+              <Field label={t('logTrade.rationale')}>
                 <Textarea
                   rows={3}
-                  placeholder="Describe the setup…"
+                  placeholder={t('logTrade.rationalePlaceholder')}
                   value={form.rationale}
                   onChange={handleChange('rationale')}
                 />
               </Field>
-              <Field label="Emotional State">
+              <Field label={t('logTrade.emotionalState')}>
                 <Select value={form.emotionalState} onChange={handleChange('emotionalState')}>
                   <option>Calm &amp; Focused</option>
                   <option>Confident</option>
@@ -777,10 +781,10 @@ export default function LogTrade() {
                   <option>Distracted</option>
                 </Select>
               </Field>
-              <Field label="Mistakes / Lessons">
+              <Field label={t('logTrade.mistakes')}>
                 <Textarea
                   rows={2}
-                  placeholder="What could have been done better?"
+                  placeholder={t('logTrade.mistakesPlaceholder')}
                   value={form.mistakes}
                   onChange={handleChange('mistakes')}
                 />

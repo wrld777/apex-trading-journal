@@ -45,7 +45,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             </svg>
           </div>
           <span className="font-display font-bold text-[15px] tracking-widest text-white">{t('brand.name')}</span>
-          <span className="ml-auto text-[9px] text-zinc-600 bg-[#141416] px-1.5 py-0.5 rounded border border-white/[0.07] tracking-widest uppercase">PRO</span>
+          <span className="ml-auto text-[9px] text-zinc-600 bg-[#141416] px-1.5 py-0.5 rounded border border-white/[0.07] tracking-widest uppercase">{t('brand.plan')}</span>
         </div>
 
         {/* Nav */}

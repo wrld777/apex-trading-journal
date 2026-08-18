@@ -52,7 +52,7 @@ export default function RegisterPage() {
                 required
                 value={form.firstName}
                 onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                placeholder="Ahmed"
+                placeholder={t('auth.firstNamePlaceholder')}
                 className="bg-[#141416] border border-white/10 rounded-md px-3 py-2.5 text-sm text-white outline-none focus:border-white/25 placeholder:text-zinc-600 transition-colors"
               />
             </div>
@@ -62,7 +62,7 @@ export default function RegisterPage() {
                 type="text"
                 value={form.lastName}
                 onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                placeholder="Bejaoui"
+                placeholder={t('auth.lastNamePlaceholder')}
                 className="bg-[#141416] border border-white/10 rounded-md px-3 py-2.5 text-sm text-white outline-none focus:border-white/25 placeholder:text-zinc-600 transition-colors"
               />
             </div>
@@ -75,7 +75,7 @@ export default function RegisterPage() {
               required
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="you@example.com"
+              placeholder={t('auth.emailPlaceholder')}
               className="bg-[#141416] border border-white/10 rounded-md px-3 py-2.5 text-sm text-white outline-none focus:border-white/25 placeholder:text-zinc-600 transition-colors"
             />
           </div>

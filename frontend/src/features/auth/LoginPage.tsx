@@ -63,7 +63,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 setForm({ ...form, email: e.target.value })
                 setError(null)
               }}
-              placeholder="you@example.com"
+              placeholder={t('auth.emailPlaceholder')}
               className="bg-[#141416] border border-white/10 rounded-md px-3 py-2.5 text-sm text-white outline-none focus:border-white/25 placeholder:text-zinc-600 transition-colors"
             />
           </div>
