@@ -4,6 +4,7 @@ import { useCreateStrategy, useUpdateStrategy } from '../../hooks/useStrategies'
 import { useInstruments } from '../../hooks/useInstruments'
 import { useToastStore } from '../../store/toastStore'
 import type { StrategyDto } from '../../types/strategy'
+import { t } from '../../i18n'
 
 interface StrategyModalProps {
   open: boolean
@@ -93,11 +94,11 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
       .filter((r) => r.label !== '')
 
     if (!trimmedName) {
-      setError('Il nome della strategia è obbligatorio.')
+      setError(t('strategyModal.nameRequired'))
       return
     }
     if (cleanRules.length === 0) {
-      setError('Aggiungi almeno una regola.')
+      setError(t('strategyModal.needsOneRule'))
       return
     }
 
@@ -109,11 +110,11 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
     }
 
     const onSuccess = () => {
-      addToast(isEdit ? 'Strategia aggiornata.' : 'Strategia creata.', 'success')
+      addToast(isEdit ? t('strategyModal.updated') : t('strategyModal.created'), 'success')
       onClose()
     }
     const onError = (err: unknown) => {
-      const message = err instanceof Error ? err.message : 'Operazione non riuscita.'
+      const message = err instanceof Error ? err.message : t('strategyModal.failed')
       setError(message)
     }
 
@@ -128,7 +129,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
     <Modal
       open={open}
       onClose={() => { if (!isPending) onClose() }}
-      title={isEdit ? 'Modifica strategia' : 'Nuova strategia'}
+      title={isEdit ? t('strategyModal.editTitle') : t('strategyModal.newTitle')}
       maxWidth="max-w-xl"
       footer={
         <>
@@ -137,7 +138,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
             disabled={isPending}
             className="px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-50"
           >
-            Annulla
+            {t('common.cancel')}
           </button>
           <button
             onClick={handleSubmit}
@@ -149,7 +150,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
                 <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="10" />
               </svg>
             )}
-            {isEdit ? 'Salva' : 'Crea'}
+            {isEdit ? t('common.save') : t('common.create')}
           </button>
         </>
       }
@@ -157,11 +158,11 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
       <div className="flex flex-col gap-4">
         {/* Name */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] text-zinc-500 uppercase tracking-wide">Nome</label>
+          <label className="text-[11px] text-zinc-500 uppercase tracking-wide">{t('strategyModal.name')}</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="es. Breakout London Open"
+            placeholder={t('strategyModal.namePlaceholder')}
             className={INPUT}
             autoFocus
           />
@@ -169,11 +170,11 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
 
         {/* Description */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] text-zinc-500 uppercase tracking-wide">Descrizione</label>
+          <label className="text-[11px] text-zinc-500 uppercase tracking-wide">{t('strategyModal.description')}</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Contesto, mercato, timeframe…"
+            placeholder={t('strategyModal.descriptionPlaceholder')}
             rows={2}
             className={`${INPUT} resize-none`}
           />
@@ -184,15 +185,17 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <label className="text-[11px] text-zinc-500 uppercase tracking-wide">
-              Strumenti
+              {t('strategyModal.instruments')}
             </label>
             <span className="text-[10px] text-zinc-700">
-              {instrumentIds.length === 0 ? 'tutti' : `${instrumentIds.length} selezionat${instrumentIds.length === 1 ? 'o' : 'i'}`}
+              {instrumentIds.length === 0
+                ? t('strategyModal.instrumentsAll')
+                : t('strategyModal.instrumentsSelected', { count: instrumentIds.length })}
             </span>
           </div>
 
           {instruments === undefined ? (
-            <p className="text-[11px] text-zinc-700">Caricamento catalogo…</p>
+            <p className="text-[11px] text-zinc-700">{t('strategyModal.instrumentsLoading')}</p>
           ) : (
             <>
               <div className="flex flex-wrap gap-1.5">
@@ -204,7 +207,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
                       type="button"
                       onClick={() => toggleInstrument(ins.instrumentId)}
                       aria-pressed={active}
-                      title={`${ins.instrumentName} · ${ins.currency} ${ins.pointValue} per point`}
+                      title={t('strategyModal.instrumentTitle', { name: ins.instrumentName, currency: ins.currency, pointValue: ins.pointValue })}
                       className={`px-2 py-1 rounded-md text-[11px] font-medium border transition-all ${
                         active
                           ? 'bg-white text-black border-white'
@@ -217,7 +220,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
                 })}
               </div>
               <p className="text-[10px] text-zinc-700 leading-relaxed">
-                Su quali strumenti gira questa strategia. Lasciando vuoto vale per tutti.
+                {t('strategyModal.instrumentsHint')}
               </p>
             </>
           )}
@@ -227,9 +230,9 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <label className="text-[11px] text-zinc-500 uppercase tracking-wide">
-              Regole (condizioni oggettive di ingresso)
+              {t('strategyModal.rules')}
             </label>
-            <span className="text-[10px] text-zinc-700">{rules.length} voci</span>
+            <span className="text-[10px] text-zinc-700">{t('strategyModal.rulesCount', { count: rules.length })}</span>
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -240,13 +243,13 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
                   <button
                     onClick={() => moveRule(i, -1)}
                     disabled={i === 0}
-                    aria-label="Sposta su"
+                    aria-label={t('strategyModal.moveUp')}
                     className="text-zinc-700 hover:text-zinc-400 disabled:opacity-30 leading-none text-[10px]"
                   >▲</button>
                   <button
                     onClick={() => moveRule(i, 1)}
                     disabled={i === rules.length - 1}
-                    aria-label="Sposta giù"
+                    aria-label={t('strategyModal.moveDown')}
                     className="text-zinc-700 hover:text-zinc-400 disabled:opacity-30 leading-none text-[10px]"
                   >▼</button>
                 </div>
@@ -254,13 +257,13 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
                 <input
                   value={rule.label}
                   onChange={(e) => updateRule(rule.key, { label: e.target.value })}
-                  placeholder={`Regola ${i + 1}…`}
+                  placeholder={t('strategyModal.rulePlaceholder', { n: i + 1 })}
                   className={`${INPUT} flex-1`}
                 />
 
                 <label
                   className="flex items-center gap-1.5 text-[11px] text-zinc-500 cursor-pointer select-none whitespace-nowrap"
-                  title="Regola obbligatoria per considerare il setup valido"
+                  title={t('strategyModal.requiredHint')}
                 >
                   <input
                     type="checkbox"
@@ -268,14 +271,14 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
                     onChange={(e) => updateRule(rule.key, { required: e.target.checked })}
                     className="accent-white w-3.5 h-3.5"
                   />
-                  Obbl.
+                  {t('strategies.required')}
                 </label>
 
                 <button
                   onClick={() => removeRule(rule.key)}
                   disabled={rules.length === 1}
-                  aria-label="Rimuovi regola"
-                  title="Rimuovi"
+                  aria-label={t('strategyModal.removeRule')}
+                  title={t('common.remove')}
                   className="p-1 rounded-md text-zinc-600 hover:text-red-400 hover:bg-red-500/[0.08] transition-all disabled:opacity-30 disabled:hover:bg-transparent"
                 >
                   <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
@@ -290,7 +293,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
             onClick={() => setRules((rs) => [...rs, newRule()])}
             className="self-start mt-1 px-2.5 py-1 rounded-md text-[11px] text-zinc-400 border border-dashed border-white/[0.12] hover:bg-[#1a1a1d] hover:text-zinc-200 transition-all"
           >
-            + Aggiungi regola
+            {t('strategyModal.addRule')}
           </button>
         </div>
 

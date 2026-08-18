@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { t } from '../../i18n'
 
 interface ModalProps {
   open: boolean
@@ -44,7 +45,7 @@ export default function Modal({ open, onClose, title, children, footer, maxWidth
           <h2 className="font-display font-semibold text-[15px] tracking-tight text-white">{title}</h2>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('common.close')}
             className="text-zinc-600 hover:text-zinc-300 transition-colors"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">

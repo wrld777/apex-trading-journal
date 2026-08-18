@@ -9,6 +9,7 @@ import { useProfile } from '../../hooks/useProfile'
 import { useAuthStore } from '../../store/authStore'
 import type { TradeDto } from '../../types/trade'
 import type { DailyPnLDto } from '../../types/stats'
+import { t, tPlural, type TranslationKey } from '../../i18n'
 
 const HM_COLOR: Record<string, string> = {
   'hm-0':  'bg-[#141416]',
@@ -83,7 +84,7 @@ function Heatmap({ daily }: { daily: DailyPnLDto[] }) {
 /* ── EQUITY CURVE ── */
 function EquityCurve({ daily }: { daily: DailyPnLDto[] }) {
   if (daily.length === 0) {
-    return <div className="h-[180px] flex items-center justify-center text-xs text-zinc-600">No trades yet</div>
+    return <div className="h-[180px] flex items-center justify-center text-xs text-zinc-600">{t('dash.noTradesShort')}</div>
   }
 
   const W = 800, H = 180, pad = 16
@@ -159,9 +160,9 @@ function RecentTrades({ trades }: { trades: TradeDto[] }) {
   if (trades.length === 0) {
     return (
       <EmptyState
-        title="No trades logged yet"
-        description="Your most recent trades will show up here once you log one."
-        actionLabel="Log a Trade"
+        title={t('dash.noRecentTitle')}
+        description={t('dash.noRecentBody')}
+        actionLabel={t('dash.logATrade')}
         actionTo="/log-trade"
       />
     )
@@ -176,40 +177,40 @@ function RecentTrades({ trades }: { trades: TradeDto[] }) {
       <table className="w-full min-w-[560px] text-left">
         <thead>
           <tr className="text-[10px] text-zinc-700 uppercase tracking-[0.06em]">
-            <th className="font-medium pb-2 pr-3">Symbol</th>
-            <th className="font-medium pb-2 pr-3">Side</th>
-            <th className="font-medium pb-2 pr-3">Date</th>
-            <th className="font-medium pb-2 pr-3">Setup</th>
-            <th className="font-medium pb-2 pr-3 text-right">Qty</th>
-            <th className="font-medium pb-2 pr-3 text-right">R</th>
-            <th className="font-medium pb-2 pr-3 text-right">P&L</th>
-            <th className="font-medium pb-2 text-right">Status</th>
+            <th className="font-medium pb-2 pr-3">{t('dash.colSymbol')}</th>
+            <th className="font-medium pb-2 pr-3">{t('dash.colSide')}</th>
+            <th className="font-medium pb-2 pr-3">{t('dash.colDate')}</th>
+            <th className="font-medium pb-2 pr-3">{t('dash.colSetup')}</th>
+            <th className="font-medium pb-2 pr-3 text-right">{t('dash.colQty')}</th>
+            <th className="font-medium pb-2 pr-3 text-right">{t('dash.colR')}</th>
+            <th className="font-medium pb-2 pr-3 text-right">{t('dash.colPnl')}</th>
+            <th className="font-medium pb-2 text-right">{t('dash.colStatus')}</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map(t => (
-            <tr key={t.id} className="border-t border-white/[0.04] hover:bg-white/[0.02] transition-colors">
-              <td className="py-2.5 pr-3 text-xs font-medium text-white">{t.symbol}</td>
+          {rows.map(trade => (
+            <tr key={trade.id} className="border-t border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+              <td className="py-2.5 pr-3 text-xs font-medium text-white">{trade.symbol}</td>
               <td className="py-2.5 pr-3">
-                <span className={`text-[11px] font-medium ${t.direction === 'Long' ? 'text-green-500' : 'text-red-500'}`}>
-                  {t.direction === 'Long' ? 'LONG' : 'SHORT'}
+                <span className={`text-[11px] font-medium ${trade.direction === 'Long' ? 'text-green-500' : 'text-red-500'}`}>
+                  {trade.direction === 'Long' ? t('dash.long') : t('dash.short')}
                 </span>
               </td>
               <td className="py-2.5 pr-3 text-[11px] text-zinc-500">
-                {new Date(t.entryTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                {new Date(trade.entryTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </td>
-              <td className="py-2.5 pr-3 text-[11px] text-zinc-500">{t.setup}</td>
-              <td className="py-2.5 pr-3 text-[11px] text-zinc-500 text-right font-mono">{t.quantity}</td>
+              <td className="py-2.5 pr-3 text-[11px] text-zinc-500">{trade.setup}</td>
+              <td className="py-2.5 pr-3 text-[11px] text-zinc-500 text-right font-mono">{trade.quantity}</td>
               {/* null quando lo stop coincideva con l'entry: lì l'R non esiste. */}
               <td className={`py-2.5 pr-3 text-[11px] text-right font-mono ${
-                t.rMultiple === null ? 'text-zinc-700' : t.rMultiple >= 0 ? 'text-green-500' : 'text-red-500'
+                trade.rMultiple === null ? 'text-zinc-700' : trade.rMultiple >= 0 ? 'text-green-500' : 'text-red-500'
               }`}>
-                {t.rMultiple === null ? '—' : fmtR(t.rMultiple)}
+                {trade.rMultiple === null ? '—' : fmtR(trade.rMultiple)}
               </td>
-              <td className={`py-2.5 pr-3 text-[11px] text-right font-mono ${t.pnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {fmtPnl(t.pnL)}
+              <td className={`py-2.5 pr-3 text-[11px] text-right font-mono ${trade.pnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {fmtPnl(trade.pnL)}
               </td>
-              <td className="py-2.5 text-right"><StatusBadge status={t.status} /></td>
+              <td className="py-2.5 text-right"><StatusBadge status={trade.status} /></td>
             </tr>
           ))}
         </tbody>
@@ -234,9 +235,9 @@ function fmtR(n: number) {
 /** Il saluto seguiva l'ora solo di nome: era "Good morning" anche a mezzanotte. */
 function greeting() {
   const h = new Date().getHours()
-  if (h < 12) return 'Good morning'
-  if (h < 18) return 'Good afternoon'
-  return 'Good evening'
+  if (h < 12) return t('dash.goodMorning')
+  if (h < 18) return t('dash.goodAfternoon')
+  return t('dash.goodEvening')
 }
 
 /* ── PERIODO ── */
@@ -244,12 +245,12 @@ type PeriodKey = '1D' | '1W' | '1M' | '3M' | 'ALL'
 
 const PERIODS: PeriodKey[] = ['1D', '1W', '1M', '3M', 'ALL']
 
-const PERIOD_LABEL: Record<PeriodKey, string> = {
-  '1D': 'Today',
-  '1W': 'Last 7 days',
-  '1M': 'Last 30 days',
-  '3M': 'Last 3 months',
-  ALL: 'All time',
+const PERIOD_LABEL: Record<PeriodKey, TranslationKey> = {
+  '1D': 'period.1D',
+  '1W': 'period.1W',
+  '1M': 'period.1M',
+  '3M': 'period.3M',
+  ALL: 'period.ALL',
 }
 
 const PERIOD_DAYS: Record<Exclude<PeriodKey, 'ALL'>, number> = {
@@ -277,12 +278,12 @@ function PeriodPicker({ value, onChange }: { value: PeriodKey; onChange: (p: Per
           key={p}
           onClick={() => onChange(p)}
           aria-pressed={value === p}
-          title={PERIOD_LABEL[p]}
+          title={t(PERIOD_LABEL[p])}
           className={`px-2.5 py-1 rounded text-[10px] uppercase tracking-widest transition-all ${
             value === p ? 'bg-[#1f1f23] text-white' : 'text-zinc-600 hover:text-zinc-400'
           }`}
         >
-          {p === 'ALL' ? 'All' : p}
+          {p === 'ALL' ? t('common.all') : p}
         </button>
       ))}
     </div>
@@ -321,7 +322,7 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">
-            {greeting()}, {profile?.firstName || name || 'Trader'}.
+            {t('dash.greeting', { greeting: greeting(), name: profile?.firstName || name || t('dash.trader') })}
           </h1>
           <p className="text-xs text-zinc-600">{today}</p>
         </div>
@@ -333,15 +334,15 @@ export default function Dashboard() {
       {/* Error banner */}
       {isError && (
         <div className="mb-4 px-4 py-3 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
-          Failed to load stats. Check your connection or try again later.
+          {t('dash.statsLoadFailed')}
         </div>
       )}
 
       {neverTraded ? (
         <EmptyState
-          title="No trades yet"
-          description="Log your first trade to start tracking your performance, equity curve and analytics."
-          actionLabel="Log a Trade"
+          title={t('dash.noTradesTitle')}
+          description={t('dash.noTradesBody')}
+          actionLabel={t('dash.logATrade')}
           actionTo="/log-trade"
           className="bg-[#111113] border border-white/[0.04] rounded-[10px]"
         />
@@ -350,9 +351,9 @@ export default function Dashboard() {
 
       {emptyPeriod && (
         <div className="mb-3.5 px-4 py-3 rounded-[10px] bg-[#111113] border border-white/[0.04] text-xs text-zinc-500 flex items-center justify-between gap-3 flex-wrap">
-          <span>No trades in this period — showing zeros for {PERIOD_LABEL[period].toLowerCase()}.</span>
+          <span>{t('dash.emptyPeriod', { period: t(PERIOD_LABEL[period]).toLowerCase() })}</span>
           <button onClick={() => setPeriod('ALL')} className="text-[11px] text-zinc-400 px-2 py-1 rounded border border-white/[0.07] hover:bg-[#1a1a1d] transition-all">
-            Show all time
+            {t('dash.showAllTime')}
           </button>
         </div>
       )}
@@ -364,7 +365,7 @@ export default function Dashboard() {
         ) : (
           <>
             <KpiCard
-              label="Net P&L"
+              label={t('dash.netPnl')}
               value={data ? `$${fmt(data.netPnL)}` : '—'}
               delta={data ? fmtR(data.netR) : undefined}
               deltaUp={data ? data.netPnL >= 0 : undefined}
@@ -379,33 +380,33 @@ export default function Dashboard() {
             </KpiCard>
 
             <KpiCard
-              label="Win Rate"
+              label={t('dash.winRate')}
               value={data ? `${fmt(data.winRate, 1)}%` : '—'}
-              delta={data ? `${data.winCount}W / ${data.lossCount}L` : undefined}
+              delta={data ? t('dash.winLoss', { wins: data.winCount, losses: data.lossCount }) : undefined}
               deltaUp={data ? data.winRate >= 50 : undefined}
             >
               <div className="h-1 bg-[#1a1a1d] rounded-full overflow-hidden mt-2">
                 <div className="h-full bg-green-500 rounded-full" style={{ width: data ? `${data.winRate}%` : '0%' }} />
               </div>
               <div className="text-[10px] text-zinc-700 mt-1.5">
-                {data ? `${data.breakEvenCount} B/E` : ''}
+                {data ? t('dash.breakEvenCount', { count: data.breakEvenCount }) : ''}
               </div>
             </KpiCard>
 
             <KpiCard
-              label="Expectancy"
+              label={t('dash.expectancy')}
               value={data ? fmtR(data.expectancyR) : '—'}
               deltaUp={data ? data.expectancyR >= 0 : undefined}
             >
               <div className="text-[10px] text-zinc-700 mt-2">
-                Per trade{data ? ` · ${data.rTradeCount} ${data.rTradeCount === 1 ? 'trade' : 'trades'}` : ''}
+                {data ? tPlural(data.rTradeCount, 'dash.expectancyHintOne', 'dash.expectancyHintCount') : t('dash.expectancyHint')}
               </div>
             </KpiCard>
 
             <KpiCard
-              label="Avg RR"
+              label={t('dash.avgRR')}
               value={data ? fmt(data.avgRR, 2) : '—'}
-              delta={data ? (data.avgRR >= 2 ? 'Above target' : 'Below target') : undefined}
+              delta={data ? (data.avgRR >= 2 ? t('dash.aboveTarget') : t('dash.belowTarget')) : undefined}
               deltaUp={data ? data.avgRR >= 2 : undefined}
             >
               <div className="h-7 mt-2">
@@ -416,7 +417,7 @@ export default function Dashboard() {
             </KpiCard>
 
             <KpiCard
-              label="Max Drawdown"
+              label={t('dash.maxDrawdown')}
               value={data ? `-$${fmt(Math.abs(data.maxDrawdown))}` : '—'}
               delta={data ? `−${fmt(Math.abs(data.maxDrawdownR), 2)}R` : undefined}
               deltaUp={false}
@@ -431,22 +432,22 @@ export default function Dashboard() {
               </div>
               <div className="text-[10px] text-zinc-700 mt-1.5">
                 {data && data.netR > 0
-                  ? `${fmt(Math.abs(data.maxDrawdownR) / data.netR * 100, 0)}% of gains given back`
-                  : 'No net gain yet'}
+                  ? t('dash.gainsGivenBack', { percent: fmt(Math.abs(data.maxDrawdownR) / data.netR * 100, 0) })
+                  : t('dash.noNetGain')}
               </div>
             </KpiCard>
 
             {/* Tre casi distinti: nessun trade (non c'è dato), trade tutti vinti
                 (rapporto infinito), altrimenti il rapporto vero. */}
             <KpiCard
-              label="Profit Factor"
+              label={t('dash.profitFactor')}
               value={!data || data.totalTrades === 0 ? '—' : data.profitFactor === null ? '∞' : fmt(data.profitFactor, 2)}
               delta={
                 !data || data.totalTrades === 0
                   ? undefined
                   : data.profitFactor === null
-                    ? 'No losing trades'
-                    : data.profitFactor >= 2 ? 'Excellent' : data.profitFactor >= 1 ? 'Good' : 'Negative edge'
+                    ? t('dash.pfNoLosses')
+                    : data.profitFactor >= 2 ? t('dash.pfExcellent') : data.profitFactor >= 1 ? t('dash.pfGood') : t('dash.pfNegative')
               }
               deltaUp={data && data.totalTrades > 0 ? (data.profitFactor === null || data.profitFactor >= 1) : undefined}
             >
@@ -468,10 +469,10 @@ export default function Dashboard() {
       {/* Equity Curve */}
       <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] mb-3.5 hover:border-white/[0.07] transition-colors">
         <div className="flex items-center justify-between mb-4">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Equity Curve</div>
+          <div className="text-[11px] text-zinc-600 uppercase tracking-widest">{t('dash.equityCurve')}</div>
           {/* Il periodo lo decide il selettore in testa alla pagina: qui si dichiara
               soltanto cosa si sta guardando. */}
-          <span className="text-[10px] text-zinc-600">{PERIOD_LABEL[period]}</span>
+          <span className="text-[10px] text-zinc-600">{t(PERIOD_LABEL[period])}</span>
         </div>
         {isLoading ? (
           <Skeleton className="h-[180px] w-full" />
@@ -485,7 +486,7 @@ export default function Dashboard() {
 
         {/* Sessions */}
         <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">Sessions</div>
+          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">{t('dash.sessions')}</div>
           {isLoading ? (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
@@ -499,7 +500,7 @@ export default function Dashboard() {
                     {fmtPnl(s.pnL)}
                   </div>
                   <div className="text-[10px] text-zinc-700">
-                    {s.totalTrades} trades · {fmt(s.winRate, 0)}% WR · {fmtR(s.r)}
+                    {t('dash.sessionLine', { count: s.totalTrades, winRate: fmt(s.winRate, 0), r: fmtR(s.r) })}
                   </div>
                 </div>
               ))}
@@ -510,8 +511,8 @@ export default function Dashboard() {
         {/* Setup Performance */}
         <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
           <div className="flex items-center justify-between mb-4">
-            <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Setup Performance</div>
-            <Link to="/analytics" className="text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-white/[0.07] hover:text-zinc-400 transition-all">View All</Link>
+            <div className="text-[11px] text-zinc-600 uppercase tracking-widest">{t('dash.setupPerformance')}</div>
+            <Link to="/analytics" className="text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-white/[0.07] hover:text-zinc-400 transition-all">{t('common.viewAll')}</Link>
           </div>
           {isLoading ? (
             <div className="flex flex-col gap-2">
@@ -529,8 +530,11 @@ export default function Dashboard() {
                 const disagree = (s.r >= 0) !== (s.pnL >= 0)
                 return (
                   <div key={s.setup} className="flex items-center gap-2.5 py-2 border-b border-white/[0.04] last:border-0">
-                    <div className="text-xs text-zinc-400 flex-1 truncate">{s.setup}</div>
-                    <div className="flex-[2] h-[3px] bg-[#1a1a1d] rounded-full overflow-hidden">
+                    {/* Il nome prendeva flex-1 contro flex-[2] della barra e finiva
+                       troncato quasi sempre ("Fair Va…"): i setup hanno nomi lunghi
+                       e leggerli conta più di qualche pixel di barra. Rapporto invertito. */}
+                    <div className="text-xs text-zinc-400 flex-[2] min-w-0 truncate" title={s.setup}>{s.setup}</div>
+                    <div className="flex-1 h-[3px] bg-[#1a1a1d] rounded-full overflow-hidden">
                       <div className={`h-full rounded-full ${positive ? 'bg-green-500' : 'bg-amber-500'}`} style={{ width: `${s.winRate}%` }} />
                     </div>
                     <div className="text-[11px] w-9 text-right text-zinc-500">
@@ -552,7 +556,7 @@ export default function Dashboard() {
 
         {/* Statistics */}
         <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">Statistics</div>
+          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">{t('dash.statistics')}</div>
           {isLoading ? (
             <div className="grid grid-cols-2 gap-2">
               {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
@@ -560,12 +564,12 @@ export default function Dashboard() {
           ) : (
             <div className="grid grid-cols-2">
               {[
-                { label: 'Total Trades', value: data ? String(data.totalTrades) : '—',               color: '' },
-                { label: 'Best Trade',   value: data ? fmtPnl(data.bestTrade) : '—',                 color: 'text-green-500' },
-                { label: 'Worst Trade',  value: data ? fmtPnl(data.worstTrade) : '—',                color: 'text-red-500'   },
-                { label: 'Avg Win',      value: data ? `$${fmt(data.avgWin)}` : '—',                 color: '' },
-                { label: 'Avg Loss',     value: data ? `-$${fmt(Math.abs(data.avgLoss))}` : '—',     color: 'text-red-500'   },
-                { label: 'Best Streak',  value: data ? `${data.bestStreak}W` : '—',                  color: '' },
+                { label: t('dash.totalTrades'), value: data ? String(data.totalTrades) : '—',               color: '' },
+                { label: t('dash.bestTrade'),   value: data ? fmtPnl(data.bestTrade) : '—',                 color: 'text-green-500' },
+                { label: t('dash.worstTrade'),  value: data ? fmtPnl(data.worstTrade) : '—',                color: 'text-red-500'   },
+                { label: t('dash.avgWin'),      value: data ? `$${fmt(data.avgWin)}` : '—',                 color: '' },
+                { label: t('dash.avgLoss'),     value: data ? `-$${fmt(Math.abs(data.avgLoss))}` : '—',     color: 'text-red-500'   },
+                { label: t('dash.bestStreak'),  value: data ? `${data.bestStreak}W` : '—',                  color: '' },
               ].map((s, i) => (
                 <div key={s.label} className={`py-3 border-b border-white/[0.04] ${i % 2 === 1 ? 'pl-4 border-l border-white/[0.04]' : ''} ${i >= 4 ? 'border-b-0' : ''}`}>
                   <div className="text-[10px] text-zinc-700 uppercase tracking-[0.06em] mb-1">{s.label}</div>
@@ -580,13 +584,13 @@ export default function Dashboard() {
       {/* Recent Trades */}
       <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] mb-3.5 hover:border-white/[0.07] transition-colors">
         <div className="flex items-center justify-between mb-4">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Recent Trades</div>
-          <Link to="/trades" className="text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-white/[0.07] hover:text-zinc-400 transition-all">View All →</Link>
+          <div className="text-[11px] text-zinc-600 uppercase tracking-widest">{t('dash.recentTrades')}</div>
+          <Link to="/trades" className="text-[10px] text-zinc-600 px-1.5 py-0.5 rounded border border-white/[0.07] hover:text-zinc-400 transition-all">{t('common.viewAll')} →</Link>
         </div>
         {tradesLoading ? (
           <TableSkeleton />
         ) : tradesError ? (
-          <div className="text-xs text-red-400 py-4 text-center">Failed to load trades.</div>
+          <div className="text-xs text-red-400 py-4 text-center">{t('dash.tradesLoadFailed')}</div>
         ) : (
           <RecentTrades trades={trades ?? []} />
         )}
@@ -595,13 +599,13 @@ export default function Dashboard() {
       {/* Heatmap */}
       <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
         <div className="flex items-center justify-between mb-4">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Activity Heatmap — Last 13 Weeks</div>
+          <div className="text-[11px] text-zinc-600 uppercase tracking-widest">{t('dash.heatmap')}</div>
           <div className="hidden sm:flex items-center gap-1 text-[10px] text-zinc-700">
-            <span>Less</span>
+            <span>{t('dash.less')}</span>
             <div className="w-2.5 h-2.5 rounded-sm bg-[#141416]" />
             <div className="w-2.5 h-2.5 rounded-sm bg-green-500/30" />
             <div className="w-2.5 h-2.5 rounded-sm bg-green-500/75" />
-            <span>More</span>
+            <span>{t('dash.more')}</span>
           </div>
         </div>
         <div className="overflow-x-auto">

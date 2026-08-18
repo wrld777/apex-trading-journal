@@ -4,6 +4,7 @@ import { useStats } from '../../hooks/useStats'
 import { useTrades } from '../../hooks/useTrades'
 import type { DailyPnLDto, DayOfWeekStatsDto, StatsDto } from '../../types/stats'
 import type { TradeDto } from '../../types/trade'
+import { t as tr } from '../../i18n'
 
 /* ── HELPERS ── */
 function fmt(n: number, decimals = 0) {
@@ -79,11 +80,12 @@ function drawdownSeries(values: number[]): number[] {
 
 const DOW_ORDER = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 const DOW_SHORT: Record<string, string> = {
-  Monday: 'Mon', Tuesday: 'Tue', Wednesday: 'Wed', Thursday: 'Thu', Friday: 'Fri',
+  Monday: tr('analytics.dowMon'), Tuesday: tr('analytics.dowTue'), Wednesday: tr('analytics.dowWed'),
+  Thursday: tr('analytics.dowThu'), Friday: tr('analytics.dowFri'),
 }
 
 function EmptyChart({ height = 180 }: { height?: number }) {
-  return <div style={{ height }} className="flex items-center justify-center text-xs text-zinc-600">No data for this range</div>
+  return <div style={{ height }} className="flex items-center justify-center text-xs text-zinc-600">{tr('analytics.noRange')}</div>
 }
 
 /* ── CUMULATIVE P&L ── */
@@ -236,12 +238,12 @@ function WinLossDonut({ winCount, lossCount, winRate }: { winCount: number; loss
             strokeDasharray={`${lossDash} ${C - lossDash}`} strokeDashoffset={`${-winDash}`} strokeLinecap="round"
             transform="rotate(-90 50 50)" />
           <text x="50" y="47" textAnchor="middle" fill="#f4f4f5" fontSize="13" fontFamily="Syne, sans-serif" fontWeight="700">{fmt(winRate, 1)}%</text>
-          <text x="50" y="59" textAnchor="middle" fill="#3f3f46" fontSize="7" fontFamily="monospace">WIN RATE</text>
+          <text x="50" y="59" textAnchor="middle" fill="#3f3f46" fontSize="7" fontFamily="monospace">{tr('analytics.winRateRing')}</text>
         </svg>
       </div>
       <div className="flex justify-center gap-4">
-        <div className="flex items-center gap-1.5 text-[11px] text-zinc-600"><div className="w-1.5 h-1.5 rounded-full bg-green-500" />Wins {winCount}</div>
-        <div className="flex items-center gap-1.5 text-[11px] text-zinc-600"><div className="w-1.5 h-1.5 rounded-full bg-red-500" />Losses {lossCount}</div>
+        <div className="flex items-center gap-1.5 text-[11px] text-zinc-600"><div className="w-1.5 h-1.5 rounded-full bg-green-500" />{tr('analytics.wins', { count: winCount })}</div>
+        <div className="flex items-center gap-1.5 text-[11px] text-zinc-600"><div className="w-1.5 h-1.5 rounded-full bg-red-500" />{tr('analytics.losses', { count: lossCount })}</div>
       </div>
     </>
   )
@@ -313,25 +315,25 @@ function Calendar({ daily, refDate }: { daily: DailyPnLDto[]; refDate: Date }) {
 /* ── KPI / KEY STATS BUILDERS ── */
 function kpiBar(s: StatsDto) {
   return [
-    { label: 'Net P&L',       value: fmtPnl(s.netPnL),                  color: s.netPnL >= 0 ? 'text-green-500' : 'text-red-500' },
-    { label: 'Win Rate',      value: `${fmt(s.winRate, 1)}%`,           color: 'text-white' },
+    { label: tr('dash.netPnl'),       value: fmtPnl(s.netPnL),                  color: s.netPnL >= 0 ? 'text-green-500' : 'text-red-500' },
+    { label: tr('dash.winRate'),      value: `${fmt(s.winRate, 1)}%`,           color: 'text-white' },
     // Niente "R" in coda: il RR è un rapporto fra distanze, non un R-multiplo.
-    { label: 'Avg RR',        value: fmt(s.avgRR, 2),                   color: 'text-white' },
-    { label: 'Profit Factor', value: s.totalTrades === 0 ? '—' : s.profitFactor === null ? '∞' : fmt(s.profitFactor, 2), color: 'text-white' },
-    { label: 'Max DD',        value: `-$${fmt(Math.abs(s.maxDrawdown))}`, color: 'text-red-500' },
-    { label: 'Avg Hold',      value: `${fmt(s.avgHoldMinutes, 0)} min`, color: 'text-white' },
-    { label: 'Best Streak',   value: `${s.bestStreak}W`,                color: 'text-white' },
+    { label: tr('dash.avgRR'),        value: fmt(s.avgRR, 2),                   color: 'text-white' },
+    { label: tr('dash.profitFactor'), value: s.totalTrades === 0 ? '—' : s.profitFactor === null ? '∞' : fmt(s.profitFactor, 2), color: 'text-white' },
+    { label: tr('analytics.maxDd'),        value: `-$${fmt(Math.abs(s.maxDrawdown))}`, color: 'text-red-500' },
+    { label: tr('analytics.avgHold'),      value: tr('analytics.minutes', { count: fmt(s.avgHoldMinutes, 0) }), color: 'text-white' },
+    { label: tr('analytics.bestStreak'),   value: `${s.bestStreak}W`,                color: 'text-white' },
   ]
 }
 function keyStats(s: StatsDto) {
   return [
-    { label: 'Avg Winner',   value: `+$${fmt(s.avgWin)}`,             color: 'text-green-500' },
-    { label: 'Avg Loser',    value: `-$${fmt(Math.abs(s.avgLoss))}`,  color: 'text-red-500' },
-    { label: 'Largest Win',  value: `+$${fmt(s.bestTrade)}`,          color: 'text-green-500' },
-    { label: 'Largest Loss', value: `-$${fmt(Math.abs(s.worstTrade))}`, color: 'text-red-500' },
-    { label: 'Avg Hold',     value: `${fmt(s.avgHoldMinutes, 0)} min`, color: 'text-white' },
-    { label: 'Best Streak',  value: `${s.bestStreak}W`,               color: 'text-white' },
-    { label: 'Worst Streak', value: `${s.worstStreak}L`,              color: 'text-red-500' },
+    { label: tr('analytics.avgWinner'),   value: `+$${fmt(s.avgWin)}`,             color: 'text-green-500' },
+    { label: tr('analytics.avgLoser'),    value: `-$${fmt(Math.abs(s.avgLoss))}`,  color: 'text-red-500' },
+    { label: tr('analytics.largestWin'),  value: `+$${fmt(s.bestTrade)}`,          color: 'text-green-500' },
+    { label: tr('analytics.largestLoss'), value: `-$${fmt(Math.abs(s.worstTrade))}`, color: 'text-red-500' },
+    { label: tr('analytics.avgHold'),     value: tr('analytics.minutes', { count: fmt(s.avgHoldMinutes, 0) }), color: 'text-white' },
+    { label: tr('analytics.bestStreak'),  value: `${s.bestStreak}W`,               color: 'text-white' },
+    { label: tr('analytics.worstStreak'), value: `${s.worstStreak}L`,              color: 'text-red-500' },
   ]
 }
 
@@ -369,7 +371,7 @@ export default function Analytics() {
   const handleExport = () => {
     if (exportRows.length === 0) return
     const stamp = new Date().toISOString().slice(0, 10)
-    downloadCsv(`apex-trades-${stamp}.csv`, tradesToCsv(exportRows))
+    downloadCsv(`rubric-trades-${stamp}.csv`, tradesToCsv(exportRows))
   }
 
   const refDate = useMemo(() => {
@@ -395,27 +397,27 @@ export default function Analytics() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
-          <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">Analytics</h1>
-          <p className="text-xs text-zinc-600">Deep performance analysis · {data?.totalTrades ?? 0} trades</p>
+          <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">{tr('analytics.title')}</h1>
+          <p className="text-xs text-zinc-600">{tr('analytics.subtitle', { count: data?.totalTrades ?? 0 })}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={handleExport}
             disabled={exportRows.length === 0}
-            title={exportRows.length === 0 ? 'No trades to export' : `Export ${exportRows.length} trades`}
+            title={exportRows.length === 0 ? tr('analytics.exportNone') : tr('analytics.exportCount', { count: exportRows.length })}
             className="px-3 py-1.5 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Export CSV
+            {tr('analytics.exportCsv')}
           </button>
-          <input type="date" value={from} max={to || undefined} onChange={e => setFrom(e.target.value)} className={dateInput} aria-label="From date" />
+          <input type="date" value={from} max={to || undefined} onChange={e => setFrom(e.target.value)} className={dateInput} aria-label={tr('analytics.fromDate')} />
           <span className="text-zinc-700 text-xs">→</span>
-          <input type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} className={dateInput} aria-label="To date" />
+          <input type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} className={dateInput} aria-label={tr('analytics.toDate')} />
           {(from || to) && (
             <button
               onClick={() => { setFrom(''); setTo('') }}
               className="px-2.5 py-1.5 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all"
             >
-              Clear
+              {tr('analytics.clear')}
             </button>
           )}
         </div>
@@ -424,7 +426,7 @@ export default function Analytics() {
       {/* Error banner */}
       {isError && (
         <div className="mb-4 px-4 py-3 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
-          Failed to load analytics. Check your connection or try again later.
+          {tr('analytics.loadFailed')}
         </div>
       )}
 
@@ -464,12 +466,12 @@ export default function Analytics() {
       {/* Cumulative P&L + Drawdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 mb-3.5">
         <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">Cumulative P&L</div>
+          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">{tr('analytics.cumulativePnl')}</div>
           {isLoading ? <Skeleton className="h-[180px] w-full" /> : <CumulativePnLChart daily={data?.dailyPnL ?? []} />}
         </div>
 
         <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">Drawdown Analysis</div>
+          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">{tr('analytics.drawdown')}</div>
           {isLoading ? <Skeleton className="h-[180px] w-full" /> : <DrawdownChart daily={data?.dailyPnL ?? []} />}
         </div>
       </div>
@@ -477,12 +479,12 @@ export default function Analytics() {
       {/* Day of Week + Win/Loss + Key Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mb-3.5">
         <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">P&L by Day of Week</div>
+          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-4">{tr('analytics.byDayOfWeek')}</div>
           {isLoading ? <Skeleton className="h-[100px] w-full" /> : <DayOfWeekChart dow={data?.dayOfWeekStats ?? []} />}
         </div>
 
         <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-2">Win / Loss Split</div>
+          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-2">{tr('analytics.winLossSplit')}</div>
           {isLoading || !data ? (
             <div className="flex items-center justify-center py-2"><Skeleton className="h-[90px] w-[90px] rounded-full" /></div>
           ) : (
@@ -491,7 +493,7 @@ export default function Analytics() {
         </div>
 
         <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors sm:col-span-2 lg:col-span-1">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-3">Key Stats</div>
+          <div className="text-[11px] text-zinc-600 uppercase tracking-widest mb-3">{tr('analytics.keyStats')}</div>
           {isLoading || !data ? (
             <div className="flex flex-col gap-2">{Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-6 w-full" />)}</div>
           ) : (
@@ -510,7 +512,7 @@ export default function Analytics() {
       {/* Monthly Calendar */}
       <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px] hover:border-white/[0.07] transition-colors">
         <div className="flex items-center justify-between mb-4">
-          <div className="text-[11px] text-zinc-600 uppercase tracking-widest">Monthly P&L Calendar — {monthLabel}</div>
+          <div className="text-[11px] text-zinc-600 uppercase tracking-widest">{tr('analytics.calendar', { month: monthLabel })}</div>
           <span className={`inline-flex px-2 py-0.5 rounded text-[10px] border ${
             mtd >= 0 ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'
           }`}>

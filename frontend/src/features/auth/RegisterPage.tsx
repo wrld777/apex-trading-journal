@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { authService } from '../../services/authService'
+import { t } from '../../i18n'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -18,7 +19,7 @@ export default function RegisterPage() {
       // No auto-login: send the user to login with a success notice.
       navigate('/login', { state: { registered: true } })
     } catch {
-      setError('Registrazione fallita. Riprova.')
+      setError(t('auth.registerFailed'))
     } finally {
       setLoading(false)
     }
@@ -36,51 +37,51 @@ export default function RegisterPage() {
               <rect x="9" y="1" width="4" height="12" rx="1" fill="black" opacity=".4"/>
             </svg>
           </div>
-          <span className="font-display font-bold text-white tracking-widest text-sm">APEX</span>
+          <span className="font-display font-bold text-white tracking-widest text-sm">{t('brand.name')}</span>
         </div>
 
-        <h1 className="text-xl font-bold text-white mb-1">Crea account</h1>
-        <p className="text-sm text-zinc-500 mb-8">Inizia a tracciare le tue performance</p>
+        <h1 className="text-xl font-bold text-white mb-1">{t('auth.createAccount')}</h1>
+        <p className="text-sm text-zinc-500 mb-8">{t('auth.createAccountSubtitle')}</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-zinc-500 tracking-wide">Nome</label>
+              <label className="text-xs text-zinc-500 tracking-wide">{t('auth.firstName')}</label>
               <input
                 type="text"
                 required
                 value={form.firstName}
                 onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                placeholder="Ahmed"
+                placeholder={t('auth.firstNamePlaceholder')}
                 className="bg-[#141416] border border-white/10 rounded-md px-3 py-2.5 text-sm text-white outline-none focus:border-white/25 placeholder:text-zinc-600 transition-colors"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-zinc-500 tracking-wide">Cognome</label>
+              <label className="text-xs text-zinc-500 tracking-wide">{t('auth.lastName')}</label>
               <input
                 type="text"
                 value={form.lastName}
                 onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                placeholder="Bejaoui"
+                placeholder={t('auth.lastNamePlaceholder')}
                 className="bg-[#141416] border border-white/10 rounded-md px-3 py-2.5 text-sm text-white outline-none focus:border-white/25 placeholder:text-zinc-600 transition-colors"
               />
             </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-zinc-500 tracking-wide">Email</label>
+            <label className="text-xs text-zinc-500 tracking-wide">{t('auth.email')}</label>
             <input
               type="email"
               required
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="you@example.com"
+              placeholder={t('auth.emailPlaceholder')}
               className="bg-[#141416] border border-white/10 rounded-md px-3 py-2.5 text-sm text-white outline-none focus:border-white/25 placeholder:text-zinc-600 transition-colors"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-zinc-500 tracking-wide">Password</label>
+            <label className="text-xs text-zinc-500 tracking-wide">{t('auth.password')}</label>
             <input
               type="password"
               required
@@ -103,14 +104,14 @@ export default function RegisterPage() {
             disabled={loading}
             className="mt-2 bg-white text-black font-medium text-sm rounded-md py-2.5 hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creazione account…' : 'Registrati'}
+            {loading ? t('auth.signingUp') : t('auth.signUp')}
           </button>
         </form>
 
         <p className="text-xs text-zinc-600 text-center mt-6">
-          Hai già un account?{' '}
+          {t('auth.haveAccount')}{' '}
           <Link to="/login" className="text-zinc-400 hover:text-white transition-colors">
-            Accedi
+            {t('auth.signIn')}
           </Link>
         </p>
       </div>

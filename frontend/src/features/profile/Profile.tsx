@@ -3,6 +3,7 @@ import { useChangePassword, useProfile, useUpdateProfile } from '../../hooks/use
 import { useAuthStore } from '../../store/authStore'
 import { useToastStore } from '../../store/toastStore'
 import { Skeleton } from '../../components/ui/Skeleton'
+import { t } from '../../i18n'
 
 const FIELD = 'bg-[#141416] border border-white/[0.07] rounded-md px-3 py-2 text-[13px] text-white outline-none w-full transition-all focus:border-white/[0.18] focus:bg-[#1a1a1d] placeholder:text-zinc-700'
 
@@ -102,46 +103,46 @@ export default function Profile() {
 
   const handlePick = async (file: File | undefined) => {
     if (!file) return
-    if (!file.type.startsWith('image/')) { addToast('Please choose an image file.', 'error'); return }
-    if (file.size > MAX_UPLOAD_BYTES) { addToast('That image is too large (max 5 MB).', 'error'); return }
+    if (!file.type.startsWith('image/')) { addToast(t('profile.notAnImage'), 'error'); return }
+    if (file.size > MAX_UPLOAD_BYTES) { addToast(t('profile.photoTooLarge'), 'error'); return }
     try {
       setAvatarUrl(await resizeToDataUrl(file))
     } catch (err) {
-      addToast(err instanceof Error ? err.message : 'Could not process the image.', 'error')
+      addToast(err instanceof Error ? err.message : t('profile.imageFailed'), 'error')
     }
   }
 
   const handleSave = () => {
-    if (!firstName.trim()) { addToast('First name is required.', 'error'); return }
+    if (!firstName.trim()) { addToast(t('profile.firstNameRequired'), 'error'); return }
 
     updateProfile(
       { firstName: firstName.trim(), lastName: lastName.trim(), avatarUrl },
       {
         onSuccess: (updated) => {
-          addToast('Profile updated.', 'success')
+          addToast(t('profile.updated'), 'success')
           // Keep the cached auth identity (greeting, sidebar) in sync.
           if (token && userId) setAuth(token, userId, updated.displayName, email ?? updated.email)
         },
         onError: (err: unknown) => {
-          addToast(err instanceof Error ? err.message : 'Failed to update profile.', 'error')
+          addToast(err instanceof Error ? err.message : t('profile.updateFailed'), 'error')
         },
       },
     )
   }
 
   const handleChangePassword = () => {
-    if (!currentPassword) { addToast('Enter your current password.', 'error'); return }
-    if (newPassword !== confirmPassword) { addToast('The two new passwords do not match.', 'error'); return }
+    if (!currentPassword) { addToast(t('profile.currentPasswordRequired'), 'error'); return }
+    if (newPassword !== confirmPassword) { addToast(t('profile.passwordsDoNotMatch'), 'error'); return }
 
     changePassword(
       { currentPassword, newPassword },
       {
         onSuccess: () => {
-          addToast('Password changed.', 'success')
+          addToast(t('profile.passwordChanged'), 'success')
           setCurrentPassword(''); setNewPassword(''); setConfirmPassword('')
         },
         onError: (err: unknown) => {
-          addToast(err instanceof Error ? err.message : 'Failed to change the password.', 'error')
+          addToast(err instanceof Error ? err.message : t('profile.passwordChangeFailed'), 'error')
         },
       },
     )
@@ -150,13 +151,13 @@ export default function Profile() {
   return (
     <div className="p-4 lg:p-7 max-w-2xl">
       <div className="mb-6">
-        <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">Profile</h1>
-        <p className="text-xs text-zinc-600">Your details and account security</p>
+        <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">{t('profile.title')}</h1>
+        <p className="text-xs text-zinc-600">{t('profile.subtitle')}</p>
       </div>
 
       {isError ? (
         <div className="px-4 py-3 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
-          Failed to load your profile. Please try again later.
+          {t('profile.loadFailed')}
         </div>
       ) : isLoading ? (
         <div className="flex flex-col gap-4">
@@ -166,7 +167,7 @@ export default function Profile() {
       ) : (
         <div className="flex flex-col gap-4">
 
-          <Card title="Your details">
+          <Card title={t('profile.yourDetails')}>
             <div className="flex items-center gap-4">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover border border-white/[0.07]" />
@@ -181,18 +182,18 @@ export default function Profile() {
                     onClick={() => fileInput.current?.click()}
                     className="px-3 py-1.5 rounded-md text-[11px] text-zinc-300 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all"
                   >
-                    {avatarUrl ? 'Change photo' : 'Upload photo'}
+                    {avatarUrl ? t('profile.changePhoto') : t('profile.uploadPhoto')}
                   </button>
                   {avatarUrl && (
                     <button
                       onClick={() => { setAvatarUrl(null); if (fileInput.current) fileInput.current.value = '' }}
                       className="px-3 py-1.5 rounded-md text-[11px] text-zinc-500 border border-white/[0.07] hover:text-red-400 hover:border-red-500/20 transition-all"
                     >
-                      Remove
+                      {t('common.remove')}
                     </button>
                   )}
                 </div>
-                <span className="text-[10px] text-zinc-700">Square crop, resized to {AVATAR_SIZE}px. Saved when you press Save Changes.</span>
+                <span className="text-[10px] text-zinc-700">{t('profile.photoHint', { size: AVATAR_SIZE })}</span>
               </div>
               <input
                 ref={fileInput}
@@ -204,15 +205,15 @@ export default function Profile() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="First name">
-                <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className={FIELD} placeholder="Ahmed" />
+              <Field label={t('auth.firstName')}>
+                <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className={FIELD} placeholder={t('auth.firstNamePlaceholder')} />
               </Field>
-              <Field label="Last name" hint="Optional.">
-                <input value={lastName} onChange={(e) => setLastName(e.target.value)} className={FIELD} placeholder="Bejaoui" />
+              <Field label={t('auth.lastName')} hint={t('common.optional')}>
+                <input value={lastName} onChange={(e) => setLastName(e.target.value)} className={FIELD} placeholder={t('auth.lastNamePlaceholder')} />
               </Field>
             </div>
 
-            <Field label="Email" hint="Email cannot be changed here.">
+            <Field label={t('auth.email')} hint={t('profile.emailHint')}>
               <input value={profile?.email ?? ''} disabled className={`${FIELD} opacity-60 cursor-not-allowed`} />
             </Field>
 
@@ -222,22 +223,22 @@ export default function Profile() {
                 disabled={isPending}
                 className="px-4 py-1.5 rounded-md text-xs font-medium bg-white text-black hover:bg-white/90 transition-all disabled:opacity-60"
               >
-                {isPending ? 'Saving…' : 'Save Changes'}
+                {isPending ? t('common.saving') : t('common.saveChanges')}
               </button>
             </div>
           </Card>
 
-          <Card title="Password" subtitle="At least 8 characters, with an uppercase letter, a number and a symbol.">
-            <Field label="Current password">
+          <Card title={t('profile.passwordSection')} subtitle={t('profile.passwordRules')}>
+            <Field label={t('profile.currentPassword')}>
               <input type="password" autoComplete="current-password" value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)} className={FIELD} placeholder="••••••••" />
             </Field>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="New password">
+              <Field label={t('profile.newPassword')}>
                 <input type="password" autoComplete="new-password" value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)} className={FIELD} placeholder="••••••••" />
               </Field>
-              <Field label="Repeat new password">
+              <Field label={t('profile.repeatPassword')}>
                 <input type="password" autoComplete="new-password" value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)} className={FIELD} placeholder="••••••••" />
               </Field>
@@ -248,7 +249,7 @@ export default function Profile() {
                 disabled={pwPending}
                 className="px-4 py-1.5 rounded-md text-xs font-medium border border-white/[0.07] text-zinc-300 hover:bg-[#1a1a1d] transition-all disabled:opacity-60"
               >
-                {pwPending ? 'Changing…' : 'Change Password'}
+                {pwPending ? t('profile.changingPassword') : t('profile.changePassword')}
               </button>
             </div>
           </Card>

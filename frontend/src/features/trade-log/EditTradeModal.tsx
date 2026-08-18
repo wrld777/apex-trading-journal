@@ -4,12 +4,13 @@ import ScreenshotInput from '../../components/ui/ScreenshotInput'
 import { useUpdateTrade } from '../../hooks/useTrades'
 import { useToastStore } from '../../store/toastStore'
 import type { TradeDto, TradeOutcome, UpdateTradeRequest } from '../../types/trade'
+import { t } from '../../i18n'
 
 const OUTCOME_LABELS: Record<TradeOutcome, string> = {
-  TakeProfit: 'TP',
-  StopLoss: 'SL',
-  BreakEven: 'BE',
-  Manual: 'Manuale',
+  TakeProfit: t('tradeLog.exitTp'),
+  StopLoss: t('tradeLog.exitSl'),
+  BreakEven: t('tradeLog.exitBe'),
+  Manual: t('logTrade.outcomeManual'),
 }
 
 const EMOTIONAL_STATES = [
@@ -126,7 +127,7 @@ export default function EditTradeModal({ trade, open, onClose }: {
     <Modal
       open={open}
       onClose={onClose}
-      title={trade ? `Edit ${trade.symbol} · ${trade.direction}` : 'Edit Trade'}
+      title={trade ? t('tradeLog.editTitleTrade', { symbol: trade.symbol, direction: trade.direction }) : t('tradeLog.editTitle')}
       footer={
         <>
           <button
@@ -134,7 +135,7 @@ export default function EditTradeModal({ trade, open, onClose }: {
             disabled={isPending}
             className="px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-50"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             onClick={handleSave}
@@ -146,7 +147,7 @@ export default function EditTradeModal({ trade, open, onClose }: {
                 <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="10"/>
               </svg>
             )}
-            {isPending ? 'Saving…' : 'Save Changes'}
+            {isPending ? t('common.saving') : t('common.saveChanges')}
           </button>
         </>
       }
@@ -155,12 +156,12 @@ export default function EditTradeModal({ trade, open, onClose }: {
         <div className="grid grid-cols-2 gap-3">
           {isSimpleManualExit ? (
             <label className="flex flex-col gap-1.5">
-              <span className="text-[11px] text-zinc-600 tracking-[0.04em]">Exit Price</span>
+              <span className="text-[11px] text-zinc-600 tracking-[0.04em]">{t('logTrade.exitPriceLabel')}</span>
               <input type="number" step="0.25" placeholder="0.00" value={exitPrice} onChange={(e) => setExitPrice(e.target.value)} className={FIELD} />
             </label>
           ) : (
             <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] text-zinc-600 tracking-[0.04em]">Uscite</span>
+              <span className="text-[11px] text-zinc-600 tracking-[0.04em]">{t('tradeLog.exits')}</span>
               <div className="flex flex-col gap-1 pt-1">
                 {exits.map((e, i) => (
                   <span key={i} className="text-[11px] text-zinc-400 font-mono">
@@ -171,13 +172,13 @@ export default function EditTradeModal({ trade, open, onClose }: {
             </div>
           )}
           <label className="flex flex-col gap-1.5">
-            <span className="text-[11px] text-zinc-600 tracking-[0.04em]">Exit Time</span>
+            <span className="text-[11px] text-zinc-600 tracking-[0.04em]">{t('logTrade.exitTime')}</span>
             <input type="datetime-local" value={exitTime} onChange={(e) => setExitTime(e.target.value)} className={FIELD} />
           </label>
         </div>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-[11px] text-zinc-600 tracking-[0.04em]">Emotional State</span>
+          <span className="text-[11px] text-zinc-600 tracking-[0.04em]">{t('logTrade.emotionalState')}</span>
           <select
             value={emotionalState}
             onChange={(e) => setEmotionalState(e.target.value)}
@@ -188,22 +189,22 @@ export default function EditTradeModal({ trade, open, onClose }: {
         </label>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-[11px] text-zinc-600 tracking-[0.04em]">Trade Rationale</span>
-          <textarea rows={3} placeholder="Describe the setup…" value={rationale} onChange={(e) => setRationale(e.target.value)} className={`${FIELD} resize-y`} />
+          <span className="text-[11px] text-zinc-600 tracking-[0.04em]">{t('logTrade.rationale')}</span>
+          <textarea rows={3} placeholder={t('logTrade.rationalePlaceholder')} value={rationale} onChange={(e) => setRationale(e.target.value)} className={`${FIELD} resize-y`} />
         </label>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-[11px] text-zinc-600 tracking-[0.04em]">Mistakes / Lessons</span>
-          <textarea rows={2} placeholder="What could have been done better?" value={mistakes} onChange={(e) => setMistakes(e.target.value)} className={`${FIELD} resize-y`} />
+          <span className="text-[11px] text-zinc-600 tracking-[0.04em]">{t('logTrade.mistakes')}</span>
+          <textarea rows={2} placeholder={t('logTrade.mistakesPlaceholder')} value={mistakes} onChange={(e) => setMistakes(e.target.value)} className={`${FIELD} resize-y`} />
         </label>
 
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] text-zinc-600 tracking-[0.04em]">Screenshots</span>
+          <span className="text-[11px] text-zinc-600 tracking-[0.04em]">{t('logTrade.screenshots')}</span>
           <ScreenshotInput value={screenshots} onChange={setScreenshots} />
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] text-zinc-600 tracking-[0.04em]">Tags</span>
+          <span className="text-[11px] text-zinc-600 tracking-[0.04em]">{t('logTrade.tags')}</span>
           <div
             className="flex flex-wrap gap-1.5 p-2 bg-[#141416] border border-white/[0.07] rounded-md min-h-[40px] items-center cursor-text focus-within:border-white/[0.18] transition-all"
             onClick={() => document.getElementById('edit-tag-input')?.focus()}
@@ -219,7 +220,7 @@ export default function EditTradeModal({ trade, open, onClose }: {
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               onKeyDown={addTag}
-              placeholder="Add tag…"
+              placeholder={t('logTrade.tagPlaceholder')}
               className="bg-transparent border-none outline-none text-xs text-white placeholder:text-zinc-700 flex-1 min-w-[80px] px-1"
             />
           </div>
