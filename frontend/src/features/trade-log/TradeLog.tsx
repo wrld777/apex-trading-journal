@@ -9,7 +9,7 @@ import { t as tr } from '../../i18n'
 import TradeStatusBadge from '../../components/TradeStatusBadge'
 
 import { Pencil, Trash2 } from 'lucide-react'
-import { Button, Card, EmptyState, IconButton, Input, Modal, Select, SortableTH, TBody, TH, THead, TR, Table, TableSkeleton, TableWrap } from '../../design-system'
+import { Button, Card, EmptyState, IconButton, Input, Modal, PageHeader, Select, SortableTH, TBody, TH, THead, TR, Table, TableSkeleton, TableWrap } from '../../design-system'
 
 /* ── helpers ── */
 function fmtNum(n: number, d = 0) {
@@ -151,17 +151,13 @@ export default function TradeLog() {
   }
 
   return (
-    <div className="p-4 lg:p-7">
+    <>
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-        <div>
-          <h1 className="font-sans font-bold text-xl tracking-tight text-content-strong leading-none mb-1">{tr('tradeLog.title')}</h1>
-          <p className="text-xs text-content-muted">
-            {isLoading ? tr('common.loading') : tr(hasFilters ? 'tradeLog.countFiltered' : 'tradeLog.count', { count: total })}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title={tr('tradeLog.title')}
+        subtitle={isLoading ? tr('common.loading') : tr(hasFilters ? 'tradeLog.countFiltered' : 'tradeLog.count', { count: total })}
+      />
 
       {/* Filters */}
       <Card padding="compact" className="mb-3.5 flex flex-wrap items-center gap-2">
@@ -340,6 +336,6 @@ export default function TradeLog() {
           )}
         </p>
       </Modal>
-    </div>
+    </>
   )
 }

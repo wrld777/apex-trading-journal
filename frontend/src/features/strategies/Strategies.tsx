@@ -8,7 +8,7 @@ import { useToastStore } from '../../store/toastStore'
 import type { StrategyDto } from '../../types/strategy'
 import type { MetricsBlockDto } from '../../types/analytics'
 import { t, tPlural } from '../../i18n'
-import { Button, Card, EmptyState, Modal, Skeleton } from '../../design-system'
+import { Button, Card, EmptyState, Modal, PageHeader, Skeleton } from '../../design-system'
 
 function fmtR(n: number) {
   return `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(2)}R`
@@ -177,24 +177,22 @@ export default function Strategies() {
   const statsById = new Map((strategyStats ?? []).map((s) => [s.strategyId, s.overall]))
 
   return (
-    <div className="p-4 lg:p-7">
+    <>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-        <div>
-          <h1 className="font-sans font-bold text-xl tracking-tight text-content-strong leading-none mb-1">
-            {t('strategies.title')}
-          </h1>
-          <p className="text-xs text-content-muted">
-            {isLoading ? t('common.loading') : tPlural(list.length, 'strategies.countOne', 'strategies.count')}
-          </p>
-        </div>
-        <Button variant="primary" className="self-start sm:self-auto"
+      <PageHeader
+        title={t('strategies.title')}
+        subtitle={isLoading ? t('common.loading') : tPlural(list.length, 'strategies.countOne', 'strategies.count')}
+        actions={
+          <>
+            <Button variant="primary" className="self-start sm:self-auto"
           onClick={openCreate}
           
         >
           {t('strategies.new')}
         </Button>
-      </div>
+          </>
+        }
+      />
 
       {/* Content */}
       {isLoading ? (
@@ -265,6 +263,6 @@ export default function Strategies() {
           {pendingDelete && t('strategies.deleteBody', { name: pendingDelete.name })}
         </p>
       </Modal>
-    </div>
+    </>
   )
 }

@@ -10,7 +10,7 @@ import type {
   RuleImpactDto,
   StrategyStatsDto,
 } from '../../types/analytics'
-import { EmptyState, Skeleton } from '../../design-system'
+import { EmptyState, PageHeader, Skeleton } from '../../design-system'
 
 /* ── HELPERS ── */
 function fmt(n: number, decimals = 0) {
@@ -207,12 +207,11 @@ export default function StrategyAnalytics() {
   const selectCls = 'bg-surface-2 border border-line-2 rounded-md px-2.5 py-1.5 text-[11px] text-content outline-none focus:border-line-control [color-scheme:dark]'
 
   return (
-    <div className="p-4 lg:p-7">
-      {/* Header */}
-      <div className="mb-5">
-        <h1 className="font-sans font-bold text-xl tracking-tight text-content-strong leading-none mb-1">{t('insights.title')}</h1>
-        <p className="text-xs text-content-muted">{t('insights.subtitle', { count: strategies?.length ?? 0 })}</p>
-      </div>
+    <>
+      <PageHeader
+        title={t('insights.title')}
+        subtitle={t('insights.subtitle', { count: strategies?.length ?? 0 })}
+      />
 
       {isError && (
         <div className="mb-4 px-4 py-3 rounded-md bg-neg/10 border border-neg/20 text-neg text-xs">
@@ -285,6 +284,6 @@ export default function StrategyAnalytics() {
           {discLoading ? <Skeleton className="h-[180px] w-full" /> : <DisciplineChart points={discipline ?? []} />}
         </div>
       </div>
-    </div>
+    </>
   )
 }

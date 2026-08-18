@@ -46,9 +46,10 @@ export const en = {
   'nav.strategies': 'Strategies',
   'nav.insights': 'Insights',
   'nav.profile': 'Profile',
-  'nav.search': 'Search',
-  'nav.newEntry': 'New Entry',
   'nav.openNavigation': 'Open navigation',
+  'nav.primary': 'Main navigation',
+  'nav.collapseSidebar': 'Collapse sidebar',
+  'nav.expandSidebar': 'Expand sidebar',
 
   // ── Autenticazione ──
   'auth.welcomeBack': 'Welcome back',

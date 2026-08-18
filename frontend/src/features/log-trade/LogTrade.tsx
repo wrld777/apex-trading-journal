@@ -7,7 +7,7 @@ import ScreenshotInput from '../../components/ui/ScreenshotInput'
 import type { Direction, TradeOutcome } from '../../types/trade'
 import type { StrategyRuleDto } from '../../types/strategy'
 import { t } from '../../i18n'
-import { Button, Card, Field, Input, Select, Textarea } from '../../design-system'
+import { Button, Card, Field, Input, PageHeader, Select, Textarea } from '../../design-system'
 
 // ── Small UI helpers ──────────────────────────────────────────────────────────
 
@@ -319,23 +319,22 @@ export default function LogTrade() {
   }
 
   return (
-    <div className="p-4 lg:p-7">
+    <>
 
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <div>
-          <h1 className="font-sans font-bold text-xl tracking-tight text-content-strong leading-none mb-1">{t('logTrade.title')}</h1>
-          <p className="text-xs text-content-muted">{t('logTrade.subtitle')}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={resetForm} disabled={isPending}>
-            {t('logTrade.reset')}
-          </Button>
-          <Button variant="primary" onClick={handleSubmit} loading={isPending}>
-            {isPending ? t('logTrade.submitting') : t('logTrade.submit')}
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title={t('logTrade.title')}
+        subtitle={t('logTrade.subtitle')}
+        actions={
+          <>
+            <Button onClick={resetForm} disabled={isPending}>
+              {t('logTrade.reset')}
+            </Button>
+            <Button variant="primary" onClick={handleSubmit} loading={isPending}>
+              {isPending ? t('logTrade.submitting') : t('logTrade.submit')}
+            </Button>
+          </>
+        }
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
 
@@ -729,6 +728,6 @@ export default function LogTrade() {
 
         </div>
       </div>
-    </div>
+    </>
   )
 }

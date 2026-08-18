@@ -1,5 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom'
-import Layout from '../components/Layout'
+import AppShell from '../components/app-shell/AppShell'
 import Dashboard from '../features/dashboard/Dashboard'
 import LogTrade from '../features/log-trade/LogTrade'
 import Analytics from '../features/analytics/Analytics'
@@ -27,7 +27,7 @@ export const router = createBrowserRouter([
     path: '/',
     element: (
       <ProtectedRoute>
-        <Layout />
+        <AppShell />
       </ProtectedRoute>
     ),
     errorElement: <RootError />,

@@ -5,7 +5,7 @@ import { useTrades } from '../../hooks/useTrades'
 import type { DailyPnLDto, DayOfWeekStatsDto, StatsDto } from '../../types/stats'
 import type { TradeDto } from '../../types/trade'
 import { t as tr } from '../../i18n'
-import { Button, Card, Skeleton } from '../../design-system'
+import { Button, Card, Input, PageHeader, Skeleton } from '../../design-system'
 
 /* ── HELPERS ── */
 function fmt(n: number, decimals = 0) {
@@ -390,39 +390,34 @@ export default function Analytics() {
     })
     .reduce((sum, d) => sum + d.pnL, 0)
 
-  const dateInput = 'bg-surface-2 border border-line-2 rounded-md px-2 py-1.5 text-[11px] text-content outline-none focus:border-line-control [color-scheme:dark]'
-
   return (
-    <div className="p-4 lg:p-7">
+    <>
 
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-        <div>
-          <h1 className="font-sans font-bold text-xl tracking-tight text-content-strong leading-none mb-1">{tr('analytics.title')}</h1>
-          <p className="text-xs text-content-muted">{tr('analytics.subtitle', { count: data?.totalTrades ?? 0 })}</p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={handleExport}
-            disabled={exportRows.length === 0}
-            title={exportRows.length === 0 ? tr('analytics.exportNone') : tr('analytics.exportCount', { count: exportRows.length })}
-            className="px-3 py-1.5 rounded-md text-[11px] text-content-secondary border border-line-2 hover:bg-surface-3 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {tr('analytics.exportCsv')}
-          </button>
-          <input type="date" value={from} max={to || undefined} onChange={e => setFrom(e.target.value)} className={dateInput} aria-label={tr('analytics.fromDate')} />
-          <span className="text-content-faint text-xs">→</span>
-          <input type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} className={dateInput} aria-label={tr('analytics.toDate')} />
-          {(from || to) && (
-            <Button size="sm"
-              onClick={() => { setFrom(''); setTo('') }}
-              
+      <PageHeader
+        title={tr('analytics.title')}
+        subtitle={tr('analytics.subtitle', { count: data?.totalTrades ?? 0 })}
+        actions={
+          <>
+            <Button
+              size="sm"
+              onClick={handleExport}
+              disabled={exportRows.length === 0}
+              title={exportRows.length === 0 ? tr('analytics.exportNone') : tr('analytics.exportCount', { count: exportRows.length })}
             >
-              {tr('analytics.clear')}
+              {tr('analytics.exportCsv')}
             </Button>
-          )}
-        </div>
-      </div>
+            <Input type="date" className="w-auto" value={from} max={to || undefined} onChange={e => setFrom(e.target.value)} aria-label={tr('analytics.fromDate')} />
+            <span className="text-content-faint text-xs">→</span>
+            <Input type="date" className="w-auto" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} aria-label={tr('analytics.toDate')} />
+            {(from || to) && (
+              <Button size="sm" onClick={() => { setFrom(''); setTo('') }}>
+                {tr('analytics.clear')}
+              </Button>
+            )}
+          </>
+        }
+      />
 
       {/* Error banner */}
       {isError && (
@@ -523,6 +518,6 @@ export default function Analytics() {
         {isLoading ? <Skeleton className="h-[200px] w-full" /> : <Calendar daily={data?.dailyPnL ?? []} refDate={refDate} />}
       </Card>
 
-    </div>
+    </>
   )
 }

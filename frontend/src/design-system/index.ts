@@ -10,6 +10,7 @@ export { cn } from './cn'
 
 export { default as Button, IconButton } from './Button'
 export { default as Card, CardHeader } from './Card'
+export { default as PageHeader } from './PageHeader'
 export { default as Badge } from './Badge'
 export { default as Field } from './Field'
 export { Input, Textarea, Select } from './Input'

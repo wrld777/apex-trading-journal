@@ -4,7 +4,7 @@ import { useAuthStore } from '../../store/authStore'
 import { useToastStore } from '../../store/toastStore'
 
 import { t } from '../../i18n'
-import { Button, Card, CardHeader, Field, Input, Skeleton } from '../../design-system'
+import { Button, Card, CardHeader, Field, Input, PageHeader, Skeleton } from '../../design-system'
 
 /** Lato più lungo dell'avatar dopo il ridimensionamento. */
 const AVATAR_SIZE = 256
@@ -126,11 +126,8 @@ export default function Profile() {
   }
 
   return (
-    <div className="p-4 lg:p-7 max-w-2xl">
-      <div className="mb-6">
-        <h1 className="font-sans font-bold text-xl tracking-tight text-content-strong leading-none mb-1">{t('profile.title')}</h1>
-        <p className="text-xs text-content-muted">{t('profile.subtitle')}</p>
-      </div>
+    <div className="max-w-2xl">
+      <PageHeader title={t('profile.title')} subtitle={t('profile.subtitle')} />
 
       {isError ? (
         <div className="px-4 py-3 rounded-md bg-neg/10 border border-neg/20 text-neg text-xs">

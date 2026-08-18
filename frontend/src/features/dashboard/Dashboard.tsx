@@ -11,7 +11,7 @@ import type { DailyPnLDto } from '../../types/stats'
 import { t, tPlural, type TranslationKey } from '../../i18n'
 
 import TradeStatusBadge from '../../components/TradeStatusBadge'
-import { Button, Card, EmptyState, KpiCardSkeleton, Skeleton, TBody, TH, THead, TR, Table, TableSkeleton, TableWrap } from '../../design-system'
+import { Button, Card, EmptyState, KpiCardSkeleton, PageHeader, Skeleton, TBody, TH, THead, TR, Table, TableSkeleton, TableWrap } from '../../design-system'
 
 const HM_COLOR: Record<string, string> = {
   'hm-0':  'bg-surface-2',
@@ -309,20 +309,15 @@ export default function Dashboard() {
   const emptyPeriod = statsReady && !neverTraded && (data?.totalTrades ?? 0) === 0
 
   return (
-    <div className="p-4 lg:p-7">
+    <>
 
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <div>
-          <h1 className="font-sans font-bold text-xl tracking-tight text-content-strong leading-none mb-1">
-            {t('dash.greeting', { greeting: greeting(), name: profile?.firstName || name || t('dash.trader') })}
-          </h1>
-          <p className="text-xs text-content-muted">{today}</p>
-        </div>
-        {/* Un solo selettore per tutta la pagina: due controlli di periodo sulla
-            stessa schermata finirebbero per contraddirsi. */}
-        <PeriodPicker value={period} onChange={setPeriod} />
-      </div>
+      <PageHeader
+        title={t('dash.greeting', { greeting: greeting(), name: profile?.firstName || name || t('dash.trader') })}
+        subtitle={today}
+        /* Un solo selettore per tutta la pagina: due controlli di periodo sulla
+           stessa schermata finirebbero per contraddirsi. */
+        actions={<PeriodPicker value={period} onChange={setPeriod} />}
+      />
 
       {/* Error banner */}
       {isError && (
@@ -609,6 +604,6 @@ export default function Dashboard() {
       </>
       )}
 
-    </div>
+    </>
   )
 }
