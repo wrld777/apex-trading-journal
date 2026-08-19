@@ -2,18 +2,14 @@ import { useMemo, useState } from 'react'
 
 import { useStats } from '../../hooks/useStats'
 import { useTrades } from '../../hooks/useTrades'
-import type { DailyPnLDto, DayOfWeekStatsDto, StatsDto } from '../../types/stats'
+import type { StatsDto } from '../../types/stats'
 import type { TradeDto } from '../../types/trade'
 import { t as tr } from '../../i18n'
-import { Button, Card, Input, PageHeader, Skeleton } from '../../design-system'
-
-/* ── HELPERS ── */
-function fmt(n: number, decimals = 0) {
-  return n.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
-}
-function fmtPnl(n: number) {
-  return n >= 0 ? `+$${fmt(n)}` : `-$${fmt(Math.abs(n))}`
-}
+import { fmt, fmtPnl } from '../../lib/format'
+import { Button, Card, CardHeader, Input, PageHeader, Skeleton } from '../../design-system'
+import {
+  DayOfWeekChart, DrawdownChart, EquityChart, MonthCalendar, WinLossDonut,
+} from '../../components/charts'
 
 /* ── CSV EXPORT ── */
 const CSV_COLUMNS: { label: string; value: (t: TradeDto) => string | number }[] = [
@@ -49,268 +45,6 @@ function downloadCsv(filename: string, content: string) {
   a.download = filename
   a.click()
   URL.revokeObjectURL(url)
-}
-
-/**
- * Cumulative equity values from daily P&L (backend returns ascending by date).
- * `pick` sceglie l'unità: dollari di default, R per le viste che devono restare
- * indipendenti dal capitale.
- */
-function cumulative(
-  daily: DailyPnLDto[],
-  pick: (d: DailyPnLDto) => number = d => d.pnL,
-): { date: string; value: number }[] {
-  const out: { date: string; value: number }[] = []
-  for (const d of daily) {
-    const prev = out.length ? out[out.length - 1].value : 0
-    out.push({ date: d.date, value: prev + pick(d) })
-  }
-  return out
-}
-
-/** Underwater drawdown series (>= 0) from cumulative equity values. */
-function drawdownSeries(values: number[]): number[] {
-  const dd: number[] = []
-  let peak = 0
-  for (const v of values) {
-    peak = Math.max(peak, v)
-    dd.push(peak - v)
-  }
-  return dd
-}
-
-const DOW_ORDER = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-const DOW_SHORT: Record<string, string> = {
-  Monday: tr('analytics.dowMon'), Tuesday: tr('analytics.dowTue'), Wednesday: tr('analytics.dowWed'),
-  Thursday: tr('analytics.dowThu'), Friday: tr('analytics.dowFri'),
-}
-
-function EmptyChart({ height = 180 }: { height?: number }) {
-  return <div style={{ height }} className="flex items-center justify-center text-xs text-content-muted">{tr('analytics.noRange')}</div>
-}
-
-/* ── CUMULATIVE P&L ── */
-function CumulativePnLChart({ daily }: { daily: DailyPnLDto[] }) {
-  if (daily.length === 0) return <EmptyChart />
-
-  const W = 400, H = 180, pad = 16
-  const pts = cumulative(daily)
-  const vals = pts.map(p => p.value)
-  const n = pts.length
-  const minV = Math.min(0, ...vals)
-  const maxV = Math.max(0, ...vals)
-  const range = maxV - minV || 1
-
-  const x = (i: number) => (n === 1 ? W : (i / (n - 1)) * W)
-  const y = (v: number) => pad + (1 - (v - minV) / range) * (H - 2 * pad)
-
-  const coords = pts.map((p, i) => `${x(i).toFixed(1)},${y(p.value).toFixed(1)}`)
-  const flatY = y(vals[0]).toFixed(1)
-  const line = n === 1 ? `0,${flatY} ${W},${flatY}` : coords.join(' ')
-  const area = `${n === 1 ? `0,${flatY} ${W},${flatY}` : coords.join(' ')} ${W},${H} 0,${H}`
-
-  const last = vals[n - 1]
-  const pos = last >= 0
-  const stroke = pos ? 'rgb(var(--c-pos))' : 'rgb(var(--c-neg))'
-  const zeroY = y(0)
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
-      <defs>
-        <linearGradient id="an-eq" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor={pos ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'} />
-          <stop offset="100%" stopColor={pos ? 'rgba(34,197,94,0)'   : 'rgba(239,68,68,0)'} />
-        </linearGradient>
-      </defs>
-      <line x1="0" y1="45"  x2={W} y2="45"  stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-      <line x1="0" y1="90"  x2={W} y2="90"  stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-      <line x1="0" y1="135" x2={W} y2="135" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-      <polygon points={area} fill="url(#an-eq)" />
-      <polyline points={line} fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <line x1="0" y1={zeroY} x2={W} y2={zeroY} stroke="rgba(255,255,255,0.12)" strokeDasharray="3,3" strokeWidth="1" />
-      <text x="4" y={Math.max(y(maxV) + 4, 10)} fill="rgb(var(--c-text-faint))" fontSize="9" fontFamily="monospace">{fmtPnl(maxV)}</text>
-      <text x="4" y={zeroY - 3} fill="rgba(255,255,255,0.2)" fontSize="9" fontFamily="monospace">$0</text>
-    </svg>
-  )
-}
-
-/* ── DRAWDOWN ── */
-function DrawdownChart({ daily }: { daily: DailyPnLDto[] }) {
-  if (daily.length === 0) return <EmptyChart />
-
-  // Il drawdown si misura in R: quante unità di rischio si sono restituite dal
-  // picco. Prima era in dollari, letto contro un capitale fisso di fantasia.
-  const W = 400, topY = 20, bottomY = 160
-  const pts = cumulative(daily, d => d.r)
-  const dd = drawdownSeries(pts.map(p => p.value))
-  const maxDD = Math.max(...dd, 0)
-  const scaleMax = Math.max(maxDD, 1)
-  const n = dd.length
-
-  const x = (i: number) => (n === 1 ? W : (i / (n - 1)) * W)
-  const y = (v: number) => topY + (v / scaleMax) * (bottomY - topY)
-
-  const coords = dd.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`)
-  const flatY = y(dd[0]).toFixed(1)
-  const line = n === 1 ? `0,${flatY} ${W},${flatY}` : coords.join(' ')
-  const area = `${n === 1 ? `0,${flatY} ${W},${flatY}` : coords.join(' ')} ${W},${topY} 0,${topY}`
-
-  const maxIdx = dd.indexOf(maxDD)
-  const maxX = x(maxIdx)
-  const maxY = y(maxDD)
-
-  return (
-    <svg viewBox={`0 0 ${W} 180`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
-      <defs>
-        <linearGradient id="dd-grad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="rgba(239,68,68,0)" />
-          <stop offset="100%" stopColor="rgba(239,68,68,0.2)" />
-        </linearGradient>
-      </defs>
-      <line x1="0" y1={topY} x2={W} y2={topY} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-      <polygon points={area} fill="url(#dd-grad)" />
-      <polyline points={line} fill="none" stroke="rgb(var(--c-neg))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      {maxDD > 0 && (
-        <>
-          <circle cx={maxX} cy={maxY} r="3" fill="rgb(var(--c-neg))" />
-          <text x={Math.min(maxX + 4, W - 40)} y={maxY + 14} fill="rgb(var(--c-neg) / 0.6)" fontSize="9" fontFamily="monospace">
-            −{maxDD.toFixed(2)}R
-          </text>
-        </>
-      )}
-    </svg>
-  )
-}
-
-/* ── DAY OF WEEK ── */
-function DayOfWeekChart({ dow }: { dow: DayOfWeekStatsDto[] }) {
-  const byDay = new Map(dow.map(d => [d.day, d.pnL]))
-  const bars = DOW_ORDER.map(day => ({ day: DOW_SHORT[day], pnl: byDay.get(day) ?? 0 }))
-  const maxAbs = Math.max(...bars.map(b => Math.abs(b.pnl)), 1)
-
-  return (
-    <div>
-      {/* Prima le barre crescevano tutte verso l'alto dalla stessa base e i
-          giorni in perdita si distinguevano solo dal colore: un lunedì negativo
-          sembrava un lunedì buono. Ora lo zero è una riga e il segno è la
-          direzione in cui la barra cresce. */}
-      <div className="relative flex gap-2 h-[100px]">
-        <div className="absolute inset-x-0 top-1/2 h-px bg-white/[0.08]" />
-        {bars.map(b => {
-          const pos = b.pnl >= 0
-          const h = b.pnl === 0 ? 0 : Math.max((Math.abs(b.pnl) / maxAbs) * 46, 3)
-          return (
-            <div key={b.day} className="flex-1 flex flex-col relative" title={`${b.day}: ${fmtPnl(b.pnl)}`}>
-              <div className="h-1/2 flex items-end">
-                {pos && <div className="w-full rounded-t-sm bg-pos/50" style={{ height: h }} />}
-              </div>
-              <div className="h-1/2 flex items-start">
-                {!pos && <div className="w-full rounded-b-sm bg-neg/45" style={{ height: h }} />}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-      <div className="flex gap-2 mt-1.5">
-        {bars.map(b => (
-          <div key={b.day} className="flex-1 text-center text-[9px] text-content-faint">{b.day}</div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/* ── WIN / LOSS DONUT ── */
-function WinLossDonut({ winCount, lossCount, winRate }: { winCount: number; lossCount: number; winRate: number }) {
-  const total = winCount + lossCount
-  const C = 2 * Math.PI * 38 // ≈ 238.76
-  const winDash = total > 0 ? (winCount / total) * C : 0
-  const lossDash = total > 0 ? (lossCount / total) * C : 0
-
-  return (
-    <>
-      <div className="flex items-center justify-center py-2">
-        <svg width="90" height="90" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="38" fill="none" stroke="rgb(var(--c-surface-2))" strokeWidth="18" />
-          <circle cx="50" cy="50" r="38" fill="none" stroke="rgb(var(--c-pos))" strokeWidth="18"
-            strokeDasharray={`${winDash} ${C - winDash}`} strokeDashoffset="0" strokeLinecap="round"
-            transform="rotate(-90 50 50)" />
-          <circle cx="50" cy="50" r="38" fill="none" stroke="rgb(var(--c-neg))" strokeWidth="18"
-            strokeDasharray={`${lossDash} ${C - lossDash}`} strokeDashoffset={`${-winDash}`} strokeLinecap="round"
-            transform="rotate(-90 50 50)" />
-          <text x="50" y="47" textAnchor="middle" fill="rgb(var(--c-text-strong))" fontSize="13" fontFamily="var(--font-mono)" fontWeight="700">{fmt(winRate, 1)}%</text>
-          <text x="50" y="59" textAnchor="middle" fill="rgb(var(--c-text-faint))" fontSize="7" fontFamily="var(--font-mono)">{tr('analytics.winRateRing')}</text>
-        </svg>
-      </div>
-      <div className="flex justify-center gap-4">
-        <div className="flex items-center gap-1.5 text-[11px] text-content-muted"><div className="w-1.5 h-1.5 rounded-full bg-pos" />{tr('analytics.wins', { count: winCount })}</div>
-        <div className="flex items-center gap-1.5 text-[11px] text-content-muted"><div className="w-1.5 h-1.5 rounded-full bg-neg" />{tr('analytics.losses', { count: lossCount })}</div>
-      </div>
-    </>
-  )
-}
-
-/* ── MONTHLY CALENDAR ── */
-function Calendar({ daily, refDate }: { daily: DailyPnLDto[]; refDate: Date }) {
-  const year = refDate.getFullYear()
-  const month = refDate.getMonth()
-
-  const pnlByDay = new Map<number, number>()
-  for (const d of daily) {
-    const dt = new Date(d.date)
-    if (dt.getFullYear() === year && dt.getMonth() === month) {
-      pnlByDay.set(dt.getDate(), (pnlByDay.get(dt.getDate()) ?? 0) + d.pnL)
-    }
-  }
-  const maxAbs = Math.max(...[...pnlByDay.values()].map(Math.abs), 1)
-
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const leadOffset = (new Date(year, month, 1).getDay() + 6) % 7 // Monday = 0
-
-  const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  const cells: React.ReactNode[] = []
-  for (let i = 0; i < leadOffset; i++) cells.push(<div key={`empty-${i}`} className="aspect-square" />)
-
-  for (let d = 1; d <= daysInMonth; d++) {
-    const pnl = pnlByDay.get(d)
-    let cls = 'bg-surface-2 text-content-faint'
-    if (pnl !== undefined && pnl !== 0) {
-      const strong = Math.abs(pnl) > 0.6 * maxAbs
-      cls = pnl > 0
-        ? (strong ? 'bg-pos/22 text-pos border border-pos/25' : 'bg-pos/12 text-pos border border-pos/15')
-        : 'bg-neg/10 text-neg border border-neg/12'
-    }
-    const pnlStr = pnl !== undefined && pnl !== 0
-      ? (pnl > 0 ? `+$${(pnl / 1000).toFixed(1)}k` : `-$${(Math.abs(pnl) / 1000).toFixed(1)}k`)
-      : ''
-
-    cells.push(
-      <div
-        key={d}
-        title={pnl !== undefined ? `${month + 1}/${d}: ${fmtPnl(pnl)}` : `${month + 1}/${d}`}
-        className={`aspect-square rounded-md flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all hover:opacity-80 hover:scale-105 ${cls}`}
-      >
-        <span className="text-[9px] leading-none">{d}</span>
-        {pnlStr && <span className="text-[8px] font-medium leading-none">{pnlStr}</span>}
-      </div>
-    )
-  }
-
-  // `grid-cols-7` stirava le celle a tutta larghezza: con `aspect-square`
-  // diventavano quadrati da ~170px e il calendario occupava schermate intere.
-  // Un tetto per colonna le lascia crescere fin dove serve e poi le ferma.
-  const columns = { gridTemplateColumns: 'repeat(7, minmax(0, 76px))', justifyContent: 'start' as const }
-
-  return (
-    <div>
-      <div className="grid gap-1 mb-1" style={columns}>
-        {weekDays.map((d, i) => (
-          <div key={i} className="text-center text-[9px] text-content-faint uppercase tracking-widest pb-1">{d}</div>
-        ))}
-      </div>
-      <div className="grid gap-1" style={columns}>{cells}</div>
-    </div>
-  )
 }
 
 /* ── KPI / KEY STATS BUILDERS ── */
@@ -462,12 +196,12 @@ export default function Analytics() {
       {/* Cumulative P&L + Drawdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 mb-3.5">
         <Card interactive>
-          <div className="text-[11px] text-content-muted uppercase tracking-widest mb-4">{tr('analytics.cumulativePnl')}</div>
-          {isLoading ? <Skeleton className="h-[180px] w-full" /> : <CumulativePnLChart daily={data?.dailyPnL ?? []} />}
+          <CardHeader title={tr('analytics.cumulativePnl')} />
+          {isLoading ? <Skeleton className="h-[180px] w-full" /> : <EquityChart daily={data?.dailyPnL ?? []} />}
         </Card>
 
         <Card interactive>
-          <div className="text-[11px] text-content-muted uppercase tracking-widest mb-4">{tr('analytics.drawdown')}</div>
+          <CardHeader title={tr('analytics.drawdown')} subtitle={tr('analytics.drawdownHint')} />
           {isLoading ? <Skeleton className="h-[180px] w-full" /> : <DrawdownChart daily={data?.dailyPnL ?? []} />}
         </Card>
       </div>
@@ -475,21 +209,26 @@ export default function Analytics() {
       {/* Day of Week + Win/Loss + Key Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mb-3.5">
         <Card interactive>
-          <div className="text-[11px] text-content-muted uppercase tracking-widest mb-4">{tr('analytics.byDayOfWeek')}</div>
-          {isLoading ? <Skeleton className="h-[100px] w-full" /> : <DayOfWeekChart dow={data?.dayOfWeekStats ?? []} />}
+          <CardHeader title={tr('analytics.byDayOfWeek')} />
+          {isLoading ? <Skeleton className="h-[150px] w-full" /> : <DayOfWeekChart dow={data?.dayOfWeekStats ?? []} />}
         </Card>
 
         <Card interactive>
-          <div className="text-[11px] text-content-muted uppercase tracking-widest mb-2">{tr('analytics.winLossSplit')}</div>
+          <CardHeader title={tr('analytics.winLossSplit')} />
           {isLoading || !data ? (
-            <div className="flex items-center justify-center py-2"><Skeleton className="h-[90px] w-[90px] rounded-full" /></div>
+            <div className="flex items-center justify-center py-2"><Skeleton className="h-[120px] w-[120px] rounded-full" /></div>
           ) : (
-            <WinLossDonut winCount={data.winCount} lossCount={data.lossCount} winRate={data.winRate} />
+            <WinLossDonut
+              winCount={data.winCount}
+              lossCount={data.lossCount}
+              breakEvenCount={data.breakEvenCount}
+              winRate={data.winRate}
+            />
           )}
         </Card>
 
         <Card interactive className="sm:col-span-2 lg:col-span-1">
-          <div className="text-[11px] text-content-muted uppercase tracking-widest mb-3">{tr('analytics.keyStats')}</div>
+          <CardHeader title={tr('analytics.keyStats')} />
           {isLoading || !data ? (
             <div className="flex flex-col gap-2">{Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-6 w-full" />)}</div>
           ) : (
@@ -507,15 +246,17 @@ export default function Analytics() {
 
       {/* Monthly Calendar */}
       <Card interactive>
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-[11px] text-content-muted uppercase tracking-widest">{tr('analytics.calendar', { month: monthLabel })}</div>
-          <span className={`inline-flex px-2 py-0.5 rounded text-[10px] border ${
-            mtd >= 0 ? 'bg-pos/10 border-pos/20 text-pos' : 'bg-neg/10 border-neg/20 text-neg'
-          }`}>
-            <span className="font-mono">{fmtPnl(mtd)}</span>&nbsp;MTD
-          </span>
-        </div>
-        {isLoading ? <Skeleton className="h-[200px] w-full" /> : <Calendar daily={data?.dailyPnL ?? []} refDate={refDate} />}
+        <CardHeader
+          title={tr('analytics.calendar', { month: monthLabel })}
+          action={
+            <span className={`inline-flex px-2 py-0.5 rounded text-2xs border ${
+              mtd >= 0 ? 'bg-pos/10 border-pos/20 text-pos' : 'bg-neg/10 border-neg/20 text-neg'
+            }`}>
+              <span className="font-mono">{fmtPnl(mtd)}</span>&nbsp;MTD
+            </span>
+          }
+        />
+        {isLoading ? <Skeleton className="h-[200px] w-full" /> : <MonthCalendar daily={data?.dailyPnL ?? []} refDate={refDate} />}
       </Card>
 
     </>

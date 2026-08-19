@@ -195,6 +195,9 @@ export const en = {
   'dash.netPnl': 'Net P&L',
   'dash.winRate': 'Win Rate',
   'dash.expectancy': 'Expectancy',
+  'dash.netPnlSpark': 'Cumulative P&L for the selected period',
+  'dash.avgRRHint': 'Planned reward against planned risk',
+  'dash.pfHint': '${won} won against ${lost} lost',
   'dash.expectancyHint': 'Per trade',
   'dash.expectancyHintCount': 'Per trade · {count} trades',
   'dash.expectancyHintOne': 'Per trade · 1 trade',
@@ -212,7 +215,6 @@ export const en = {
   'dash.breakEvenCount': '{count} B/E',
   'dash.winLoss': '{wins}W / {losses}L',
   'dash.equityCurve': 'Equity Curve',
-  'dash.noTradesShort': 'No trades yet',
   'dash.sessions': 'Sessions',
   'dash.sessionLine': '{count} trades · {winRate}% WR · {r}',
   'dash.setupPerformance': 'Setup Performance',
@@ -255,9 +257,9 @@ export const en = {
   'analytics.clear': 'Clear',
   'analytics.fromDate': 'From date',
   'analytics.toDate': 'To date',
-  'analytics.noRange': 'No data for this range',
   'analytics.cumulativePnl': 'Cumulative P&L',
   'analytics.drawdown': 'Drawdown Analysis',
+  'analytics.drawdownHint': 'How far below the peak, in risk units',
   'analytics.byDayOfWeek': 'P&L by Day of Week',
   // Le chiavi di DOW_ORDER restano i nomi inglesi che manda il backend:
   // qui si traduce solo l'etichetta che finisce sull'asse.
@@ -412,4 +414,20 @@ export const en = {
   'screenshot.notAnImage': 'That link does not show an image.',
   'screenshot.removeAria': 'Remove screenshot',
   'screenshot.alt': 'Trade screenshot',
+
+  // ── Grafici ──
+  // Le voci `*Aria` sono la descrizione che uno screen reader legge al posto
+  // del disegno: devono contenere il numero, non il tipo di grafico.
+  'chart.noData': 'No data for this range',
+  'chart.total': 'Total',
+  'chart.thatDay': 'That day',
+  'chart.tradesCount': '{count} trades',
+  'chart.underPeak': 'Below peak',
+  'chart.adherence': 'Adherence',
+  'chart.breakEven': 'Break-even {count}',
+  'chart.equityAria': 'Cumulative P&L across {count} days, currently {value}',
+  'chart.drawdownAria': 'Drawdown from peak, in risk units. Worst so far {value}R',
+  'chart.dowAria': 'P&L by day of the week',
+  'chart.donutAria': 'Win rate {rate} percent, {wins} wins against {losses} losses',
+  'chart.disciplineAria': 'Checklist adherence over time, latest {value} percent',
 } as const

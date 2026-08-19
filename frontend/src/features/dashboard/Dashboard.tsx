@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import KpiCard from '../../components/ui/KpiCard'
 
@@ -7,146 +7,14 @@ import { useTrades } from '../../hooks/useTrades'
 import { useProfile } from '../../hooks/useProfile'
 import { useAuthStore } from '../../store/authStore'
 import type { TradeDto } from '../../types/trade'
-import type { DailyPnLDto } from '../../types/stats'
 import { t, tPlural, type TranslationKey } from '../../i18n'
+import { fmt, fmtPnl, fmtR } from '../../lib/format'
+import { cumulative } from '../../lib/series'
 
 import TradeStatusBadge from '../../components/TradeStatusBadge'
-import { Button, Card, EmptyState, KpiCardSkeleton, PageHeader, Skeleton, TBody, TH, THead, TR, Table, TableSkeleton, TableWrap } from '../../design-system'
-
-const HM_COLOR: Record<string, string> = {
-  'hm-0':  'bg-surface-2',
-  'hm-1':  'bg-pos/15',
-  'hm-2':  'bg-pos/30',
-  'hm-3':  'bg-pos/50',
-  'hm-4':  'bg-pos/75',
-  'hm-n1': 'bg-neg/15',
-  'hm-n2': 'bg-neg/30',
-  'hm-n3': 'bg-neg/50',
-}
-
-/* ── HEATMAP ── */
-function Heatmap({ daily }: { daily: DailyPnLDto[] }) {
-  const days  = ['M', 'T', 'W', 'T', 'F']
-  const weeks = 13
-
-  // Index P&L by calendar day (YYYY-MM-DD)
-  const pnlByDate = new Map<string, number>()
-  for (const d of daily) pnlByDate.set(d.date.slice(0, 10), d.pnL)
-
-  const maxAbs = daily.reduce((m, d) => Math.max(m, Math.abs(d.pnL)), 0)
-
-  // Monday of the current week, then rewind 12 weeks → 13-week window
-  const today = new Date()
-  const daysFromMonday = (today.getDay() + 6) % 7
-  const startMonday = new Date(today)
-  startMonday.setDate(today.getDate() - daysFromMonday - (weeks - 1) * 7)
-
-  const keyOf = (dt: Date) =>
-    `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
-
-  const bucket = (pnl: number | undefined) => {
-    if (pnl === undefined || pnl === 0 || maxAbs === 0) return 'hm-0'
-    const ratio = Math.abs(pnl) / maxAbs
-    return pnl > 0
-      ? `hm-${Math.min(Math.ceil(ratio * 4), 4)}`
-      : `hm-n${Math.min(Math.ceil(ratio * 3), 3)}`
-  }
-
-  return (
-    // Le colonne erano `1fr`: su desktop diventavano quadrati da ~90px e la
-    // heatmap si mangiava mezza pagina. Con un tetto crescono fin dove serve
-    // e poi si fermano, allineate a sinistra.
-    <div style={{ display: 'grid', gridTemplateColumns: '26px repeat(13, minmax(0, 26px))', gap: 3, justifyContent: 'start' }}>
-      {days.map((day, di) => (
-        <Fragment key={`row-${di}`}>
-          <div className="text-[9px] text-content-faint flex items-center justify-end pr-1">{day}</div>
-          {Array.from({ length: weeks }).map((_, w) => {
-            const cellDate = new Date(startMonday)
-            cellDate.setDate(startMonday.getDate() + w * 7 + di)
-            const pnl = pnlByDate.get(keyOf(cellDate))
-            const cls = bucket(pnl)
-            const label = cellDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-            const title = pnl !== undefined
-              ? `${label}: ${pnl >= 0 ? '+' : '-'}$${Math.abs(pnl).toLocaleString('en-US')}`
-              : `${label}: no trades`
-            return (
-              <div
-                key={`${di}-${w}`}
-                title={title}
-                className={`aspect-square rounded-[2px] cursor-pointer hover:opacity-80 ${HM_COLOR[cls]}`}
-              />
-            )
-          })}
-        </Fragment>
-      ))}
-    </div>
-  )
-}
-
-/* ── EQUITY CURVE ── */
-function EquityCurve({ daily }: { daily: DailyPnLDto[] }) {
-  if (daily.length === 0) {
-    return <div className="h-[180px] flex items-center justify-center text-xs text-content-muted">{t('dash.noTradesShort')}</div>
-  }
-
-  const W = 800, H = 180, pad = 16
-
-  // Cumulative equity (backend returns dailyPnL ascending by date)
-  const points: { date: string; value: number }[] = []
-  for (const d of daily) {
-    const prev = points.length ? points[points.length - 1].value : 0
-    points.push({ date: d.date, value: prev + d.pnL })
-  }
-  const values = points.map(p => p.value)
-  const n = points.length
-
-  const minV = Math.min(0, ...values)
-  const maxV = Math.max(0, ...values)
-  const range = maxV - minV || 1
-
-  const xOf = (i: number) => (n === 1 ? W : (i / (n - 1)) * W)
-  const yOf = (v: number) => pad + (1 - (v - minV) / range) * (H - 2 * pad)
-
-  const coords = points.map((p, i) => `${xOf(i).toFixed(1)},${yOf(p.value).toFixed(1)}`)
-  const flatY = yOf(values[0]).toFixed(1)
-  const line = n === 1 ? `0,${flatY} ${W},${flatY}` : coords.join(' ')
-  const area = `${n === 1 ? `0,${flatY} ${W},${flatY}` : coords.join(' ')} ${W},${H} 0,${H}`
-
-  const lastValue = values[n - 1]
-  const positive = lastValue >= 0
-  const stroke = positive ? 'rgb(var(--c-pos))' : 'rgb(var(--c-neg))'
-  const lastX = xOf(n - 1)
-  const lastY = yOf(lastValue)
-
-  // Up to 4 evenly spaced date labels
-  const idx = n === 1 ? [0] : [...new Set([0, Math.round((n - 1) / 3), Math.round((2 * (n - 1)) / 3), n - 1])]
-  const labels = idx.map(i => new Date(points[i].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))
-
-  return (
-    <>
-      <div style={{ height: H }}>
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: H }} preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="eq-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stopColor={positive ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)'} />
-              <stop offset="100%" stopColor={positive ? 'rgba(34,197,94,0)'    : 'rgba(239,68,68,0)'} />
-            </linearGradient>
-          </defs>
-          <line x1="0" y1="40"  x2={W} y2="40"  stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-          <line x1="0" y1="90"  x2={W} y2="90"  stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-          <line x1="0" y1="140" x2={W} y2="140" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-          <polygon points={area} fill="url(#eq-grad)" />
-          <polyline points={line} fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <circle cx={lastX} cy={lastY} r="4" fill={stroke} />
-          <circle cx={lastX} cy={lastY} r="8" fill={positive ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'} />
-        </svg>
-      </div>
-      <div className="flex justify-between mt-1">
-        {labels.map((d, i) => <span key={i} className="text-[10px] text-content-faint">{d}</span>)}
-      </div>
-    </>
-  )
-}
+import { ActivityHeatmap, EquityChart } from '../../components/charts'
+import { Sparkline } from '../../design-system/charts'
+import { Button, Card, CardHeader, EmptyState, KpiCardSkeleton, PageHeader, Skeleton, TBody, TH, THead, TR, Table, TableSkeleton, TableWrap } from '../../design-system'
 
 /* ── RECENT TRADES TABLE ── */
 
@@ -214,18 +82,6 @@ function RecentTrades({ trades }: { trades: TradeDto[] }) {
 }
 
 /* ── HELPERS ── */
-function fmt(n: number, decimals = 0) {
-  return n.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
-}
-function fmtPnl(n: number) {
-  const s = n >= 0 ? `+$${fmt(n)}` : `-$${fmt(Math.abs(n))}`
-  return s
-}
-/** Risultato in unità di rischio: il metro che non dipende dal capitale. */
-function fmtR(n: number) {
-  return `${n >= 0 ? '+' : '−'}${fmt(Math.abs(n), 2)}R`
-}
-
 /** Il saluto seguiva l'ora solo di nome: era "Good morning" anche a mezzanotte. */
 function greeting() {
   const h = new Date().getHours()
@@ -302,6 +158,10 @@ export default function Dashboard() {
 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
+  // La miniatura sulla card del P&L netto: la stessa curva del grafico grande,
+  // ridotta a una riga. Ha senso solo con almeno due giorni.
+  const equity = useMemo(() => cumulative(data?.dailyPnL ?? []).map(p => p.value), [data])
+
   // Due vuoti diversi: chi non ha mai registrato un trade va invitato a farlo,
   // chi ne ha ma non in questo periodo va solo avvisato che il filtro è stretto.
   const statsReady = !isLoading && !isError
@@ -358,12 +218,16 @@ export default function Dashboard() {
               delta={data ? fmtR(data.netR) : undefined}
               deltaUp={data ? data.netPnL >= 0 : undefined}
             >
-              <div className="h-7 mt-2">
-                <svg viewBox="0 0 100 28" className="w-full h-7" preserveAspectRatio="none">
-                  <defs><linearGradient id="lg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="rgba(34,197,94,0.2)"/><stop offset="100%" stopColor="rgba(34,197,94,0)"/></linearGradient></defs>
-                  <polyline points="0,22 15,18 28,20 40,10 55,8 68,12 80,5 100,3" fill="none" stroke="rgba(34,197,94,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <polygon points="0,22 15,18 28,20 40,10 55,8 68,12 80,5 100,3 100,28 0,28" fill="url(#lg1)"/>
-                </svg>
+              {/* Il disegno qui era finto: sei coppie di coordinate scritte a
+                  mano, identiche per ogni utente e per ogni periodo. Ora è la
+                  curva vera del periodo selezionato — e dove la serie non c'è,
+                  non compare niente. */}
+              <div className="mt-2">
+                <Sparkline
+                  values={equity}
+                  tone={data && data.netPnL >= 0 ? 'pos' : 'neg'}
+                  label={t('dash.netPnlSpark')}
+                />
               </div>
             </KpiCard>
 
@@ -397,11 +261,7 @@ export default function Dashboard() {
               delta={data ? (data.avgRR >= 2 ? t('dash.aboveTarget') : t('dash.belowTarget')) : undefined}
               deltaUp={data ? data.avgRR >= 2 : undefined}
             >
-              <div className="h-7 mt-2">
-                <svg viewBox="0 0 100 28" className="w-full h-7" preserveAspectRatio="none">
-                  <polyline points="0,18 12,20 25,14 35,16 48,10 60,7 72,9 85,5 100,4" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
+              <div className="text-2xs text-content-faint mt-2">{t('dash.avgRRHint')}</div>
             </KpiCard>
 
             <KpiCard
@@ -439,15 +299,8 @@ export default function Dashboard() {
               }
               deltaUp={data && data.totalTrades > 0 ? (data.profitFactor === null || data.profitFactor >= 1) : undefined}
             >
-              <div className="h-7 mt-2">
-                <svg viewBox="0 0 100 28" className="w-full h-7" preserveAspectRatio="none">
-                  <rect x="5"  y="12" width="10" height="15" rx="1" fill="rgba(34,197,94,0.5)"/>
-                  <rect x="20" y="8"  width="10" height="19" rx="1" fill="rgba(34,197,94,0.5)"/>
-                  <rect x="35" y="15" width="10" height="12" rx="1" fill="rgba(239,68,68,0.4)"/>
-                  <rect x="50" y="6"  width="10" height="21" rx="1" fill="rgba(34,197,94,0.5)"/>
-                  <rect x="65" y="10" width="10" height="17" rx="1" fill="rgba(34,197,94,0.5)"/>
-                  <rect x="80" y="18" width="10" height="9"  rx="1" fill="rgba(239,68,68,0.4)"/>
-                </svg>
+              <div className="text-2xs text-content-faint mt-2">
+                {data && data.totalTrades > 0 ? t('dash.pfHint', { won: fmt(data.avgWin * data.winCount), lost: fmt(Math.abs(data.avgLoss) * data.lossCount) }) : ''}
               </div>
             </KpiCard>
           </>
@@ -456,17 +309,13 @@ export default function Dashboard() {
 
       {/* Equity Curve */}
       <Card interactive className="mb-3.5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-[11px] text-content-muted uppercase tracking-widest">{t('dash.equityCurve')}</div>
-          {/* Il periodo lo decide il selettore in testa alla pagina: qui si dichiara
-              soltanto cosa si sta guardando. */}
-          <span className="text-[10px] text-content-muted">{t(PERIOD_LABEL[period])}</span>
-        </div>
-        {isLoading ? (
-          <Skeleton className="h-[180px] w-full" />
-        ) : (
-          <EquityCurve daily={data?.dailyPnL ?? []} />
-        )}
+        {/* Il periodo lo decide il selettore in testa alla pagina: qui si dichiara
+            soltanto cosa si sta guardando. */}
+        <CardHeader
+          title={t('dash.equityCurve')}
+          action={<span className="text-2xs text-content-muted">{t(PERIOD_LABEL[period])}</span>}
+        />
+        {isLoading ? <Skeleton className="h-[180px] w-full" /> : <EquityChart daily={data?.dailyPnL ?? []} />}
       </Card>
 
       {/* Sessions + Setups + Stats */}
@@ -474,7 +323,7 @@ export default function Dashboard() {
 
         {/* Sessions */}
         <Card interactive>
-          <div className="text-[11px] text-content-muted uppercase tracking-widest mb-4">{t('dash.sessions')}</div>
+          <CardHeader title={t('dash.sessions')} />
           {isLoading ? (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
@@ -498,10 +347,10 @@ export default function Dashboard() {
 
         {/* Setup Performance */}
         <Card interactive>
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-[11px] text-content-muted uppercase tracking-widest">{t('dash.setupPerformance')}</div>
-            <Link to="/analytics" className="text-[10px] text-content-muted px-1.5 py-0.5 rounded border border-line-2 hover:text-content-secondary transition-all">{t('common.viewAll')}</Link>
-          </div>
+          <CardHeader
+            title={t('dash.setupPerformance')}
+            action={<Link to="/analytics" className="text-2xs text-content-muted px-1.5 py-0.5 rounded border border-line-2 hover:text-content-secondary transition-colors">{t('common.viewAll')}</Link>}
+          />
           {isLoading ? (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-6 w-full" />)}
@@ -544,7 +393,7 @@ export default function Dashboard() {
 
         {/* Statistics */}
         <Card interactive>
-          <div className="text-[11px] text-content-muted uppercase tracking-widest mb-4">{t('dash.statistics')}</div>
+          <CardHeader title={t('dash.statistics')} />
           {isLoading ? (
             <div className="grid grid-cols-2 gap-2">
               {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
@@ -571,10 +420,10 @@ export default function Dashboard() {
 
       {/* Recent Trades */}
       <Card interactive className="mb-3.5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-[11px] text-content-muted uppercase tracking-widest">{t('dash.recentTrades')}</div>
-          <Link to="/trades" className="text-[10px] text-content-muted px-1.5 py-0.5 rounded border border-line-2 hover:text-content-secondary transition-all">{t('common.viewAll')} →</Link>
-        </div>
+        <CardHeader
+          title={t('dash.recentTrades')}
+          action={<Link to="/trades" className="text-2xs text-content-muted px-1.5 py-0.5 rounded border border-line-2 hover:text-content-secondary transition-colors">{t('common.viewAll')} →</Link>}
+        />
         {tradesLoading ? (
           <TableSkeleton />
         ) : tradesError ? (
@@ -586,18 +435,21 @@ export default function Dashboard() {
 
       {/* Heatmap */}
       <Card interactive>
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-[11px] text-content-muted uppercase tracking-widest">{t('dash.heatmap')}</div>
-          <div className="hidden sm:flex items-center gap-1 text-[10px] text-content-faint">
-            <span>{t('dash.less')}</span>
-            <div className="w-2.5 h-2.5 rounded-sm bg-surface-2" />
-            <div className="w-2.5 h-2.5 rounded-sm bg-pos/30" />
-            <div className="w-2.5 h-2.5 rounded-sm bg-pos/75" />
-            <span>{t('dash.more')}</span>
-          </div>
-        </div>
+        <CardHeader
+          title={t('dash.heatmap')}
+          action={
+            <div className="hidden sm:flex items-center gap-1 text-2xs text-content-faint">
+              <span>{t('dash.less')}</span>
+              <div className="w-2.5 h-2.5 rounded-sm bg-neg/50" />
+              <div className="w-2.5 h-2.5 rounded-sm bg-surface-2" />
+              <div className="w-2.5 h-2.5 rounded-sm bg-pos/30" />
+              <div className="w-2.5 h-2.5 rounded-sm bg-pos/75" />
+              <span>{t('dash.more')}</span>
+            </div>
+          }
+        />
         <div className="overflow-x-auto">
-          <Heatmap daily={allTime?.dailyPnL ?? []} />
+          <ActivityHeatmap daily={allTime?.dailyPnL ?? []} />
         </div>
       </Card>
 
