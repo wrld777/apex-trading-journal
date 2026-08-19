@@ -32,8 +32,14 @@ export default function MonthCalendar({ daily, refDate }: { daily: DailyPnLDto[]
 
   // `grid-cols-7` stirava le celle a tutta larghezza: con `aspect-square`
   // diventavano quadrati da ~170px e il calendario occupava schermate intere.
-  // Un tetto per colonna le lascia crescere fin dove serve e poi le ferma.
-  const columns = { gridTemplateColumns: 'repeat(7, minmax(0, 76px))', justifyContent: 'start' as const }
+  // Il tetto risolveva quello, ma a 76px il calendario restava un francobollo
+  // in fondo a una card larga il doppio.
+  //
+  // La cella non è più quadrata: un giorno contiene un numero e un importo
+  // affiancabili, e le celle di un calendario vero sono più larghe che alte.
+  // Con 4/3 la larghezza può salire a 112px — quasi 800px di calendario —
+  // restando sotto le sei righe da 84px, cioè meno alto di prima in proporzione.
+  const columns = { gridTemplateColumns: 'repeat(7, minmax(0, 112px))', justifyContent: 'start' as const }
 
   return (
     <div>
@@ -43,7 +49,7 @@ export default function MonthCalendar({ daily, refDate }: { daily: DailyPnLDto[]
         ))}
       </div>
       <div className="grid gap-1" style={columns}>
-        {Array.from({ length: leadOffset }, (_, i) => <div key={`lead-${i}`} className="aspect-square" />)}
+        {Array.from({ length: leadOffset }, (_, i) => <div key={`lead-${i}`} className="aspect-[4/3]" />)}
 
         {Array.from({ length: daysInMonth }, (_, i) => {
           const day = i + 1
@@ -67,14 +73,19 @@ export default function MonthCalendar({ daily, refDate }: { daily: DailyPnLDto[]
           const cell = (key?: number) => (
             <div
               key={key}
-              className={`aspect-square rounded-md flex flex-col items-center justify-center gap-0.5 outline-none transition-[filter] ${tone} ${
+              className={`aspect-[4/3] rounded-md p-1.5 flex flex-col outline-none transition-[filter] ${tone} ${
                 traded ? 'hover:brightness-125 focus-visible:ring-2 focus-visible:ring-brand/70' : ''
               }`}
               {...(traded ? { tabIndex: 0, role: 'img', 'aria-label': `${day}: ${fmtPnl(pnl)}` } : { 'aria-hidden': true })}
             >
-              <span className="text-2xs leading-none">{day}</span>
+              {/* Il numero del giorno sta in alto a sinistra come su un
+                  calendario vero: al centro c'è il dato, ed è quello che si
+                  cerca scorrendo il mese. */}
+              <span className="text-2xs leading-none opacity-80">{day}</span>
               {traded && pnl !== 0 && (
-                <span className="text-2xs font-medium leading-none font-mono">{pnl > 0 ? '+' : ''}{fmtUsdShort(pnl)}</span>
+                <span className="flex-1 flex items-center justify-center text-xs font-medium font-mono">
+                  {pnl > 0 ? '+' : ''}{fmtUsdShort(pnl)}
+                </span>
               )}
             </div>
           )

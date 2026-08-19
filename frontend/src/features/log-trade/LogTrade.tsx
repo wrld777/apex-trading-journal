@@ -180,7 +180,20 @@ export default function LogTrade() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+        {/* La strategia viene per prima, e non è una questione di gusto: decide
+            quali strumenti si possono scegliere (#95) e quale checklist compare.
+            Scegliendola dopo, uno strumento già selezionato che non le appartiene
+            va **cancellato** — c'è una riga in `selectStrategy` che fa esattamente
+            questo, ed era la spia che l'ordine era sbagliato. */}
         <div className="flex flex-col gap-3.5">
+          <StrategyChecklist
+            strategies={strategies}
+            strategyId={strategyId}
+            onSelect={selectStrategy}
+            ruleChecks={ruleChecks}
+            onToggleRule={id => setRuleChecks(prev => ({ ...prev, [id]: !prev[id] }))}
+          />
+
           <TradeDetails
             form={form}
             errors={errors}
@@ -210,23 +223,17 @@ export default function LogTrade() {
             onAddPartial={() => setPartials(ps => [...ps, newPartial()])}
             onRemovePartial={key => setPartials(ps => ps.filter(p => p.key !== key))}
           />
-
-          <Context form={form} onField={onField} tags={tags} onTags={setTags} />
         </div>
 
+        {/* A destra il contorno: com'era il mercato, cosa si è visto, cosa si
+            pensava. Niente di qui vincola i campi di sinistra. */}
         <div className="flex flex-col gap-3.5">
           <Card>
             <CardHeader title={t('logTrade.sectionScreenshot')} />
             <ScreenshotInput value={screenshots} onChange={setScreenshots} />
           </Card>
 
-          <StrategyChecklist
-            strategies={strategies}
-            strategyId={strategyId}
-            onSelect={selectStrategy}
-            ruleChecks={ruleChecks}
-            onToggleRule={id => setRuleChecks(prev => ({ ...prev, [id]: !prev[id] }))}
-          />
+          <Context form={form} onField={onField} tags={tags} onTags={setTags} />
 
           <Notes form={form} onField={onField} />
         </div>

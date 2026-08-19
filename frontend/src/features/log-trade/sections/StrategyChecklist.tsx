@@ -25,7 +25,7 @@ export default function StrategyChecklist({
 
   return (
     <Card>
-      <CardHeader title={t('logTrade.sectionStrategy')} />
+      <CardHeader title={t('logTrade.sectionStrategy')} subtitle={t('logTrade.sectionStrategyHint')} />
       <Field label={t('logTrade.strategy')}>
         <Select value={strategyId} onChange={e => onSelect(e.target.value)}>
           <option value="">{t('logTrade.noStrategy')}</option>

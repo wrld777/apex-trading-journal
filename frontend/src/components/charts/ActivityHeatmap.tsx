@@ -61,12 +61,18 @@ export default function ActivityHeatmap({ daily }: { daily: DailyPnLDto[] }) {
   })
 
   // Le colonne erano `1fr`: su desktop diventavano quadrati da ~90px e la
-  // heatmap si mangiava mezza pagina. Con un tetto crescono fin dove serve e
-  // poi si fermano, allineate a sinistra.
+  // heatmap si mangiava mezza pagina. Il tetto risolveva quello, ma a 26px era
+  // troppo stretto e su un monitor largo la heatmap sembrava persa in un angolo
+  // della card.
+  //
+  // Il tetto non è un numero a piacere: le celle sono **quadrate**, quindi ogni
+  // pixel di larghezza è anche un pixel di altezza per cinque righe. A 48px
+  // occupa ~700×256, che riempie la card senza spingere il resto fuori
+  // schermo; sopra i 60 tornerebbe a mangiarsi la pagina.
   const columns = {
     display: 'grid',
-    gridTemplateColumns: `26px repeat(${WEEKS}, minmax(0, 26px))`,
-    gap: 3,
+    gridTemplateColumns: `28px repeat(${WEEKS}, minmax(0, 48px))`,
+    gap: 4,
     justifyContent: 'start' as const,
   }
 
