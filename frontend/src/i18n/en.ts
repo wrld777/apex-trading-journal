@@ -217,6 +217,7 @@ export const en = {
   'dash.equityCurve': 'Equity Curve',
   'dash.sessions': 'Sessions',
   'dash.sessionLine': '{count} trades · {winRate}% WR · {r}',
+  'dash.setupWinRate': 'Win rate for {setup}',
   'dash.setupPerformance': 'Setup Performance',
   'dash.statistics': 'Statistics',
   'dash.totalTrades': 'Total Trades',

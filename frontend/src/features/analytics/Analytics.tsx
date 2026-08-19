@@ -6,7 +6,7 @@ import type { StatsDto } from '../../types/stats'
 import type { TradeDto } from '../../types/trade'
 import { t as tr } from '../../i18n'
 import { fmt, fmtPnl } from '../../lib/format'
-import { Button, Card, CardHeader, Input, PageHeader, Skeleton } from '../../design-system'
+import { Button, Card, CardHeader, Input, PageHeader, Skeleton, Stat, StatRow, type StatTone } from '../../design-system'
 import {
   DayOfWeekChart, DrawdownChart, EquityChart, MonthCalendar, WinLossDonut,
 } from '../../components/charts'
@@ -48,27 +48,34 @@ function downloadCsv(filename: string, content: string) {
 }
 
 /* ── KPI / KEY STATS BUILDERS ── */
-function kpiBar(s: StatsDto) {
+/**
+ * Il tono si dichiara solo dove il numero ha davvero un segno. Win rate, RR e
+ * durata media non sono né buoni né cattivi da soli: colorarli è un giudizio
+ * che l'app non è in grado di dare.
+ */
+interface StatSpec { label: string; value: string; tone?: StatTone }
+
+function kpiBar(s: StatsDto): StatSpec[] {
   return [
-    { label: tr('dash.netPnl'),       value: fmtPnl(s.netPnL),                  color: s.netPnL >= 0 ? 'text-pos' : 'text-neg' },
-    { label: tr('dash.winRate'),      value: `${fmt(s.winRate, 1)}%`,           color: 'text-content-strong' },
+    { label: tr('dash.netPnl'),       value: fmtPnl(s.netPnL), tone: s.netPnL >= 0 ? 'positive' : 'negative' },
+    { label: tr('dash.winRate'),      value: `${fmt(s.winRate, 1)}%` },
     // Niente "R" in coda: il RR è un rapporto fra distanze, non un R-multiplo.
-    { label: tr('dash.avgRR'),        value: fmt(s.avgRR, 2),                   color: 'text-content-strong' },
-    { label: tr('dash.profitFactor'), value: s.totalTrades === 0 ? '—' : s.profitFactor === null ? '∞' : fmt(s.profitFactor, 2), color: 'text-content-strong' },
-    { label: tr('analytics.maxDd'),        value: `-$${fmt(Math.abs(s.maxDrawdown))}`, color: 'text-neg' },
-    { label: tr('analytics.avgHold'),      value: tr('analytics.minutes', { count: fmt(s.avgHoldMinutes, 0) }), color: 'text-content-strong' },
-    { label: tr('analytics.bestStreak'),   value: `${s.bestStreak}W`,                color: 'text-content-strong' },
+    { label: tr('dash.avgRR'),        value: fmt(s.avgRR, 2) },
+    { label: tr('dash.profitFactor'), value: s.totalTrades === 0 ? '—' : s.profitFactor === null ? '∞' : fmt(s.profitFactor, 2) },
+    { label: tr('analytics.maxDd'),      value: `-$${fmt(Math.abs(s.maxDrawdown))}`, tone: 'negative' },
+    { label: tr('analytics.avgHold'),    value: tr('analytics.minutes', { count: fmt(s.avgHoldMinutes, 0) }) },
+    { label: tr('analytics.bestStreak'), value: `${s.bestStreak}W` },
   ]
 }
-function keyStats(s: StatsDto) {
+function keyStats(s: StatsDto): StatSpec[] {
   return [
-    { label: tr('analytics.avgWinner'),   value: `+$${fmt(s.avgWin)}`,             color: 'text-pos' },
-    { label: tr('analytics.avgLoser'),    value: `-$${fmt(Math.abs(s.avgLoss))}`,  color: 'text-neg' },
-    { label: tr('analytics.largestWin'),  value: `+$${fmt(s.bestTrade)}`,          color: 'text-pos' },
-    { label: tr('analytics.largestLoss'), value: `-$${fmt(Math.abs(s.worstTrade))}`, color: 'text-neg' },
-    { label: tr('analytics.avgHold'),     value: tr('analytics.minutes', { count: fmt(s.avgHoldMinutes, 0) }), color: 'text-content-strong' },
-    { label: tr('analytics.bestStreak'),  value: `${s.bestStreak}W`,               color: 'text-content-strong' },
-    { label: tr('analytics.worstStreak'), value: `${s.worstStreak}L`,              color: 'text-neg' },
+    { label: tr('analytics.avgWinner'),   value: `+$${fmt(s.avgWin)}`,               tone: 'positive' },
+    { label: tr('analytics.avgLoser'),    value: `-$${fmt(Math.abs(s.avgLoss))}`,    tone: 'negative' },
+    { label: tr('analytics.largestWin'),  value: `+$${fmt(s.bestTrade)}`,            tone: 'positive' },
+    { label: tr('analytics.largestLoss'), value: `-$${fmt(Math.abs(s.worstTrade))}`, tone: 'negative' },
+    { label: tr('analytics.avgHold'),     value: tr('analytics.minutes', { count: fmt(s.avgHoldMinutes, 0) }) },
+    { label: tr('analytics.bestStreak'),  value: `${s.bestStreak}W` },
+    { label: tr('analytics.worstStreak'), value: `${s.worstStreak}L`,                tone: 'negative' },
   ]
 }
 
@@ -171,21 +178,16 @@ export default function Analytics() {
         ) : (
           <>
             <div className="grid grid-cols-2 gap-3 sm:hidden">
-              {kpiBar(data).map(k => (
-                <div key={k.label} className="flex flex-col gap-0.5">
-                  <div className={`font-mono font-medium text-lg tracking-tight ${k.color}`}>{k.value}</div>
-                  <div className="text-[10px] text-content-faint uppercase tracking-widest">{k.label}</div>
-                </div>
-              ))}
+              {kpiBar(data).map(k => <Stat key={k.label} label={k.label} tone={k.tone}>{k.value}</Stat>)}
             </div>
+            {/* Su schermo largo la stessa fila diventa orizzontale, con un
+                filetto fra una metrica e l'altra invece di uno spazio: sette
+                numeri di seguito senza separatore si leggono come una frase. */}
             <div className="hidden sm:flex items-center flex-wrap gap-6 lg:gap-8">
               {kpiBar(data).map((k, i, arr) => (
                 <div key={k.label} className="flex items-center gap-6 lg:gap-8">
-                  <div className="flex flex-col gap-0.5">
-                    <div className={`font-mono font-medium text-lg lg:text-[20px] tracking-tight ${k.color}`}>{k.value}</div>
-                    <div className="text-[10px] text-content-faint uppercase tracking-widest">{k.label}</div>
-                  </div>
-                  {i < arr.length - 1 && <div className="w-px h-9 bg-white/[0.04]" />}
+                  <Stat label={k.label} tone={k.tone}>{k.value}</Stat>
+                  {i < arr.length - 1 && <div className="w-px h-9 bg-line" />}
                 </div>
               ))}
             </div>
@@ -233,12 +235,7 @@ export default function Analytics() {
             <div className="flex flex-col gap-2">{Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-6 w-full" />)}</div>
           ) : (
             <div className="flex flex-col">
-              {keyStats(data).map(s => (
-                <div key={s.label} className="flex items-center justify-between py-2 border-b border-line last:border-0">
-                  <span className="text-xs text-content-secondary">{s.label}</span>
-                  <span className={`text-xs font-mono font-medium ${s.color}`}>{s.value}</span>
-                </div>
-              ))}
+              {keyStats(data).map(s => <StatRow key={s.label} label={s.label} tone={s.tone}>{s.value}</StatRow>)}
             </div>
           )}
         </Card>

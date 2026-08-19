@@ -9,7 +9,7 @@ import type {
   StrategyStatsDto,
 } from '../../types/analytics'
 import { fmt, fmtPnl, fmtR, pnlColor } from '../../lib/format'
-import { Card, CardHeader, EmptyState, PageHeader, Select, Skeleton } from '../../design-system'
+import { Card, CardHeader, EmptyState, PageHeader, Select, Skeleton, StatRow, Tooltip } from '../../design-system'
 import { DisciplineChart, RuleImpactBars } from '../../components/charts'
 
 /* ── METRIC COLUMN (one of Overall / Adherent / Not adherent) ── */
@@ -18,32 +18,26 @@ function MetricColumn({ title, block, accent }: { title: string; block: MetricsB
   return (
     <div className="flex-1 min-w-0">
       <div className="flex items-center gap-1.5 mb-2">
-        <span className={`w-1.5 h-1.5 rounded-full ${accent}`} />
-        <span className="text-[10px] text-content-secondary uppercase tracking-widest truncate">{title}</span>
+        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${accent}`} />
+        <span className="text-2xs text-content-secondary uppercase tracking-widest truncate">{title}</span>
       </div>
       {empty ? (
         <div className="text-content-faint text-lg font-mono font-medium">—</div>
       ) : (
         <>
-          <div className="font-mono font-medium text-[22px] leading-none text-content-strong mb-1.5">{fmt(block.winRate, 1)}%</div>
-          <div className="flex flex-col gap-0.5">
+          <div className="font-mono font-medium text-xl leading-none text-content-strong mb-1.5">{fmt(block.winRate, 1)}%</div>
+          <div className="flex flex-col">
             {/* L'expectancy in R viene prima: è quella con cui si confrontano
                 due strategie. I dollari restano sotto come riferimento. */}
-            <Row k={t('insights.expectancy')} v={fmtR(block.expectancyR)} vc={pnlColor(block.expectancyR)} />
-            <Row k={t('insights.inDollars')} v={fmtPnl(block.expectancy)} vc="text-content-secondary" />
-            <Row k={t('insights.avgRR')} v={fmt(block.avgRR, 2)} />
-            <Row k={t('insights.tradesLabel')} v={String(block.totalTrades)} />
+            <StatRow label={t('insights.expectancy')} tone={block.expectancyR >= 0 ? 'positive' : 'negative'} className="py-1">
+              {fmtR(block.expectancyR)}
+            </StatRow>
+            <StatRow label={t('insights.inDollars')} tone="muted" className="py-1">{fmtPnl(block.expectancy)}</StatRow>
+            <StatRow label={t('insights.avgRR')} className="py-1">{fmt(block.avgRR, 2)}</StatRow>
+            <StatRow label={t('insights.tradesLabel')} className="py-1">{String(block.totalTrades)}</StatRow>
           </div>
         </>
       )}
-    </div>
-  )
-}
-function Row({ k, v, vc = 'text-content' }: { k: string; v: string; vc?: string }) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-[10px] text-content-muted">{k}</span>
-      <span className={`text-[11px] font-mono ${vc}`}>{v}</span>
     </div>
   )
 }
@@ -77,9 +71,11 @@ function StrategyCard({ s }: { s: StrategyStatsDto }) {
     <Card interactive>
       <div className="flex items-center justify-between mb-4">
         <div className="text-sm font-medium text-content-strong truncate">{s.strategyName}</div>
-        <div className={`text-[11px] font-mono ${pnlColor(s.overall.expectancyR)}`} title={t('insights.expTitle', { value: fmtPnl(s.overall.expectancy) })}>
-          {t('insights.expShort', { value: fmtR(s.overall.expectancyR) })}
-        </div>
+        <Tooltip content={t('insights.expTitle', { value: fmtPnl(s.overall.expectancy) })}>
+          <span className={`text-xs font-mono ${pnlColor(s.overall.expectancyR)}`}>
+            {t('insights.expShort', { value: fmtR(s.overall.expectancyR) })}
+          </span>
+        </Tooltip>
       </div>
       <div className="flex gap-3">
         <MetricColumn title={t('insights.all')} block={s.overall} accent="bg-content-muted" />

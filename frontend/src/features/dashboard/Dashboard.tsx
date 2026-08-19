@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import KpiCard from '../../components/ui/KpiCard'
 
 import { useStats } from '../../hooks/useStats'
 import { useTrades } from '../../hooks/useTrades'
@@ -8,13 +7,14 @@ import { useProfile } from '../../hooks/useProfile'
 import { useAuthStore } from '../../store/authStore'
 import type { TradeDto } from '../../types/trade'
 import { t, tPlural, type TranslationKey } from '../../i18n'
-import { fmt, fmtPnl, fmtR } from '../../lib/format'
+import type { StatTone } from '../../design-system'
+import { fmt, fmtDay, fmtPnl, fmtR } from '../../lib/format'
 import { cumulative } from '../../lib/series'
 
 import TradeStatusBadge from '../../components/TradeStatusBadge'
 import { ActivityHeatmap, EquityChart } from '../../components/charts'
 import { Sparkline } from '../../design-system/charts'
-import { Button, Card, CardHeader, EmptyState, KpiCardSkeleton, PageHeader, Skeleton, TBody, TH, THead, TR, Table, TableSkeleton, TableWrap } from '../../design-system'
+import { Button, Card, CardHeader, EmptyState, Meter, PageHeader, Skeleton, Stat, StatCard, StatCardSkeleton, TBody, TD, TH, THead, TR, Table, TableSkeleton, TableWrap, Tooltip } from '../../design-system'
 
 /* ── RECENT TRADES TABLE ── */
 
@@ -52,27 +52,21 @@ function RecentTrades({ trades }: { trades: TradeDto[] }) {
         <TBody>
           {rows.map(trade => (
             <TR key={trade.id}>
-              <td className="py-2.5 pr-3 text-xs font-medium text-content-strong">{trade.symbol}</td>
-              <td className="py-2.5 pr-3">
-                <span className={`text-[11px] font-medium ${trade.direction === 'Long' ? 'text-pos' : 'text-neg'}`}>
-                  {trade.direction === 'Long' ? t('dash.long') : t('dash.short')}
-                </span>
-              </td>
-              <td className="py-2.5 pr-3 text-[11px] text-content-secondary">
-                {new Date(trade.entryTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              </td>
-              <td className="py-2.5 pr-3 text-[11px] text-content-secondary">{trade.setup}</td>
-              <td className="py-2.5 pr-3 text-[11px] text-content-secondary text-right font-mono">{trade.quantity}</td>
+              <TD className="font-medium text-content-strong">{trade.symbol}</TD>
+              <TD className={trade.direction === 'Long' ? 'text-pos font-medium' : 'text-neg font-medium'}>
+                {trade.direction === 'Long' ? t('dash.long') : t('dash.short')}
+              </TD>
+              <TD>{fmtDay(trade.entryTime)}</TD>
+              <TD>{trade.setup}</TD>
+              <TD numeric>{trade.quantity}</TD>
               {/* null quando lo stop coincideva con l'entry: lì l'R non esiste. */}
-              <td className={`py-2.5 pr-3 text-[11px] text-right font-mono ${
+              <TD numeric className={
                 trade.rMultiple === null ? 'text-content-faint' : trade.rMultiple >= 0 ? 'text-pos' : 'text-neg'
-              }`}>
+              }>
                 {trade.rMultiple === null ? '—' : fmtR(trade.rMultiple)}
-              </td>
-              <td className={`py-2.5 pr-3 text-[11px] text-right font-mono ${trade.pnL >= 0 ? 'text-pos' : 'text-neg'}`}>
-                {fmtPnl(trade.pnL)}
-              </td>
-              <td className="py-2.5 text-right"><TradeStatusBadge status={trade.status} /></td>
+              </TD>
+              <TD numeric className={trade.pnL >= 0 ? 'text-pos' : 'text-neg'}>{fmtPnl(trade.pnL)}</TD>
+              <TD numeric><TradeStatusBadge status={trade.status} /></TD>
             </TR>
           ))}
         </TBody>
@@ -129,7 +123,7 @@ function PeriodPicker({ value, onChange }: { value: PeriodKey; onChange: (p: Per
           onClick={() => onChange(p)}
           aria-pressed={value === p}
           title={t(PERIOD_LABEL[p])}
-          className={`px-2.5 py-1 rounded text-[10px] uppercase tracking-widest transition-all ${
+          className={`px-2.5 py-1 rounded text-2xs uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 ${
             value === p ? 'bg-surface-3 text-content-strong' : 'text-content-muted hover:text-content-secondary'
           }`}
         >
@@ -208,101 +202,88 @@ export default function Dashboard() {
 
       {/* KPI Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-3.5 mb-3.5">
-        {isLoading ? (
-          Array.from({ length: 6 }).map((_, i) => <KpiCardSkeleton key={i} />)
+        {isLoading || !data ? (
+          Array.from({ length: 6 }).map((_, i) => <StatCardSkeleton key={i} />)
         ) : (
           <>
-            <KpiCard
+            <StatCard
               label={t('dash.netPnl')}
-              value={data ? `$${fmt(data.netPnL)}` : '—'}
-              delta={data ? fmtR(data.netR) : undefined}
-              deltaUp={data ? data.netPnL >= 0 : undefined}
-            >
-              {/* Il disegno qui era finto: sei coppie di coordinate scritte a
-                  mano, identiche per ogni utente e per ogni periodo. Ora è la
-                  curva vera del periodo selezionato — e dove la serie non c'è,
-                  non compare niente. */}
-              <div className="mt-2">
+              tone={data.netPnL >= 0 ? 'positive' : 'negative'}
+              delta={{ text: fmtR(data.netR), direction: data.netR >= 0 ? 'up' : 'down' }}
+              footer={
+                /* Il disegno qui era finto: sei coppie di coordinate scritte a
+                   mano, identiche per ogni utente e per ogni periodo. Ora è la
+                   curva vera del periodo selezionato — e dove la serie non
+                   c'è, non compare niente. */
                 <Sparkline
                   values={equity}
-                  tone={data && data.netPnL >= 0 ? 'pos' : 'neg'}
+                  tone={data.netPnL >= 0 ? 'pos' : 'neg'}
                   label={t('dash.netPnlSpark')}
                 />
-              </div>
-            </KpiCard>
+              }
+            >
+              {fmtPnl(data.netPnL)}
+            </StatCard>
 
-            <KpiCard
+            {/* Il win rate non ha un segno: un 45% con expectancy positiva è una
+                strategia che funziona. Prima usciva rosso, come un errore. */}
+            <StatCard
               label={t('dash.winRate')}
-              value={data ? `${fmt(data.winRate, 1)}%` : '—'}
-              delta={data ? t('dash.winLoss', { wins: data.winCount, losses: data.lossCount }) : undefined}
-              deltaUp={data ? data.winRate >= 50 : undefined}
+              delta={{ text: t('dash.winLoss', { wins: data.winCount, losses: data.lossCount }), direction: 'flat' }}
+              hint={t('dash.breakEvenCount', { count: data.breakEvenCount })}
+              footer={<Meter value={data.winRate} tone="bg-pos" label={t('dash.winRate')} />}
             >
-              <div className="h-1 bg-surface-3 rounded-full overflow-hidden mt-2">
-                <div className="h-full bg-pos rounded-full" style={{ width: data ? `${data.winRate}%` : '0%' }} />
-              </div>
-              <div className="text-[10px] text-content-faint mt-1.5">
-                {data ? t('dash.breakEvenCount', { count: data.breakEvenCount }) : ''}
-              </div>
-            </KpiCard>
+              {fmt(data.winRate, 1)}%
+            </StatCard>
 
-            <KpiCard
+            <StatCard
               label={t('dash.expectancy')}
-              value={data ? fmtR(data.expectancyR) : '—'}
-              deltaUp={data ? data.expectancyR >= 0 : undefined}
+              tone={data.expectancyR >= 0 ? 'positive' : 'negative'}
+              hint={tPlural(data.rTradeCount, 'dash.expectancyHintOne', 'dash.expectancyHintCount')}
             >
-              <div className="text-[10px] text-content-faint mt-2">
-                {data ? tPlural(data.rTradeCount, 'dash.expectancyHintOne', 'dash.expectancyHintCount') : t('dash.expectancyHint')}
-              </div>
-            </KpiCard>
+              {fmtR(data.expectancyR)}
+            </StatCard>
 
-            <KpiCard
+            <StatCard
               label={t('dash.avgRR')}
-              value={data ? fmt(data.avgRR, 2) : '—'}
-              delta={data ? (data.avgRR >= 2 ? t('dash.aboveTarget') : t('dash.belowTarget')) : undefined}
-              deltaUp={data ? data.avgRR >= 2 : undefined}
+              delta={{
+                text: data.avgRR >= 2 ? t('dash.aboveTarget') : t('dash.belowTarget'),
+                direction: data.avgRR >= 2 ? 'up' : 'down',
+              }}
+              hint={t('dash.avgRRHint')}
             >
-              <div className="text-2xs text-content-faint mt-2">{t('dash.avgRRHint')}</div>
-            </KpiCard>
+              {fmt(data.avgRR, 2)}
+            </StatCard>
 
-            <KpiCard
+            {/* Il drawdown si legge contro il guadagno prodotto, non contro un
+                capitale dichiarato: quanto della salita si è restituito. */}
+            <StatCard
               label={t('dash.maxDrawdown')}
-              value={data ? `-$${fmt(Math.abs(data.maxDrawdown))}` : '—'}
-              delta={data ? `−${fmt(Math.abs(data.maxDrawdownR), 2)}R` : undefined}
-              deltaUp={false}
+              tone="negative"
+              delta={{ text: `−${fmt(Math.abs(data.maxDrawdownR), 2)}R`, direction: 'down' }}
+              hint={data.netR > 0
+                ? t('dash.gainsGivenBack', { percent: fmt(Math.abs(data.maxDrawdownR) / data.netR * 100, 0) })
+                : t('dash.noNetGain')}
+              footer={<Meter value={data.netR > 0 ? Math.min(Math.abs(data.maxDrawdownR) / data.netR * 100, 100) : 100} tone="bg-neg" label={t('dash.maxDrawdown')} />}
             >
-              {/* Il drawdown si legge contro il guadagno prodotto, non contro un
-                  capitale dichiarato: quanto della salita si è restituito. */}
-              <div className="h-1 bg-surface-3 rounded-full overflow-hidden mt-2">
-                <div
-                  className="h-full bg-neg rounded-full"
-                  style={{ width: data && data.netR > 0 ? `${Math.min(Math.abs(data.maxDrawdownR) / data.netR * 100, 100)}%` : '100%' }}
-                />
-              </div>
-              <div className="text-[10px] text-content-faint mt-1.5">
-                {data && data.netR > 0
-                  ? t('dash.gainsGivenBack', { percent: fmt(Math.abs(data.maxDrawdownR) / data.netR * 100, 0) })
-                  : t('dash.noNetGain')}
-              </div>
-            </KpiCard>
+              {`-$${fmt(Math.abs(data.maxDrawdown))}`}
+            </StatCard>
 
             {/* Tre casi distinti: nessun trade (non c'è dato), trade tutti vinti
                 (rapporto infinito), altrimenti il rapporto vero. */}
-            <KpiCard
+            <StatCard
               label={t('dash.profitFactor')}
-              value={!data || data.totalTrades === 0 ? '—' : data.profitFactor === null ? '∞' : fmt(data.profitFactor, 2)}
-              delta={
-                !data || data.totalTrades === 0
-                  ? undefined
-                  : data.profitFactor === null
-                    ? t('dash.pfNoLosses')
-                    : data.profitFactor >= 2 ? t('dash.pfExcellent') : data.profitFactor >= 1 ? t('dash.pfGood') : t('dash.pfNegative')
-              }
-              deltaUp={data && data.totalTrades > 0 ? (data.profitFactor === null || data.profitFactor >= 1) : undefined}
+              tone={data.totalTrades === 0 ? 'muted' : data.profitFactor === null || data.profitFactor >= 1 ? 'positive' : 'negative'}
+              delta={data.totalTrades === 0 ? undefined : {
+                text: data.profitFactor === null
+                  ? t('dash.pfNoLosses')
+                  : data.profitFactor >= 2 ? t('dash.pfExcellent') : data.profitFactor >= 1 ? t('dash.pfGood') : t('dash.pfNegative'),
+                direction: data.profitFactor === null || data.profitFactor >= 1 ? 'up' : 'down',
+              }}
+              hint={data.totalTrades > 0 ? t('dash.pfHint', { won: fmt(data.avgWin * data.winCount), lost: fmt(Math.abs(data.avgLoss) * data.lossCount) }) : undefined}
             >
-              <div className="text-2xs text-content-faint mt-2">
-                {data && data.totalTrades > 0 ? t('dash.pfHint', { won: fmt(data.avgWin * data.winCount), lost: fmt(Math.abs(data.avgLoss) * data.lossCount) }) : ''}
-              </div>
-            </KpiCard>
+              {data.totalTrades === 0 ? '—' : data.profitFactor === null ? '∞' : fmt(data.profitFactor, 2)}
+            </StatCard>
           </>
         )}
       </div>
@@ -331,12 +312,9 @@ export default function Dashboard() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
               {(data?.sessionStats ?? []).map(s => (
-                <div key={s.session} className="bg-surface-2 border border-line rounded-md px-3.5 py-3 flex flex-col gap-1.5 cursor-pointer hover:border-line-control hover:-translate-y-px transition-all">
-                  <div className="text-[11px] text-content-muted uppercase tracking-[0.05em]">{s.session}</div>
-                  <div className={`font-mono font-medium text-[18px] tracking-tight ${s.pnL >= 0 ? 'text-pos' : 'text-neg'}`}>
-                    {fmtPnl(s.pnL)}
-                  </div>
-                  <div className="text-[10px] text-content-faint">
+                <div key={s.session} className="bg-surface-2 border border-line rounded-md px-3.5 py-3 hover:border-line-control transition-colors">
+                  <Stat label={s.session} labelFirst tone={s.pnL >= 0 ? 'positive' : 'negative'}>{fmtPnl(s.pnL)}</Stat>
+                  <div className="text-2xs text-content-faint mt-1.5">
                     {t('dash.sessionLine', { count: s.totalTrades, winRate: fmt(s.winRate, 0), r: fmtR(s.r) })}
                   </div>
                 </div>
@@ -371,19 +349,21 @@ export default function Dashboard() {
                        troncato quasi sempre ("Fair Va…"): i setup hanno nomi lunghi
                        e leggerli conta più di qualche pixel di barra. Rapporto invertito. */}
                     <div className="text-xs text-content-secondary flex-[2] min-w-0 truncate" title={s.setup}>{s.setup}</div>
-                    <div className="flex-1 h-[3px] bg-surface-3 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${positive ? 'bg-pos' : 'bg-warn'}`} style={{ width: `${s.winRate}%` }} />
-                    </div>
-                    <div className="text-[11px] w-9 text-right text-content-secondary font-mono">
+                    <Meter
+                      value={s.winRate}
+                      tone={positive ? 'bg-pos' : 'bg-warn'}
+                      label={t('dash.setupWinRate', { setup: s.setup })}
+                      className="flex-1"
+                    />
+                    <div className="text-2xs w-9 text-right text-content-secondary font-mono">
                       {fmt(s.winRate, 0)}%
                     </div>
-                    <div
-                      title={`${fmtR(s.r)} · ${fmtPnl(s.pnL)}`}
-                      className={`text-[11px] w-24 text-right font-mono ${positive ? 'text-pos' : 'text-warn'}`}
-                    >
-                      {fmtR(s.r)}
-                      {disagree && <span className="text-content-muted"> {fmtPnl(s.pnL)}</span>}
-                    </div>
+                    <Tooltip content={`${fmtR(s.r)} · ${fmtPnl(s.pnL)}`}>
+                      <div className={`text-2xs w-24 text-right font-mono ${positive ? 'text-pos' : 'text-warn'}`}>
+                        {fmtR(s.r)}
+                        {disagree && <span className="text-content-muted"> {fmtPnl(s.pnL)}</span>}
+                      </div>
+                    </Tooltip>
                   </div>
                 )
               })}
@@ -400,17 +380,16 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="grid grid-cols-2">
-              {[
-                { label: t('dash.totalTrades'), value: data ? String(data.totalTrades) : '—',               color: '' },
-                { label: t('dash.bestTrade'),   value: data ? fmtPnl(data.bestTrade) : '—',                 color: 'text-pos' },
-                { label: t('dash.worstTrade'),  value: data ? fmtPnl(data.worstTrade) : '—',                color: 'text-neg'   },
-                { label: t('dash.avgWin'),      value: data ? `$${fmt(data.avgWin)}` : '—',                 color: '' },
-                { label: t('dash.avgLoss'),     value: data ? `-$${fmt(Math.abs(data.avgLoss))}` : '—',     color: 'text-neg'   },
-                { label: t('dash.bestStreak'),  value: data ? `${data.bestStreak}W` : '—',                  color: '' },
-              ].map((s, i) => (
+              {([
+                { label: t('dash.totalTrades'), value: data ? String(data.totalTrades) : '—' },
+                { label: t('dash.bestTrade'),   value: data ? fmtPnl(data.bestTrade) : '—',             tone: 'positive' },
+                { label: t('dash.worstTrade'),  value: data ? fmtPnl(data.worstTrade) : '—',            tone: 'negative' },
+                { label: t('dash.avgWin'),      value: data ? `$${fmt(data.avgWin)}` : '—' },
+                { label: t('dash.avgLoss'),     value: data ? `-$${fmt(Math.abs(data.avgLoss))}` : '—', tone: 'negative' },
+                { label: t('dash.bestStreak'),  value: data ? `${data.bestStreak}W` : '—' },
+              ] as { label: string; value: string; tone?: StatTone }[]).map((s, i) => (
                 <div key={s.label} className={`py-3 border-b border-line ${i % 2 === 1 ? 'pl-4 border-l border-line' : ''} ${i >= 4 ? 'border-b-0' : ''}`}>
-                  <div className="text-[10px] text-content-faint uppercase tracking-[0.06em] mb-1">{s.label}</div>
-                  <div className={`font-mono font-medium text-base tracking-tight ${s.color || 'text-content-strong'}`}>{s.value}</div>
+                  <Stat label={s.label} labelFirst size="sm" tone={s.tone}>{s.value}</Stat>
                 </div>
               ))}
             </div>

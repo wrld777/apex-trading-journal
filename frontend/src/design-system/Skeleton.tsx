@@ -11,8 +11,8 @@ export function Skeleton({ className }: { className?: string }) {
   return <div aria-hidden="true" className={cn('animate-pulse bg-surface-3 rounded', className)} />
 }
 
-/** Ingombro di una card KPI. */
-export function KpiCardSkeleton() {
+/** Ingombro di una `StatCard`: etichetta, valore, confronto. */
+export function StatCardSkeleton() {
   return (
     <div className="bg-surface border border-line rounded-lg p-4 lg:p-5">
       <Skeleton className="h-3 w-16 mb-4" />
