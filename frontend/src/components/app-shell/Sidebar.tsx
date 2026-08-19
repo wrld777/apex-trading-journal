@@ -4,7 +4,7 @@ import { useProfile } from '../../hooks/useProfile'
 import { t } from '../../i18n'
 
 import { NAV, type NavItem } from './nav'
-import { Tooltip, cn } from '../../design-system'
+import { Tooltip, Wordmark, cn } from '../../design-system'
 
 interface SidebarProps {
   /** Cassetto aperto su mobile. Su desktop la sidebar c'è sempre. */
@@ -74,17 +74,8 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
         )}
       >
         {/* Marchio */}
-        <div className={cn('h-[52px] border-b border-line flex items-center gap-2.5 shrink-0', collapsed ? 'lg:justify-center lg:px-0 px-4' : 'px-4')}>
-          <div className="w-7 h-7 bg-content-strong rounded flex items-center justify-center shrink-0">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <rect x="1" y="7" width="4" height="6" rx="1" className="fill-bg" />
-              <rect x="5" y="4" width="4" height="9" rx="1" className="fill-bg" opacity=".7" />
-              <rect x="9" y="1" width="4" height="12" rx="1" className="fill-bg" opacity=".4" />
-            </svg>
-          </div>
-          <span className={cn('font-brand font-bold text-md tracking-widest text-content-strong', collapsed && 'lg:hidden')}>
-            {t('brand.name')}
-          </span>
+        <div className={cn('h-[52px] border-b border-line flex items-center shrink-0', collapsed ? 'lg:justify-center lg:px-0 px-4' : 'px-4')}>
+          <Wordmark size={22} hideName={collapsed} />
         </div>
 
         <nav className="flex-1 overflow-y-auto p-3 flex flex-col gap-4">

@@ -11,10 +11,6 @@
  * manca anche una sola chiave, TypeScript rifiuta di compilare.
  */
 export const en = {
-  // ── Brand ──
-  'brand.name': 'Rubric',
-  'brand.plan': 'PRO',
-
   // ── Comuni ──
   'common.save': 'Save',
   'common.saveChanges': 'Save Changes',

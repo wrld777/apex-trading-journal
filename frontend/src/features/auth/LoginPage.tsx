@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { authService } from '../../services/authService'
 import { useAuthStore } from '../../store/authStore'
 import { t } from '../../i18n'
-import { Button, Field, Input } from '../../design-system'
+import { Button, Field, Input, Wordmark } from '../../design-system'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -33,16 +33,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     <div className="min-h-screen bg-bg flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
 
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <rect x="1" y="7" width="4" height="6" rx="1" fill="black"/>
-              <rect x="5" y="4" width="4" height="9" rx="1" fill="black" opacity=".7"/>
-              <rect x="9" y="1" width="4" height="12" rx="1" fill="black" opacity=".4"/>
-            </svg>
-          </div>
-          <span className="font-brand font-bold text-content-strong tracking-widest text-sm">{t('brand.name')}</span>
-        </div>
+        <Wordmark size={26} className="mb-8" />
 
         <h1 className="text-xl font-bold text-content-strong mb-1">{t('auth.welcomeBack')}</h1>
         <p className="text-sm text-content-secondary mb-8">{t('auth.signInSubtitle')}</p>
