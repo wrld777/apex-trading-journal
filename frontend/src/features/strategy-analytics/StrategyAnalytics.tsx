@@ -9,7 +9,7 @@ import type {
   StrategyStatsDto,
 } from '../../types/analytics'
 import { fmt, fmtPnl, fmtR, pnlColor } from '../../lib/format'
-import { Card, CardHeader, EmptyState, PageHeader, Select, Skeleton, StatRow, Tooltip } from '../../design-system'
+import { Card, CardHeader, EmptyState, PageHeader, SegmentedControl, Select, Skeleton, StatRow, Tooltip } from '../../design-system'
 import { DisciplineChart, RuleImpactBars } from '../../components/charts'
 
 /* ── METRIC COLUMN (one of Overall / Adherent / Not adherent) ── */
@@ -170,20 +170,15 @@ export default function StrategyAnalytics() {
           <CardHeader
             title={t('insights.disciplineTrend')}
             action={
-              <div className="flex items-center gap-1 bg-surface-2 border border-line-2 rounded-md p-0.5">
-                {(['week', 'month'] as Granularity[]).map(g => (
-                  <button
-                    key={g}
-                    onClick={() => setGran(g)}
-                    aria-pressed={gran === g}
-                    className={`px-2.5 py-1 rounded text-2xs uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 ${
-                      gran === g ? 'bg-surface-3 text-content-strong' : 'text-content-muted hover:text-content-secondary'
-                    }`}
-                  >
-                    {g === 'week' ? t('insights.week') : t('insights.month')}
-                  </button>
-                ))}
-              </div>
+              <SegmentedControl<Granularity>
+                value={gran}
+                onChange={setGran}
+                label={t('insights.granularityAria')}
+                options={[
+                  { value: 'week', label: t('insights.week') },
+                  { value: 'month', label: t('insights.month') },
+                ]}
+              />
             }
           />
           {discLoading ? <Skeleton className="h-[180px] w-full" /> : <DisciplineChart points={discipline ?? []} />}

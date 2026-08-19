@@ -14,7 +14,7 @@ import { cumulative } from '../../lib/series'
 import TradeStatusBadge from '../../components/TradeStatusBadge'
 import { ActivityHeatmap, EquityChart } from '../../components/charts'
 import { Sparkline } from '../../design-system/charts'
-import { Button, Card, CardHeader, EmptyState, Meter, PageHeader, Skeleton, Stat, StatCard, StatCardSkeleton, TBody, TD, TH, THead, TR, Table, TableSkeleton, TableWrap, Tooltip } from '../../design-system'
+import { Button, Card, CardHeader, EmptyState, Meter, PageHeader, SegmentedControl, Skeleton, Stat, StatCard, StatCardSkeleton, TBody, TD, TH, THead, TR, Table, TableSkeleton, TableWrap, Tooltip } from '../../design-system'
 
 /* ── RECENT TRADES TABLE ── */
 
@@ -116,21 +116,16 @@ function rangeFor(period: PeriodKey): { from?: string; to?: string } {
 
 function PeriodPicker({ value, onChange }: { value: PeriodKey; onChange: (p: PeriodKey) => void }) {
   return (
-    <div className="flex items-center gap-1 bg-surface-2 border border-line-2 rounded-md p-0.5">
-      {PERIODS.map(p => (
-        <button
-          key={p}
-          onClick={() => onChange(p)}
-          aria-pressed={value === p}
-          title={t(PERIOD_LABEL[p])}
-          className={`px-2.5 py-1 rounded text-2xs uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 ${
-            value === p ? 'bg-surface-3 text-content-strong' : 'text-content-muted hover:text-content-secondary'
-          }`}
-        >
-          {p === 'ALL' ? t('common.all') : p}
-        </button>
-      ))}
-    </div>
+    <SegmentedControl<PeriodKey>
+      value={value}
+      onChange={onChange}
+      label={t('dash.periodAria')}
+      options={PERIODS.map(p => ({
+        value: p,
+        label: p === 'ALL' ? t('common.all') : p,
+        hint: t(PERIOD_LABEL[p]),
+      }))}
+    />
   )
 }
 

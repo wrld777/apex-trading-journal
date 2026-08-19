@@ -47,9 +47,16 @@ export function Textarea({ className, rows = 3, ...props }: React.TextareaHTMLAt
  * dipendenze. La freccia è un'icona sovrapposta perché quella di serie non è
  * intonabile.
  */
-export function Select({ className, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) {
+export function Select({
+  className, wrapperClassName, children, ...props
+}: React.SelectHTMLAttributes<HTMLSelectElement> & {
+  /** La larghezza va sul contenitore, non sulla select: la freccia è posizionata
+   *  rispetto a lui, e una select più stretta del suo involucro se la ritrova
+   *  staccata dal bordo. */
+  wrapperClassName?: string
+}) {
   return (
-    <div className="relative">
+    <div className={cn('relative', wrapperClassName)}>
       <select
         className={cn(base, 'h-9 pl-3 pr-9 appearance-none cursor-pointer', className)}
         {...props}
