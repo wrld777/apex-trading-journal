@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import Topbar from './Topbar'
@@ -15,7 +15,13 @@ const COLLAPSED_KEY = 'rubric.sidebar.collapsed'
  * usa per i dati.
  */
 export default function AppShell() {
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  // Il cassetto ricorda **su quale pagina** è stato aperto: se la pagina è
+  // cambiata, è chiuso. Restare aperto sopra la pagina appena scelta è il
+  // classico attrito delle navigazioni a cassetto, e questa forma lo evita
+  // anche quando si naviga col tasto Indietro — che una `onClick` sui link non
+  // intercetta. Prima era un `useEffect` che chiamava `setState`: un secondo
+  // render a ogni cambio di rotta, per una cosa che si può derivare.
+  const [drawer, setDrawer] = useState({ open: false, at: '' })
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return localStorage.getItem(COLLAPSED_KEY) === 'true'
@@ -25,10 +31,9 @@ export default function AppShell() {
     }
   })
   const { pathname } = useLocation()
-
-  // Cambiando pagina il cassetto mobile si chiude da sé: restare aperto sopra
-  // la pagina appena scelta è il classico attrito delle navigazioni a cassetto.
-  useEffect(() => { setDrawerOpen(false) }, [pathname])
+  const drawerOpen = drawer.open && drawer.at === pathname
+  const openDrawer = () => setDrawer({ open: true, at: pathname })
+  const closeDrawer = () => setDrawer({ open: false, at: pathname })
 
   const toggleCollapsed = () => {
     setCollapsed((prev) => {
@@ -40,7 +45,7 @@ export default function AppShell() {
 
   return (
     <div className="flex min-h-screen bg-bg overflow-x-hidden">
-      <Sidebar open={drawerOpen} onClose={() => setDrawerOpen(false)} collapsed={collapsed} />
+      <Sidebar open={drawerOpen} onClose={closeDrawer} collapsed={collapsed} />
 
       <div
         className={cn(
@@ -49,7 +54,7 @@ export default function AppShell() {
         )}
       >
         <Topbar
-          onMenuClick={() => setDrawerOpen(true)}
+          onMenuClick={openDrawer}
           collapsed={collapsed}
           onToggleCollapse={toggleCollapsed}
         />

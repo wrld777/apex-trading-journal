@@ -16,7 +16,7 @@ import { cn } from './cn'
 const button = cva(
   [
     'inline-flex items-center justify-center gap-1.5 whitespace-nowrap',
-    'font-medium rounded transition-colors',
+    'font-medium rounded transition-colors tap-target',
     'disabled:opacity-50 disabled:pointer-events-none',
   ],
   {

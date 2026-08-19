@@ -9,8 +9,17 @@ import * as RadixTooltip from '@radix-ui/react-tooltip'
  * che l'informazione esiste anche per chi non usa il mouse.
  */
 
-/** Da montare una volta sola, in cima all'app. */
-export const TooltipProvider = RadixTooltip.Provider
+/**
+ * Da montare una volta sola, in cima all'app.
+ *
+ * È una funzione e non un alias della primitiva Radix perché un
+ * `export const X = Libreria.Y` non è riconoscibile come componente dagli
+ * strumenti: il ricaricamento a caldo di Vite, non sapendo cosa sia, rimonta
+ * l'albero a ogni salvataggio invece di aggiornarlo.
+ */
+export function TooltipProvider(props: React.ComponentProps<typeof RadixTooltip.Provider>) {
+  return <RadixTooltip.Provider {...props} />
+}
 
 export default function Tooltip({
   content, children, side = 'top',

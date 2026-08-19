@@ -32,3 +32,33 @@
     border-radius: var(--radius-sm);
   }
 }
+
+@layer components {
+  /*
+   * Area di tocco.
+   *
+   * I comandi densi stanno a 28px di altezza — giusti col mouse, stretti col
+   * dito: la raccomandazione è 44px. Alzarli davvero significherebbe rifare la
+   * densità di tutte le barre di comandi per un caso che sul desktop non
+   * esiste, quindi l'area cliccabile si estende **solo dove il puntatore è
+   * grossolano**, e solo in verticale: in orizzontale i comandi sono
+   * affiancati, e due aree allargate si ruberebbero i clic a vicenda.
+   *
+   * L'estensione è un pseudo-elemento: non occupa spazio, quindi non sposta
+   * niente nel layout.
+   */
+  @media (pointer: coarse) {
+    .tap-target {
+      position: relative;
+    }
+    .tap-target::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 44px;
+      transform: translateY(-50%);
+    }
+  }
+}

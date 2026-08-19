@@ -52,7 +52,7 @@ function ExitOutcomeTag({ exits }: { exits: TradeDto['exits'] }) {
     : labels[exits[0].outcome]
   if (!text) return null
 
-  return <span className="ml-1.5 text-[9px] text-content-muted uppercase tracking-wide">{text}</span>
+  return <span className="ml-1.5 text-2xs text-content-muted uppercase tracking-wide">{text}</span>
 }
 
 export default function TradeLog() {
@@ -233,28 +233,28 @@ export default function TradeLog() {
                 <TBody>
                   {rows.map(t => (
                     <TR key={t.id}>
-                      <td className="py-2.5 px-3 text-[11px] text-content-secondary whitespace-nowrap">{fmtDate(t.entryTime)}</td>
+                      <td className="py-2.5 px-3 text-2xs text-content-secondary whitespace-nowrap">{fmtDate(t.entryTime)}</td>
                       <td className="py-2.5 px-3 text-xs font-medium text-content-strong">{t.symbol}</td>
                       <td className="py-2.5 px-3">
-                        <span className={`text-[11px] font-medium ${t.direction === 'Long' ? 'text-pos' : 'text-neg'}`}>
+                        <span className={`text-2xs font-medium ${t.direction === 'Long' ? 'text-pos' : 'text-neg'}`}>
                           {t.direction === 'Long' ? 'LONG' : 'SHORT'}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3 text-[11px] text-content-secondary">{t.setup}</td>
-                      <td className="py-2.5 px-3 text-[11px] text-content-secondary">{t.session}</td>
-                      <td className="py-2.5 px-3 text-[11px] text-content-secondary text-right font-mono">{t.quantity}</td>
-                      <td className="py-2.5 px-3 text-[11px] text-content-secondary text-right font-mono">{fmtNum(t.entryPrice, 2)}</td>
-                      <td className="py-2.5 px-3 text-[11px] text-content-secondary text-right font-mono">
+                      <td className="py-2.5 px-3 text-2xs text-content-secondary">{t.setup}</td>
+                      <td className="py-2.5 px-3 text-2xs text-content-secondary">{t.session}</td>
+                      <td className="py-2.5 px-3 text-2xs text-content-secondary text-right font-mono">{t.quantity}</td>
+                      <td className="py-2.5 px-3 text-2xs text-content-secondary text-right font-mono">{fmtNum(t.entryPrice, 2)}</td>
+                      <td className="py-2.5 px-3 text-2xs text-content-secondary text-right font-mono">
                         {fmtNum(t.exitPrice, 2)}
                         {/* Come si è chiuso (#96): sui parziali il prezzo è una media,
                             quindi da solo direbbe poco. */}
                         <ExitOutcomeTag exits={t.exits} />
                       </td>
-                      <td className={`py-2.5 px-3 text-[11px] text-right font-mono ${t.pnL >= 0 ? 'text-pos' : 'text-neg'}`}>{fmtPnl(t.pnL)}</td>
-                      <td className={`py-2.5 px-3 text-[11px] text-right font-mono ${
+                      <td className={`py-2.5 px-3 text-2xs text-right font-mono ${t.pnL >= 0 ? 'text-pos' : 'text-neg'}`}>{fmtPnl(t.pnL)}</td>
+                      <td className={`py-2.5 px-3 text-2xs text-right font-mono ${
                         t.rMultiple === null ? 'text-content-faint' : t.rMultiple >= 0 ? 'text-pos' : 'text-neg'
                       }`}>{fmtR(t.rMultiple)}</td>
-                      <td className="py-2.5 px-3 text-[11px] text-content-secondary text-right font-mono">{fmtNum(t.riskReward, 2)}</td>
+                      <td className="py-2.5 px-3 text-2xs text-content-secondary text-right font-mono">{fmtNum(t.riskReward, 2)}</td>
                       <td className="py-2.5 px-3 text-right"><TradeStatusBadge status={t.status} /></td>
                       <td className="py-2.5 px-3">
                         <div className="flex items-center justify-end gap-1">
@@ -278,14 +278,14 @@ export default function TradeLog() {
 
             {/* Pagination */}
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-line">
-              <span className="text-[11px] text-content-muted">
+              <span className="text-2xs text-content-muted">
                 {tr('tradeLog.page', { page, total: totalPages })}
               </span>
               <div className="flex gap-1.5">
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page <= 1}
-                  className="px-2.5 py-1 rounded-md text-[11px] text-content-secondary border border-line-2 hover:bg-surface-3 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-2.5 py-1 rounded-md text-2xs text-content-secondary border border-line-2 hover:bg-surface-3 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {tr('tradeLog.prev')}
                 </button>
@@ -326,7 +326,7 @@ export default function TradeLog() {
           </>
         }
       >
-        <p className="text-[13px] text-content-secondary leading-relaxed">
+        <p className="text-sm text-content-secondary leading-relaxed">
           {pendingDelete && (
             tr('tradeLog.deleteBody', {
               symbol: pendingDelete.symbol,

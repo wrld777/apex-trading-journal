@@ -142,15 +142,15 @@ export default function EditTradeModal({ trade, open, onClose }: {
         <div className="grid grid-cols-2 gap-3">
           {isSimpleManualExit ? (
             <label className="flex flex-col gap-1.5">
-              <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.exitPriceLabel')}</span>
+              <span className="text-2xs text-content-muted tracking-[0.04em]">{t('logTrade.exitPriceLabel')}</span>
               <Input type="number" step="0.25" placeholder="0.00" value={exitPrice} onChange={(e) => setExitPrice(e.target.value)} />
             </label>
           ) : (
             <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('tradeLog.exits')}</span>
+              <span className="text-2xs text-content-muted tracking-[0.04em]">{t('tradeLog.exits')}</span>
               <div className="flex flex-col gap-1 pt-1">
                 {exits.map((e, i) => (
-                  <span key={i} className="text-[11px] text-content-secondary font-mono">
+                  <span key={i} className="text-2xs text-content-secondary font-mono">
                     {e.contracts}× {OUTCOME_LABELS[e.outcome]} @ {e.price}
                   </span>
                 ))}
@@ -158,13 +158,13 @@ export default function EditTradeModal({ trade, open, onClose }: {
             </div>
           )}
           <label className="flex flex-col gap-1.5">
-            <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.exitTime')}</span>
+            <span className="text-2xs text-content-muted tracking-[0.04em]">{t('logTrade.exitTime')}</span>
             <Input type="datetime-local" value={exitTime} onChange={(e) => setExitTime(e.target.value)} />
           </label>
         </div>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.emotionalState')}</span>
+          <span className="text-2xs text-content-muted tracking-[0.04em]">{t('logTrade.emotionalState')}</span>
           <Select
             value={emotionalState}
             onChange={(e) => setEmotionalState(e.target.value)} className="cursor-pointer appearance-none"
@@ -174,28 +174,28 @@ export default function EditTradeModal({ trade, open, onClose }: {
         </label>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.rationale')}</span>
+          <span className="text-2xs text-content-muted tracking-[0.04em]">{t('logTrade.rationale')}</span>
           <Textarea rows={3} placeholder={t('logTrade.rationalePlaceholder')} value={rationale} onChange={(e) => setRationale(e.target.value)} className="resize-y" />
         </label>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.mistakes')}</span>
+          <span className="text-2xs text-content-muted tracking-[0.04em]">{t('logTrade.mistakes')}</span>
           <Textarea rows={2} placeholder={t('logTrade.mistakesPlaceholder')} value={mistakes} onChange={(e) => setMistakes(e.target.value)} className="resize-y" />
         </label>
 
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.screenshots')}</span>
+          <span className="text-2xs text-content-muted tracking-[0.04em]">{t('logTrade.screenshots')}</span>
           <ScreenshotInput value={screenshots} onChange={setScreenshots} />
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] text-content-muted tracking-[0.04em]">{t('logTrade.tags')}</span>
+          <span className="text-2xs text-content-muted tracking-[0.04em]">{t('logTrade.tags')}</span>
           <div
             className="flex flex-wrap gap-1.5 p-2 bg-surface-2 border border-line-2 rounded-md min-h-[40px] items-center cursor-text focus-within:border-line-control transition-all"
             onClick={() => document.getElementById('edit-tag-input')?.focus()}
           >
             {tags.map((tag) => (
-              <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] border bg-surface-3 border-line-2 text-content-secondary">
+              <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-2xs border bg-surface-3 border-line-2 text-content-secondary">
                 {tag}
                 <button onClick={(e) => { e.stopPropagation(); removeTag(tag) }} className="hover:opacity-70 ml-0.5">×</button>
               </span>

@@ -155,20 +155,20 @@ export default function Profile() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => fileInput.current?.click()}
-                    className="px-3 py-1.5 rounded-md text-[11px] text-content border border-line-2 hover:bg-surface-3 transition-all"
+                    className="px-3 py-1.5 rounded-md text-2xs text-content border border-line-2 hover:bg-surface-3 transition-all"
                   >
                     {avatarUrl ? t('profile.changePhoto') : t('profile.uploadPhoto')}
                   </button>
                   {avatarUrl && (
                     <button
                       onClick={() => { setAvatarUrl(null); if (fileInput.current) fileInput.current.value = '' }}
-                      className="px-3 py-1.5 rounded-md text-[11px] text-content-secondary border border-line-2 hover:text-neg hover:border-neg/20 transition-all"
+                      className="px-3 py-1.5 rounded-md text-2xs text-content-secondary border border-line-2 hover:text-neg hover:border-neg/20 transition-all"
                     >
                       {t('common.remove')}
                     </button>
                   )}
                 </div>
-                <span className="text-[10px] text-content-faint">{t('profile.photoHint', { size: AVATAR_SIZE })}</span>
+                <span className="text-2xs text-content-faint">{t('profile.photoHint', { size: AVATAR_SIZE })}</span>
               </div>
               <input
                 ref={fileInput}

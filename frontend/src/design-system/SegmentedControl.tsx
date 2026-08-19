@@ -52,7 +52,7 @@ export default function SegmentedControl<T extends string>({
             disabled={o.disabled}
             title={o.hint}
             className={cn(
-              'rounded transition-colors whitespace-nowrap',
+              'rounded transition-colors whitespace-nowrap tap-target',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60',
               'disabled:opacity-30 disabled:cursor-not-allowed',
               size === 'sm' ? 'px-2.5 py-1 text-2xs uppercase tracking-widest' : 'px-3 py-1.5 text-xs font-medium',

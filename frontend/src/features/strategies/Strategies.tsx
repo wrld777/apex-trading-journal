@@ -20,10 +20,10 @@ function fmtR(n: number) {
  */
 function CardStats({ block }: { block: MetricsBlockDto | undefined }) {
   if (!block || block.totalTrades === 0) {
-    return <span className="text-[10px] text-content-faint">{t('strategies.noTrades')}</span>
+    return <span className="text-2xs text-content-faint">{t('strategies.noTrades')}</span>
   }
   return (
-    <div className="flex items-center gap-3 text-[10px] text-content-muted font-mono">
+    <div className="flex items-center gap-3 text-2xs text-content-muted font-mono">
       <span>{t('strategies.statsLine', { count: block.totalTrades, winRate: block.winRate.toFixed(0) })}</span>
       <span className={block.expectancyR >= 0 ? 'text-pos' : 'text-neg'}>
         {fmtR(block.expectancyR)} / {t('common.trade')}
@@ -58,7 +58,7 @@ function StrategyCard({
         <div className="min-w-0">
           <h3 className="text-sm font-medium text-content-strong truncate">{strategy.name}</h3>
           {strategy.description && (
-            <p className="text-[12px] text-content-muted mt-0.5 line-clamp-2">{strategy.description}</p>
+            <p className="text-xs text-content-muted mt-0.5 line-clamp-2">{strategy.description}</p>
           )}
         </div>
         <div className="flex items-center gap-1 shrink-0">
@@ -92,7 +92,7 @@ function StrategyCard({
           {symbols.map((s) => (
             <span
               key={s}
-              className="text-[10px] font-medium text-content-secondary border border-line-2 rounded px-1.5 py-0.5"
+              className="text-2xs font-medium text-content-secondary border border-line-2 rounded px-1.5 py-0.5"
             >
               {s}
             </span>
@@ -101,16 +101,16 @@ function StrategyCard({
       )}
 
       <div className="flex flex-col gap-1 pt-1 border-t border-line">
-        <span className="text-[10px] text-content-faint uppercase tracking-wide">
+        <span className="text-2xs text-content-faint uppercase tracking-wide">
           {tPlural(rules.length, 'strategies.rulesCountOne', 'strategies.rulesCount')}
         </span>
         <ul className="flex flex-col gap-1 mt-1">
           {rules.map((r) => (
-            <li key={r.id} className="flex items-center gap-2 text-[12px] text-content-secondary">
+            <li key={r.id} className="flex items-center gap-2 text-xs text-content-secondary">
               <span className="w-1 h-1 rounded-full bg-content-faint shrink-0" />
               <span className="truncate">{r.label}</span>
               {r.required && (
-                <span className="ml-auto text-[9px] text-warn/80 border border-warn/20 bg-warn/10 rounded px-1 py-0.5 uppercase tracking-wide shrink-0">
+                <span className="ml-auto text-2xs text-warn/80 border border-warn/20 bg-warn/10 rounded px-1 py-0.5 uppercase tracking-wide shrink-0">
                   {t('strategies.required')}
                 </span>
               )}
@@ -259,7 +259,7 @@ export default function Strategies() {
           </>
         }
       >
-        <p className="text-[13px] text-content-secondary leading-relaxed">
+        <p className="text-sm text-content-secondary leading-relaxed">
           {pendingDelete && t('strategies.deleteBody', { name: pendingDelete.name })}
         </p>
       </Modal>

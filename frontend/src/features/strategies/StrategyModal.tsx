@@ -24,8 +24,6 @@ interface RuleDraft {
   required: boolean
 }
 
-  'bg-surface-2 border border-line-2 rounded-md px-2.5 py-1.5 text-[13px] text-content outline-none focus:border-line-control placeholder:text-content-faint w-full'
-
 let ruleKeySeq = 1
 const newRule = (): RuleDraft => ({ key: `r${ruleKeySeq++}`, label: '', required: false })
 
@@ -145,7 +143,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
       <div className="flex flex-col gap-4">
         {/* Name */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] text-content-secondary uppercase tracking-wide">{t('strategyModal.name')}</label>
+          <label className="text-2xs text-content-secondary uppercase tracking-wide">{t('strategyModal.name')}</label>
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -156,7 +154,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
 
         {/* Description */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] text-content-secondary uppercase tracking-wide">{t('strategyModal.description')}</label>
+          <label className="text-2xs text-content-secondary uppercase tracking-wide">{t('strategyModal.description')}</label>
           <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -169,10 +167,10 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
             di un multi-select, così i simboli si leggono tutti a colpo d'occhio. */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <label className="text-[11px] text-content-secondary uppercase tracking-wide">
+            <label className="text-2xs text-content-secondary uppercase tracking-wide">
               {t('strategyModal.instruments')}
             </label>
-            <span className="text-[10px] text-content-faint">
+            <span className="text-2xs text-content-faint">
               {instrumentIds.length === 0
                 ? t('strategyModal.instrumentsAll')
                 : t('strategyModal.instrumentsSelected', { count: instrumentIds.length })}
@@ -180,7 +178,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
           </div>
 
           {instruments === undefined ? (
-            <p className="text-[11px] text-content-faint">{t('strategyModal.instrumentsLoading')}</p>
+            <p className="text-2xs text-content-faint">{t('strategyModal.instrumentsLoading')}</p>
           ) : (
             <>
               <div className="flex flex-wrap gap-1.5">
@@ -193,7 +191,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
                       onClick={() => toggleInstrument(ins.instrumentId)}
                       aria-pressed={active}
                       title={t('strategyModal.instrumentTitle', { name: ins.instrumentName, currency: ins.currency, pointValue: ins.pointValue })}
-                      className={`px-2 py-1 rounded-md text-[11px] font-medium border transition-all ${
+                      className={`px-2 py-1 rounded-md text-2xs font-medium border transition-all ${
                         active
                           ? 'bg-brand text-brand-ink border-brand'
                           : 'text-content-secondary border-line-2 hover:border-line-control hover:text-content'
@@ -204,7 +202,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
                   )
                 })}
               </div>
-              <p className="text-[10px] text-content-faint leading-relaxed">
+              <p className="text-2xs text-content-faint leading-relaxed">
                 {t('strategyModal.instrumentsHint')}
               </p>
             </>
@@ -214,10 +212,10 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
         {/* Rules editor */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <label className="text-[11px] text-content-secondary uppercase tracking-wide">
+            <label className="text-2xs text-content-secondary uppercase tracking-wide">
               {t('strategyModal.rules')}
             </label>
-            <span className="text-[10px] text-content-faint">{t('strategyModal.rulesCount', { count: rules.length })}</span>
+            <span className="text-2xs text-content-faint">{t('strategyModal.rulesCount', { count: rules.length })}</span>
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -229,13 +227,13 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
                     onClick={() => moveRule(i, -1)}
                     disabled={i === 0}
                     aria-label={t('strategyModal.moveUp')}
-                    className="text-content-faint hover:text-content-secondary disabled:opacity-30 leading-none text-[10px]"
+                    className="text-content-faint hover:text-content-secondary disabled:opacity-30 leading-none text-2xs"
                   >▲</button>
                   <button
                     onClick={() => moveRule(i, 1)}
                     disabled={i === rules.length - 1}
                     aria-label={t('strategyModal.moveDown')}
-                    className="text-content-faint hover:text-content-secondary disabled:opacity-30 leading-none text-[10px]"
+                    className="text-content-faint hover:text-content-secondary disabled:opacity-30 leading-none text-2xs"
                   >▼</button>
                 </div>
 
@@ -246,7 +244,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
                 />
 
                 <label
-                  className="flex items-center gap-1.5 text-[11px] text-content-secondary cursor-pointer select-none whitespace-nowrap"
+                  className="flex items-center gap-1.5 text-2xs text-content-secondary cursor-pointer select-none whitespace-nowrap"
                   title={t('strategyModal.requiredHint')}
                 >
                   <input
@@ -281,7 +279,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
           </Button>
         </div>
 
-        {error && <p className="text-[12px] text-neg">{error}</p>}
+        {error && <p className="text-xs text-neg">{error}</p>}
       </div>
     </Modal>
   )

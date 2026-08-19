@@ -29,8 +29,6 @@ function isLoadableImage(url: string): Promise<boolean> {
   })
 }
 
-  'bg-surface-2 border border-line-2 rounded-md px-3 py-2 text-[13px] text-content-strong outline-none w-full transition-all focus:border-line-control focus:bg-surface-3 placeholder:text-content-faint'
-
 // ── Componente ────────────────────────────────────────────────────────────────
 
 export default function ScreenshotInput({ value, onChange }: {
@@ -93,7 +91,7 @@ export default function ScreenshotInput({ value, onChange }: {
         </Button>
       </div>
 
-      <p className="text-[11px] text-content-faint">
+      <p className="text-2xs text-content-faint">
         {t('screenshot.hint')}
       </p>
 
