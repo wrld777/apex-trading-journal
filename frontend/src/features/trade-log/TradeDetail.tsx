@@ -62,7 +62,11 @@ function RuleLine({ label, checked, required }: { label: string; checked: boolea
       >
         {checked ? <Check className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
       </span>
-      <span className={`text-xs leading-snug ${checked ? 'text-content-secondary' : 'text-content'}`}>
+      {/* Stessa lettura del modulo: rispettata in evidenza, saltata più quieta.
+          Far cambiare significato all'enfasi fra le due schermate, sullo stesso
+          dato, costringerebbe a reimparare la pagina. Che una regola sia stata
+          saltata lo dice il segno rosso, che è più forte di qualsiasi grigio. */}
+      <span className={`text-xs leading-snug ${checked ? 'text-content-strong' : 'text-content-muted'}`}>
         {label}
         {required && <Badge tone="outline" className="ml-1.5 align-middle">{t('tradeDetail.required')}</Badge>}
       </span>

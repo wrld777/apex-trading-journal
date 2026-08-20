@@ -14,6 +14,14 @@ import { cn } from './cn'
  * così è il fratello precedente di ciò che deve comandare, e le varianti
  * `peer-checked:` valgono davvero. Annidato, quelle classi si scrivono uguali
  * e non fanno niente — è il modo più silenzioso di rompere un controllo.
+ *
+ * Spuntato **non** vuol dire barrato. Era il trattamento da lista della spesa —
+ * testo sbiadito e riga sopra — e qui dice la cosa sbagliata: l'unico uso di
+ * questo controllo è la checklist di una strategia, dove la spunta significa
+ * "regola rispettata", non "voce esaurita". Barrarla la faceva sembrare
+ * annullata, e sbiadirla metteva in secondo piano proprio il caso buono. Ora
+ * succede il contrario: rispettata è in evidenza, non rispettata è più quieta,
+ * e lo stato lo porta comunque il riquadro verde.
  */
 export default function Checkbox({
   label, trailing, className, ...props
@@ -34,7 +42,7 @@ export default function Checkbox({
       )}>
         <Check className="h-3 w-3 text-bg opacity-0" strokeWidth={3} aria-hidden="true" />
       </span>
-      <span className="text-xs text-content-secondary min-w-0 transition-colors peer-checked:text-content-muted peer-checked:line-through">
+      <span className="text-xs text-content-muted min-w-0 transition-colors peer-checked:text-content-strong">
         {label}
       </span>
       {trailing}
