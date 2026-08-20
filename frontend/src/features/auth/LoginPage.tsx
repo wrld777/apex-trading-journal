@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { authService } from '../../services/authService'
 import { useAuthStore } from '../../store/authStore'
@@ -6,6 +7,9 @@ import { t } from '../../i18n'
 import { Button, Field, Input, Wordmark } from '../../design-system'
 
 export default function LoginPage() {
+  // Le pagine fuori dal telaio non passano da AppShell: il titolo se lo
+  // dichiarano da sé.
+  useDocumentTitle('/login')
   const navigate = useNavigate()
   const location = useLocation()
   const setAuth = useAuthStore((s) => s.setAuth)

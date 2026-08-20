@@ -1,4 +1,4 @@
-﻿using Apex.Domain.Entities;
+using Apex.Domain.Entities;
 using Apex.Domain.Repositories;
 using Apex.Domain.Request.Trade;
 using Apex.Infrastructure.DbContext;
@@ -27,7 +27,10 @@ public class TradeRepository : ITradeRepository
     public async Task<Trade?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _context.Trades
-            .Include(t => t.RuleChecks)
+            // La regola dietro ogni check e la strategia servono alla pagina di
+            // dettaglio: senza, l'aderenza sarebbe una lista di GUID.
+            .Include(t => t.RuleChecks).ThenInclude(rc => rc.StrategyRule)
+            .Include(t => t.Strategy)
             .Include(t => t.Exits)
             .Include(t => t.Instrument)
             .FirstOrDefaultAsync(t => t.Id == id, ct);
@@ -79,6 +82,7 @@ public class TradeRepository : ITradeRepository
         var query = _context.Trades.
             AsNoTracking().
             Include(t => t.Instrument).
+            Include(t => t.Strategy).
             Include(t => t.Exits).
             Where(t => t.UserId == userId);
 

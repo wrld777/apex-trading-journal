@@ -25,6 +25,18 @@ export function useRuleImpact(strategyId?: string) {
   })
 }
 
+/** Mese per mese, per tutte le strategie o per una sola. */
+export function useMonthly(strategyId?: string) {
+  const userId = useAuthStore((s) => s.userId)
+
+  return useQuery({
+    queryKey: ['analytics', 'monthly', userId, strategyId ?? 'all'],
+    queryFn: () => analyticsService.getMonthly(strategyId),
+    enabled: !!userId,
+    staleTime: 30_000,
+  })
+}
+
 export function useDiscipline(granularity: Granularity) {
   const userId = useAuthStore((s) => s.userId)
 

@@ -112,6 +112,9 @@ export interface CreateTradeRequest {
   exitPrice: number
   quantity: number
   entryTime: string
+  // Quando si è usciti. Senza, la durata di un trade non è calcolabile e
+  // `avgHoldMinutes` resta a zero (#53).
+  exitTime: string | null
   session: string
   setup: string
   htfBias: string
@@ -130,16 +133,8 @@ export interface CreateTradeRequest {
   exits?: TradeExitInput[]
 }
 
-export interface UpdateTradeRequest {
-  exitPrice: number
-  exitTime: string | null
-  rationale: string
-  emotionalState: string
-  mistakes: string
-  tags: string[]
-  screenshots: string[]
-  // #96 — l'update ricostruisce sempre le uscite: senza questi campi un trade
-  // con parziali verrebbe riscritto come uscita manuale unica.
-  outcome?: TradeOutcome
-  exits?: TradeExitInput[]
-}
+// La PUT rimpiazza il trade per intero, quindi manda gli stessi campi della
+// create — compresi quelli "del prima" (strumento, direzione, livelli, size,
+// orario d'ingresso). Prima qui c'era solo il "dopo": chi sbagliava un lottaggio
+// doveva cancellare il trade e rifarlo.
+export type UpdateTradeRequest = CreateTradeRequest

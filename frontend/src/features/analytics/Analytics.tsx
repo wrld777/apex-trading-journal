@@ -10,6 +10,7 @@ import { Button, Card, CardHeader, Input, PageHeader, Skeleton, Stat, StatRow, t
 import {
   DayOfWeekChart, DrawdownChart, EquityChart, MonthCalendar, WinLossDonut,
 } from '../../components/charts'
+import MonthlyPerformance from './MonthlyPerformance'
 
 /* ── CSV EXPORT ── */
 const CSV_COLUMNS: { label: string; value: (t: TradeDto) => string | number }[] = [
@@ -240,6 +241,11 @@ export default function Analytics() {
           )}
         </Card>
       </div>
+
+      {/* Mese per mese, filtrabile per strategia. Sta prima del calendario
+          perché risponde alla domanda più grande — "il trimestre regge?" — e il
+          calendario è il dettaglio di un mese solo. */}
+      <MonthlyPerformance />
 
       {/* Monthly Calendar */}
       <Card interactive>

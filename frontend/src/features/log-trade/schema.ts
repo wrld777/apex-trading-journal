@@ -27,6 +27,10 @@ export const DEFAULT_FORM = {
   instrumentId: '',
   date: '',
   time: '',
+  // Quando si è usciti. Facoltativo, ma finché il campo non c'è la durata di un
+  // trade non è calcolabile e `avgHoldMinutes` resta a zero (#53).
+  exitDate: '',
+  exitTime: '',
   entryPrice: '',
   stopLoss: '',
   takeProfit: '',
@@ -102,6 +106,11 @@ export function validate(form: FormState, exit: ExitState): FormErrors {
   // senza rischio definito, e senza rischio non esiste un R-multiplo.
   if (!errors.stopLoss && form.entryPrice && form.stopLoss && Number(form.entryPrice) === Number(form.stopLoss)) {
     errors.stopLoss = t('logTrade.errStopEqualsEntry')
+  }
+
+  // Un'uscita che precede l'ingresso è una data sbagliata, non un trade strano.
+  if (form.exitDate && form.date && `${form.exitDate}T${form.exitTime || '00:00'}` < `${form.date}T${form.time || '00:00'}`) {
+    errors.exitDate = t('logTrade.errExitBeforeEntry')
   }
 
   // Uscita (#96): il trade si registra sempre già chiuso, quindi l'esito è

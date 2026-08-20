@@ -17,6 +17,15 @@ export function useTrades(query: TradeQuery = {}) {
   })
 }
 
+/** Un singolo trade, per la pagina di dettaglio e per la modifica. */
+export function useTrade(id: string | undefined) {
+  return useQuery({
+    queryKey: ['trade', id],
+    queryFn: () => tradeService.getById(id!),
+    enabled: !!id,
+  })
+}
+
 export function useCreateTrade() {
   const queryClient = useQueryClient()
 
@@ -39,6 +48,7 @@ export function useUpdateTrade() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stats'] })
       queryClient.invalidateQueries({ queryKey: ['trades'] })
+      queryClient.invalidateQueries({ queryKey: ['trade'] })
     },
   })
 }

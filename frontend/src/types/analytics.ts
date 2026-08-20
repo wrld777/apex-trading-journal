@@ -32,6 +32,15 @@ export interface RuleImpactDto {
   impact: number   // winRateRespected - winRateViolated
 }
 
+// Un mese di risultati (#116/pre-deploy). `metrics` è lo stesso blocco delle
+// altre viste; `netPnL` è il totale del mese, che `metrics.expectancy` non è
+// (quella è una media per trade).
+export interface MonthlyPerformanceDto {
+  month: string      // ISO date, primo del mese
+  netPnL: number
+  metrics: MetricsBlockDto
+}
+
 // One point of the discipline trend (adherence % per week/month).
 export interface DisciplinePointDto {
   periodStart: string  // ISO date

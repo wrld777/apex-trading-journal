@@ -51,6 +51,17 @@ namespace Apex.API.Controllers
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
         }
 
+        // GET /api/analytics/monthly?strategyId=
+        [HttpGet("monthly")]
+        public async Task<IActionResult> GetMonthly([FromQuery] Guid? strategyId, CancellationToken ct)
+        {
+            if (!TryGetUserId(out var userId))
+                return Unauthorized();
+
+            var result = await _analyticsService.GetMonthlyAsync(userId, strategyId, ct);
+            return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+        }
+
         private bool TryGetUserId(out Guid userId)
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

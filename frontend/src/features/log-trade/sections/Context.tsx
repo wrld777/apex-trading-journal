@@ -17,6 +17,17 @@ const SETUPS = ['Breaker Block', 'ICT Order Block', 'Fair Value Gap', 'Silver Bu
 const BIASES = ['Bullish', 'Bearish', 'Neutral']
 const GRADES = ['A+ Setup', 'A Setup', 'B Setup', 'C Setup']
 
+/**
+ * Le opzioni più il valore salvato, se non è più in elenco.
+ *
+ * Serve in modifica: un trade vecchio può avere un setup che nel frattempo è
+ * stato tolto da questa lista. Senza, il select mostrerebbe la prima voce
+ * mentendo su cosa c'è nel modulo, e al primo salvataggio il valore vero
+ * sparirebbe senza che nessuno l'abbia toccato.
+ */
+const withCurrent = (options: string[], current: string) =>
+  current && !options.includes(current) ? [current, ...options] : options
+
 export default function Context({
   form, onField, tags, onTags,
 }: {
@@ -31,22 +42,22 @@ export default function Context({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3.5">
         <Field label={t('logTrade.session')}>
           <Select value={form.session} onChange={onField('session')}>
-            {SESSIONS.map(v => <option key={v}>{v}</option>)}
+            {withCurrent(SESSIONS, form.session).map(v => <option key={v}>{v}</option>)}
           </Select>
         </Field>
         <Field label={t('logTrade.setup')}>
           <Select value={form.setup} onChange={onField('setup')}>
-            {SETUPS.map(v => <option key={v}>{v}</option>)}
+            {withCurrent(SETUPS, form.setup).map(v => <option key={v}>{v}</option>)}
           </Select>
         </Field>
         <Field label={t('logTrade.htfBias')}>
           <Select value={form.htfBias} onChange={onField('htfBias')}>
-            {BIASES.map(v => <option key={v}>{v}</option>)}
+            {withCurrent(BIASES, form.htfBias).map(v => <option key={v}>{v}</option>)}
           </Select>
         </Field>
         <Field label={t('logTrade.grade')}>
           <Select value={form.grade} onChange={onField('grade')}>
-            {GRADES.map(v => <option key={v}>{v}</option>)}
+            {withCurrent(GRADES, form.grade).map(v => <option key={v}>{v}</option>)}
           </Select>
         </Field>
       </div>

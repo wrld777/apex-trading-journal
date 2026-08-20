@@ -1,4 +1,4 @@
-﻿using Apex.Domain.Common;
+using Apex.Domain.Common;
 using Apex.Domain.Contracts;
 using Apex.Domain.DTO;
 using Apex.Domain.Entities;
@@ -114,6 +114,37 @@ namespace Apex.Domain.Services
                 .ToList();
 
             return Result<List<DisciplinePointDto>>.Success(result);
+        }
+
+        // Vista 5 — mese per mese, per tutte le strategie o per una sola.
+        // Il "come sta andando" non si legge dal cumulativo: un mese storto dentro
+        // una curva che sale non si vede, e con una strategia sola il grafico
+        // generale non c'entra nulla.
+        public async Task<Result<List<MonthlyPerformanceDto>>> GetMonthlyAsync(Guid userId, Guid? strategyId, CancellationToken ct)
+        {
+            if (strategyId.HasValue)
+            {
+                // Stessa ownership del resto (#68): una strategia altrui non esiste.
+                var strategy = await _strategyRepository.GetByIdAsync(strategyId.Value, userId, ct);
+                if (strategy is null)
+                    return Result<List<MonthlyPerformanceDto>>.Failure(
+                        Error.FromStrategyError(StrategyErrors.NotFound(strategyId.Value)));
+            }
+
+            var trades = await _tradeRepository.GetForAnalyticsAsync(userId, strategyId, null, null, ct);
+
+            var result = trades
+                .GroupBy(t => new DateTime(t.EntryTime.Year, t.EntryTime.Month, 1, 0, 0, 0, DateTimeKind.Utc))
+                .Select(g => new MonthlyPerformanceDto
+                {
+                    Month = g.Key,
+                    NetPnL = Math.Round(g.Sum(t => t.PnL), 2),
+                    Metrics = Metrics(g.ToList())
+                })
+                .OrderBy(m => m.Month)
+                .ToList();
+
+            return Result<List<MonthlyPerformanceDto>>.Success(result);
         }
 
         private static bool IsFullyAdherent(Trade t) =>

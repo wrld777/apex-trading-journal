@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -34,6 +34,19 @@ namespace Apex.Domain.DTO
         public decimal WinRateRespected { get; set; }
         public decimal WinRateViolated { get; set; }
         public decimal Impact { get; set; }
+    }
+
+    /// <summary>
+    /// Un mese di risultati, per la vista "come sta andando la strategia mese
+    /// per mese". Il netto in dollari sta a parte perché
+    /// <see cref="MetricsBlockDto.Expectancy"/> è una media per trade, non un
+    /// totale: sono due letture diverse dello stesso mese.
+    /// </summary>
+    public class MonthlyPerformanceDto
+    {
+        public DateTime Month { get; set; }
+        public decimal NetPnL { get; set; }
+        public MetricsBlockDto Metrics { get; set; } = new();
     }
 
     public class DisciplinePointDto

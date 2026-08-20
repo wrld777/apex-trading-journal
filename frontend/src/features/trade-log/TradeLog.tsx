@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTrades, useDeleteTrade } from '../../hooks/useTrades'
 
 import { useToastStore } from '../../store/toastStore'
-import EditTradeModal from './EditTradeModal'
 import type { Direction, TradeDto, TradeOutcome, TradeQuery, TradeStatus } from '../../types/trade'
 import { t as tr } from '../../i18n'
 
 import TradeStatusBadge from '../../components/TradeStatusBadge'
 
-import { Pencil, Trash2 } from 'lucide-react'
+import { Eye, Pencil, Trash2 } from 'lucide-react'
 import { Button, Card, EmptyState, IconButton, Input, Modal, PageHeader, Select, SortableTH, TBody, TH, THead, TR, Table, TableSkeleton, TableWrap } from '../../design-system'
 
 /* ── helpers ── */
@@ -59,7 +59,7 @@ export default function TradeLog() {
   const { mutate: deleteTrade, isPending: isDeleting } = useDeleteTrade()
   const addToast = useToastStore((s) => s.addToast)
 
-  const [editTrade, setEditTrade] = useState<TradeDto | null>(null)
+  const navigate = useNavigate()
   const [pendingDelete, setPendingDelete] = useState<TradeDto | null>(null)
 
   const confirmDelete = () => {
@@ -232,7 +232,14 @@ export default function TradeLog() {
                 </THead>
                 <TBody>
                   {rows.map(t => (
-                    <TR key={t.id}>
+                    /* La riga intera porta al dettaglio: cercare l'icona giusta
+                       per *leggere* un trade era il vecchio attrito — si finiva
+                       in "Modifica" per guardare. */
+                    <TR
+                      key={t.id}
+                      onClick={() => navigate(`/trades/${t.id}`)}
+                      className="cursor-pointer"
+                    >
                       <td className="py-2.5 px-3 text-2xs text-content-secondary whitespace-nowrap">{fmtDate(t.entryTime)}</td>
                       <td className="py-2.5 px-3 text-xs font-medium text-content-strong">{t.symbol}</td>
                       <td className="py-2.5 px-3">
@@ -256,9 +263,15 @@ export default function TradeLog() {
                       }`}>{fmtR(t.rMultiple)}</td>
                       <td className="py-2.5 px-3 text-2xs text-content-secondary text-right font-mono">{fmtNum(t.riskReward, 2)}</td>
                       <td className="py-2.5 px-3 text-right"><TradeStatusBadge status={t.status} /></td>
-                      <td className="py-2.5 px-3">
+                      {/* I comandi non devono far scattare il click della riga:
+                          eliminare un trade perché si voleva aprirlo sarebbe il
+                          peggior modo di scoprire questa scorciatoia. */}
+                      <td className="py-2.5 px-3" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1">
-                          <IconButton onClick={() => setEditTrade(t)} label={tr('tradeLog.editAria')}>
+                          <IconButton onClick={() => navigate(`/trades/${t.id}`)} label={tr('tradeLog.viewAria')}>
+                            <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                          </IconButton>
+                          <IconButton onClick={() => navigate(`/trades/${t.id}/edit`)} label={tr('tradeLog.editAria')}>
                             <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
                           </IconButton>
                           <IconButton
@@ -301,13 +314,6 @@ export default function TradeLog() {
           </>
         )}
       </Card>
-
-      {/* Edit modal */}
-      <EditTradeModal
-        trade={editTrade}
-        open={editTrade !== null}
-        onClose={() => setEditTrade(null)}
-      />
 
       {/* Delete confirmation */}
       <Modal

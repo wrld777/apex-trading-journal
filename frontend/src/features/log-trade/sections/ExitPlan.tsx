@@ -143,6 +143,18 @@ export default function ExitPlan({
           {errors.partials && <p role="alert" className="text-2xs text-neg">{errors.partials}</p>}
         </div>
       )}
+
+      {/* Quando si è usciti. Sta fuori dai due rami perché vale in entrambi: sui
+          parziali è l'orario dell'ultima gamba, ed è ciò che rende calcolabile
+          la durata di un trade (#53). */}
+      <div className="grid grid-cols-2 gap-3 mt-3.5 max-w-[320px]">
+        <Field label={t('logTrade.exitDate')} error={errors.exitDate}>
+          <Input type="date" value={form.exitDate} min={form.date || undefined} onChange={onField('exitDate')} />
+        </Field>
+        <Field label={t('logTrade.exitTime')}>
+          <Input type="time" value={form.exitTime} onChange={onField('exitTime')} />
+        </Field>
+      </div>
     </Card>
   )
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import Sidebar from './Sidebar'
 import Topbar from './Topbar'
 import { cn } from '../../design-system'
@@ -31,6 +32,7 @@ export default function AppShell() {
     }
   })
   const { pathname } = useLocation()
+  useDocumentTitle(pathname)
   const drawerOpen = drawer.open && drawer.at === pathname
   const openDrawer = () => setDrawer({ open: true, at: pathname })
   const closeDrawer = () => setDrawer({ open: false, at: pathname })
