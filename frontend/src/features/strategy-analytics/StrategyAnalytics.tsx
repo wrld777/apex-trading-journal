@@ -6,6 +6,7 @@ import { useDiscipline, useRuleImpact, useStrategyStats } from '../../hooks/useA
 import type {
   Granularity,
   MetricsBlockDto,
+  RuleImpactDto,
   StrategyStatsDto,
 } from '../../types/analytics'
 import { fmt, fmtPnl, fmtR, pnlColor } from '../../lib/format'
@@ -92,6 +93,38 @@ function StrategyCard({ s }: { s: StrategyStatsDto }) {
 }
 
 /* ── MAIN ── */
+/**
+ * La regola che costa di più, detta in una frase.
+ *
+ * Le barre ci sono già, e sono lette bene solo da chi si ferma a confrontarle.
+ * Ma se una singola regola cambia il win rate di venti punti, quella è la cosa
+ * da sapere entrando nella pagina — non da ricostruire guardando un grafico.
+ *
+ * Serve un minimo di trade su entrambi i lati: con due volte rispettata e una
+ * saltata la differenza è rumore, e annunciarla come una scoperta sarebbe
+ * peggio che tacere.
+ */
+const MIN_OCCURRENCES = 3
+
+function CostliestRule({ rules }: { rules: RuleImpactDto[] | undefined }) {
+  const worst = (rules ?? [])
+    .filter(r => r.timesRespected >= MIN_OCCURRENCES && r.timesViolated >= MIN_OCCURRENCES)
+    .reduce<RuleImpactDto | null>((best, r) => (best === null || r.impact > best.impact ? r : best), null)
+
+  if (!worst || worst.impact <= 0) return null
+
+  return (
+    <p className="text-xs text-content-secondary leading-relaxed mb-3.5 pb-3.5 border-b border-line">
+      {t('insights.costliestRule', {
+        label: worst.label,
+        points: fmt(worst.impact, 0),
+        respected: worst.timesRespected,
+        violated: worst.timesViolated,
+      })}
+    </p>
+  )
+}
+
 export default function StrategyAnalytics() {
   const { data: strategies, isLoading, isError } = useStrategyStats()
   const [selectedId, setSelectedId] = useState<string>('')
@@ -161,7 +194,10 @@ export default function StrategyAnalytics() {
           {!strategies || strategies.length === 0 ? (
             <div className="py-8 text-center text-xs text-content-muted">—</div>
           ) : (
-            <RuleImpactBars rules={rules} isLoading={rulesLoading} />
+            <>
+              <CostliestRule rules={rules} />
+              <RuleImpactBars rules={rules} isLoading={rulesLoading} />
+            </>
           )}
         </Card>
 

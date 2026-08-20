@@ -190,6 +190,7 @@ export const en = {
   'insights.verdictInverted': 'Better when you skip them → the rules don’t describe what works',
   'insights.verdictWeak': 'Poor even when executed well → the strategy needs rethinking',
   'insights.verdictAligned': 'Adherence and results are aligned',
+  'insights.costliestRule': 'Skipping “{label}” costs you {points} points of win rate — followed on {respected} trades, skipped on {violated}.',
   'insights.ruleImpact': 'Rule impact',
   'insights.ruleImpactHint': 'Win rate when {name} is respected vs violated. Bar = impact.',
   'insights.noAdherence': 'No adherence recorded for this strategy.',
