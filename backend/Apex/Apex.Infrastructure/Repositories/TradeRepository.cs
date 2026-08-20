@@ -31,7 +31,11 @@ public class TradeRepository : ITradeRepository
             // dettaglio: senza, l'aderenza sarebbe una lista di GUID.
             .Include(t => t.RuleChecks).ThenInclude(rc => rc.StrategyRule)
             .Include(t => t.Strategy)
-            .Include(t => t.Exits)
+            // Ordinate: senza, Postgres le restituisce nell'ordine che gli
+            // conviene, e la tabella delle uscite mostrava "manuale, TP, BE" per
+            // un trade uscito "TP, BE, manuale" — cambiando ordine a ogni
+            // rilettura. `Order` esiste proprio per questo.
+            .Include(t => t.Exits.OrderBy(e => e.Order))
             .Include(t => t.Instrument)
             .FirstOrDefaultAsync(t => t.Id == id, ct);
     }
@@ -83,7 +87,7 @@ public class TradeRepository : ITradeRepository
             AsNoTracking().
             Include(t => t.Instrument).
             Include(t => t.Strategy).
-            Include(t => t.Exits).
+            Include(t => t.Exits.OrderBy(e => e.Order)).
             Where(t => t.UserId == userId);
 
         // Postgres 'timestamp with time zone' accetta solo DateTime in UTC.

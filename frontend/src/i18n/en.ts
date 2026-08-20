@@ -308,6 +308,8 @@ export const en = {
   'analytics.minutes': '{count} min',
 
   // ── Log Trade ──
+  // ⚠️ Le etichette dei campi obbligatori **non** portano l'asterisco: lo mette
+  // `Field required`, e scriverlo anche qui ne produceva due (`Instrument * *`).
   // I valori delle tendine di contesto (sessione, setup, bias, grade, stato
   // emotivo) NON stanno qui di proposito: sono salvati come stringa sul trade
   // e usati dai filtri del Trade Log. Tradurli scollegherebbe i trade già
@@ -326,13 +328,13 @@ export const en = {
   'logTrade.direction': 'Direction',
   'logTrade.long': 'LONG',
   'logTrade.short': 'SHORT',
-  'logTrade.instrument': 'Instrument *',
-  'logTrade.date': 'Date *',
+  'logTrade.instrument': 'Instrument',
+  'logTrade.date': 'Date',
   'logTrade.time': 'Time',
-  'logTrade.entryPrice': 'Entry Price *',
-  'logTrade.stopLoss': 'Stop Loss *',
+  'logTrade.entryPrice': 'Entry Price',
+  'logTrade.stopLoss': 'Stop Loss',
   'logTrade.takeProfit': 'Take Profit',
-  'logTrade.quantity': 'Contracts / Qty *',
+  'logTrade.quantity': 'Contracts / Qty',
   'logTrade.session': 'Session',
   'logTrade.setup': 'Setup / Model',
   'logTrade.htfBias': 'HTF Bias',
@@ -362,7 +364,7 @@ export const en = {
   'logTrade.hintStopLoss': 'Exited at stop',
   'logTrade.hintBreakEven': 'Exited at entry price',
   'logTrade.hintManual': 'Exit price entered by hand',
-  'logTrade.exitPrice': 'Exit price *',
+  'logTrade.exitPrice': 'Exit price',
   'logTrade.instrumentRestricted': 'Limited to the {count} instruments of {name}.',
   'logTrade.derivedPrice': 'Exited at {level} — the price comes from the field above.',
   // Errori del modulo: ognuno nomina il proprio campo, perché compare sotto
