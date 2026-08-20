@@ -28,6 +28,8 @@ const TITLES: [pattern: RegExp, key: TranslationKey][] = [
   [/^\/profile/, 'nav.profile'],
   [/^\/login/, 'auth.signIn'],
   [/^\/register/, 'auth.createAccount'],
+  [/^\/forgot-password/, 'auth.forgotTitle'],
+  [/^\/reset-password/, 'auth.resetTitle'],
 ]
 
 /** Il titolo di una rotta, o solo il marchio se la rotta non è fra quelle note. */

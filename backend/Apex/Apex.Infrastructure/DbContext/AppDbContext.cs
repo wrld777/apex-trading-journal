@@ -1,4 +1,4 @@
-﻿using Apex.Domain.Entities;
+using Apex.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
@@ -15,6 +15,7 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<TradeRuleCheck> TradeRuleChecks { get; set; }
     public DbSet<TradeExit> TradeExits { get; set; }
     public DbSet<Instrument> Instruments { get; set; }
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -67,6 +68,25 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
             entity.HasOne(t => t.Instrument).WithMany()
                 .HasForeignKey(t => t.InstrumentId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PasswordResetToken>(entity =>
+        {
+            entity.HasKey(t => t.Id);
+
+            // Si cerca sempre per hash, ed è unico: due link non possono valere
+            // per lo stesso segreto.
+            entity.Property(t => t.TokenHash)
+                .IsRequired()
+                .HasMaxLength(64);
+
+            entity.HasIndex(t => t.TokenHash)
+                .IsUnique();
+
+            entity.HasOne(t => t.User)
+                .WithMany()
+                .HasForeignKey(t => t.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<User>(entity =>

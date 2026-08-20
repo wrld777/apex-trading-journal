@@ -14,7 +14,9 @@ export default function LoginPage() {
   const location = useLocation()
   const setAuth = useAuthStore((s) => s.setAuth)
 
-  const justRegistered = (location.state as { registered?: boolean } | null)?.registered ?? false
+  const state = location.state as { registered?: boolean; passwordReset?: boolean } | null
+  const justRegistered = state?.registered ?? false
+  const passwordReset = state?.passwordReset ?? false
 
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState<string | null>(null)
@@ -42,9 +44,9 @@ const handleSubmit = async (e: React.FormEvent) => {
         <h1 className="text-xl font-bold text-content-strong mb-1">{t('auth.welcomeBack')}</h1>
         <p className="text-sm text-content-secondary mb-8">{t('auth.signInSubtitle')}</p>
 
-        {justRegistered && (
+        {(justRegistered || passwordReset) && (
           <p className="text-xs text-pos bg-pos/10 border border-pos/20 rounded-md px-3 py-2 mb-4">
-            {t('auth.registered')}
+            {justRegistered ? t('auth.registered') : t('auth.passwordResetDone')}
           </p>
         )}
 
@@ -90,7 +92,13 @@ const handleSubmit = async (e: React.FormEvent) => {
           </Button>
         </form>
 
-        <p className="text-xs text-content-muted text-center mt-6">
+        <p className="text-xs text-content-muted text-center mt-5">
+          <Link to="/forgot-password" className="text-content-secondary hover:text-content-strong transition-colors">
+            {t('auth.forgotLink')}
+          </Link>
+        </p>
+
+        <p className="text-xs text-content-muted text-center mt-3">
           {t('auth.noAccount')}{' '}
           <Link to="/register" className="text-content-secondary hover:text-content-strong transition-colors">
             {t('auth.signUp')}

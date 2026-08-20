@@ -36,6 +36,8 @@ const Strategies = lazy(() => import('../features/strategies/Strategies'))
 const Profile = lazy(() => import('../features/profile/Profile'))
 const LoginPage = lazy(() => import('../features/auth/LoginPage'))
 const RegisterPage = lazy(() => import('../features/auth/RegisterPage'))
+const ForgotPasswordPage = lazy(() => import('../features/auth/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('../features/auth/ResetPasswordPage'))
 
 /**
  * L'attesa mentre arriva una pagina.
@@ -68,6 +70,16 @@ export const router = createBrowserRouter([
   {
     path: '/register',
     element: page(<RegisterPage />),
+    errorElement: <RootError />,
+  },
+  {
+    path: '/forgot-password',
+    element: page(<ForgotPasswordPage />),
+    errorElement: <RootError />,
+  },
+  {
+    path: '/reset-password',
+    element: page(<ResetPasswordPage />),
     errorElement: <RootError />,
   },
   {

@@ -65,4 +65,30 @@ public class AuthController : ControllerBase
             ExpirationDate = accessToken.ExpirationDate,
         });
     }
+
+    // POST /api/auth/forgot-password — spedisce il link di reimpostazione.
+    // Risponde 200 anche per un indirizzo che non esiste: una risposta diversa
+    // direbbe a chi prova indirizzi quali sono registrati.
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword(
+        [FromBody] ForgotPasswordRequest request,
+        CancellationToken ct)
+    {
+        await _authService.ForgotPasswordAsync(request.Email, ct);
+        return Ok(new { message = "If that email has an account, a reset link is on its way." });
+    }
+
+    // POST /api/auth/reset-password — riscrive la password col token del link.
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword(
+        [FromBody] ResetPasswordRequest request,
+        CancellationToken ct)
+    {
+        var result = await _authService.ResetPasswordAsync(request.Token, request.NewPassword, ct);
+        if (!result.IsSuccess)
+            return BadRequest(result.Error);
+
+        // Nessun token di sessione: si rientra dal login, come dopo la registrazione.
+        return Ok(new { message = "Password updated. Sign in with your new password." });
+    }
 }

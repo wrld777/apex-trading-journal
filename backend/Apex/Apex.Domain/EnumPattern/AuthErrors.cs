@@ -1,4 +1,4 @@
-﻿namespace Apex.Domain.Common;
+namespace Apex.Domain.Common;
 
 public class AuthErrors
 {
@@ -57,6 +57,12 @@ public class AuthErrors
 
     public static readonly AuthErrors CurrentPasswordIncorrect =
         new("Current password is incorrect.");
+
+    public static readonly AuthErrors ResetTokenInvalid =
+        new("This reset link is not valid. Ask for a new one.");
+
+    public static readonly AuthErrors ResetTokenExpired =
+        new("This reset link has expired. Ask for a new one.");
 
     // ── Internal ──
     public static readonly AuthErrors Internal =

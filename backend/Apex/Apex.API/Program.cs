@@ -5,6 +5,7 @@ using Apex.Domain.Repositories;
 using Apex.Domain.Services;
 using Apex.Domain.Validators;
 using Apex.Infrastructure.DbContext;
+using Apex.Infrastructure.Email;
 using Apex.Infrastructure.Repositories;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -45,6 +46,7 @@ builder.Services.AddScoped<ITradeRepository, TradeRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IStrategyRepository, StrategyRepository>();
 builder.Services.AddScoped<IInstrumentRepository, InstrumentRepository>();
+builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
 
 // Service
 builder.Services.AddScoped<ITradeService, TradeService>();
@@ -55,6 +57,7 @@ builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IManageTokenService, ManageTokenService>();
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(cfg =>
@@ -64,6 +67,12 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.AddProfile<InstrumentProfile>();
     cfg.AddProfile<StrategyProfile>();
 });
+
+// Email — come JwtSettings: l'oggetto è iniettato direttamente, non via IOptions.
+// Senza la sezione in appsettings si parte con Enabled = false, cioè le email
+// finiscono nel log invece che in rete: è ciò che serve in sviluppo.
+builder.Services.AddSingleton(
+    builder.Configuration.GetSection("Email").Get<EmailSettings>() ?? new EmailSettings());
 
 // Database
 builder.Services.AddDbContext<AppDbContext>(options =>

@@ -9,5 +9,7 @@ namespace Apex.Domain.Contracts
 
         Task<Result<UserDto>> RegisterAsync(RegisterRequest request, CancellationToken ct);
         Task<Result<UserDto>> LoginAsync(string email, string password, CancellationToken ct);
+        Task<Result<bool>> ForgotPasswordAsync(string email, CancellationToken ct);
+        Task<Result<bool>> ResetPasswordAsync(string token, string newPassword, CancellationToken ct);
     }
 }
