@@ -125,6 +125,13 @@ export const en = {
   'profile.passwordChanged': 'Password changed.',
   'profile.passwordChangeFailed': 'Failed to change the password.',
 
+  // ── Lingua ──
+  'profile.languageSection': 'Language',
+  'profile.language': 'Interface language',
+  'profile.languageAuto': 'Automatic ({name})',
+  'profile.languageHint': 'Automatic follows your browser. Changing it reloads the page.',
+  'profile.languageChanged': 'Language changed.',
+
   // ── Strategie ──
   'strategies.title': 'Strategies',
   'strategies.count': '{count} strategies',
@@ -555,6 +562,10 @@ export const en = {
   'discipline.sequenceSubtitle': '{avg} trades a day on average, {max} at most, across {days} days.',
   'discipline.sequenceEmpty': 'No trades to sequence yet.',
   'discipline.sequenceDecay': 'Your {position} trade of the day runs at {value} against {first} on the first — over {trades} trades. That is where the day should end.',
+  'discipline.pos1': '1st',
+  'discipline.pos2': '2nd',
+  'discipline.pos3': '3rd',
+  'discipline.posLast': '4th+',
   'discipline.nTrades': '{count} tr',
 
   'discipline.riskTitle': 'Risk Consistency',

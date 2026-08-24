@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { DATE_LOCALE } from '../../lib/format'
 import { useNavigate } from 'react-router-dom'
 import { useTrades, useDeleteTrade } from '../../hooks/useTrades'
 
@@ -28,7 +29,7 @@ function fmtR(n: number | null) {
   return `${n >= 0 ? '+' : '−'}${fmtNum(Math.abs(n), 2)}R`
 }
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', { year: '2-digit', month: 'short', day: 'numeric' })
+  return new Date(iso).toLocaleDateString(DATE_LOCALE, { year: '2-digit', month: 'short', day: 'numeric' })
 }
 
 type SortKey = 'date' | 'pnl' | 'rr'

@@ -3,7 +3,7 @@ import { ArrowDownRight, ArrowRight, ArrowUpRight } from 'lucide-react'
 import { Badge, Card, CardHeader, Skeleton, Stat } from '../../../design-system'
 import { useWeeklyReview } from '../../../hooks/useAnalytics'
 import { t } from '../../../i18n'
-import { fmt, fmtPct, fmtPnl, fmtR } from '../../../lib/format'
+import { DATE_LOCALE, fmt, fmtPct, fmtPnl, fmtR } from '../../../lib/format'
 
 /**
  * La settimana appena passata, accanto a quella prima.
@@ -41,7 +41,7 @@ export default function WeeklyReview() {
   if (!data) return null
 
   const { thisWeek, lastWeek } = data
-  const week = new Date(data.weekStart).toLocaleDateString('en-US', {
+  const week = new Date(data.weekStart).toLocaleDateString(DATE_LOCALE, {
     month: 'short', day: 'numeric', timeZone: 'UTC',
   })
 

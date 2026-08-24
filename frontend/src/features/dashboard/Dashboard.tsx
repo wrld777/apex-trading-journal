@@ -9,7 +9,7 @@ import { useAuthStore } from '../../store/authStore'
 import type { TradeDto } from '../../types/trade'
 import { t, tPlural, type TranslationKey } from '../../i18n'
 import type { StatTone } from '../../design-system'
-import { fmt, fmtDay, fmtPnl, fmtR } from '../../lib/format'
+import { DATE_LOCALE, fmt, fmtDay, fmtPnl, fmtR } from '../../lib/format'
 import { cumulative } from '../../lib/series'
 
 import TradeStatusBadge from '../../components/TradeStatusBadge'
@@ -146,7 +146,7 @@ export default function Dashboard() {
   const trades = tradesPage?.items
   const { data: profile } = useProfile()
 
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+  const today = new Date().toLocaleDateString(DATE_LOCALE, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
   // La miniatura sulla card del P&L netto: la stessa curva del grafico grande,
   // ridotta a una riga. Ha senso solo con almeno due giorni.

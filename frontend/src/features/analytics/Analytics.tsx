@@ -5,7 +5,7 @@ import { useTrades } from '../../hooks/useTrades'
 import type { StatsDto } from '../../types/stats'
 import type { TradeDto } from '../../types/trade'
 import { t as tr } from '../../i18n'
-import { fmt, fmtPnl } from '../../lib/format'
+import { DATE_LOCALE, fmt, fmtPnl } from '../../lib/format'
 import { Button, Card, CardHeader, Input, PageHeader, Skeleton, Stat, StatRow, type StatTone } from '../../design-system'
 import {
   DayOfWeekChart, DrawdownChart, EquityChart, MonthCalendar, WinLossDonut,
@@ -124,7 +124,7 @@ export default function Analytics() {
     return new Date()
   }, [to, data])
 
-  const monthLabel = refDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  const monthLabel = refDate.toLocaleDateString(DATE_LOCALE, { month: 'long', year: 'numeric' })
   const mtd = (data?.dailyPnL ?? [])
     .filter(d => {
       const dt = new Date(d.date)

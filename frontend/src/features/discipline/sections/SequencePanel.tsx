@@ -1,6 +1,6 @@
 import { Card, CardHeader, Skeleton } from '../../../design-system'
 import { useSequence } from '../../../hooks/useAnalytics'
-import { t } from '../../../i18n'
+import { t, type TranslationKey } from '../../../i18n'
 import { fmt, fmtPct, fmtR } from '../../../lib/format'
 
 /**
@@ -12,6 +12,20 @@ import { fmt, fmtPct, fmtR } from '../../../lib/format'
  * i setup che aspettavi, dal terzo in poi di solito sono quelli che hai
  * trovato perché stavi ancora guardando lo schermo.
  */
+// "1st", "2nd", "4th+" arrivano dal server già scritti, ed è uno dei pochi
+// posti in cui il backend produce testo destinato all'occhio: in italiano
+// diventano 1°, 2°, 4°+. La posizione è un numero, e il numero si sa scrivere
+// in entrambe le lingue — l'etichetta del server resta solo come rete di
+// sicurezza se un giorno i secchielli diventassero più di quattro.
+const POSITION_KEYS: TranslationKey[] = [
+  'discipline.pos1', 'discipline.pos2', 'discipline.pos3', 'discipline.posLast',
+]
+
+function positionLabel(position: number, fallback: string) {
+  const key = POSITION_KEYS[position - 1]
+  return key ? t(key) : fallback
+}
+
 export default function SequencePanel() {
   const { data, isLoading } = useSequence()
 
@@ -52,7 +66,7 @@ export default function SequencePanel() {
           {decays && (
             <p className="text-xs text-content-secondary leading-relaxed mb-3.5 pb-3.5 border-b border-line">
               {t('discipline.sequenceDecay', {
-                position: worst.label,
+                position: positionLabel(worst.position, worst.label),
                 value: fmtR(worst.metrics.expectancyR),
                 first: fmtR(first.metrics.expectancyR),
                 trades: worst.metrics.totalTrades,
@@ -65,7 +79,9 @@ export default function SequencePanel() {
               const width = maxAbsR > 0 ? (Math.abs(b.metrics.netR) / maxAbsR) * 100 : 0
               return (
                 <div key={b.position} className="flex items-center gap-3">
-                  <span className="text-2xs text-content-secondary font-mono w-[46px] shrink-0">{b.label}</span>
+                  <span className="text-2xs text-content-secondary font-mono w-[46px] shrink-0">
+                    {positionLabel(b.position, b.label)}
+                  </span>
                   <span className="text-2xs text-content-faint font-mono w-[54px] shrink-0">
                     {t('discipline.nTrades', { count: b.metrics.totalTrades })}
                   </span>

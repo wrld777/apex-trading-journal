@@ -1,6 +1,6 @@
 import { Tooltip } from '../../design-system'
 import { t } from '../../i18n'
-import { fmtPnl, fmtUsdShort } from '../../lib/format'
+import { DATE_LOCALE, fmtPnl, fmtUsdShort } from '../../lib/format'
 import type { DailyPnLDto } from '../../types/stats'
 
 const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -98,7 +98,7 @@ export default function MonthCalendar({ daily, refDate }: { daily: DailyPnLDto[]
               content={
                 <>
                   <span className="font-medium text-content-strong">
-                    {new Date(year, month, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {new Date(year, month, day).toLocaleDateString(DATE_LOCALE, { month: 'short', day: 'numeric' })}
                   </span>
                   {' · '}
                   <span className={`font-mono ${pnl >= 0 ? 'text-pos' : 'text-neg'}`}>{fmtPnl(pnl)}</span>

@@ -4,7 +4,7 @@ import { Card, CardHeader, Select, Skeleton, TBody, TD, TH, THead, TR, Table, Ta
 import { useMonthly } from '../../hooks/useAnalytics'
 import { useStrategies } from '../../hooks/useStrategies'
 import { t } from '../../i18n'
-import { fmt, fmtPct, fmtPnl, fmtR } from '../../lib/format'
+import { DATE_LOCALE, fmt, fmtPct, fmtPnl, fmtR } from '../../lib/format'
 import { fmtMargin } from '../../lib/confidence'
 
 /**
@@ -25,7 +25,7 @@ function monthLabel(iso: string) {
   // Lette come UTC: il primo del mese in fuso negativo diventerebbe il 31 del
   // mese prima, cioè l'etichetta sbagliata su ogni riga.
   const d = new Date(iso)
-  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })
+  return d.toLocaleDateString(DATE_LOCALE, { month: 'short', year: 'numeric', timeZone: 'UTC' })
 }
 
 /** La barra dice il segno e la grandezza relativa: la colonna di numeri da sola

@@ -8,7 +8,7 @@ import {
   TBody, TD, TH, THead, TR, Table, TableWrap,
 } from '../../design-system'
 import { useDeleteTrade, useTrade } from '../../hooks/useTrades'
-import { fmt, fmtPnl, fmtR } from '../../lib/format'
+import { DATE_LOCALE, fmt, fmtPnl, fmtR } from '../../lib/format'
 import { t } from '../../i18n'
 import { useToastStore } from '../../store/toastStore'
 import type { TradeDto, TradeOutcome } from '../../types/trade'
@@ -35,7 +35,7 @@ const OUTCOME_LABELS: Record<TradeOutcome, string> = {
 function fmtDateTime(iso: string | null) {
   if (!iso) return '—'
   const d = new Date(iso)
-  return `${d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} · ${iso.slice(11, 16)}`
+  return `${d.toLocaleDateString(DATE_LOCALE, { year: 'numeric', month: 'short', day: 'numeric' })} · ${iso.slice(11, 16)}`
 }
 
 /** Quanto è durato. Senza orario di uscita non è calcolabile, e si dice. */
@@ -308,7 +308,7 @@ export default function TradeDetail() {
           {t('tradeLog.deleteBody', {
             symbol: trade.symbol,
             direction: trade.direction,
-            date: new Date(trade.entryTime).toLocaleDateString('en-US', { year: '2-digit', month: 'short', day: 'numeric' }),
+            date: new Date(trade.entryTime).toLocaleDateString(DATE_LOCALE, { year: '2-digit', month: 'short', day: 'numeric' }),
           })}
         </p>
       </Modal>
