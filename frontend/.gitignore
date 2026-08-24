@@ -27,3 +27,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# …tranne questo: non contiene segreti, solo la scelta di usare percorsi
+# relativi in produzione. Senza, ogni build su una macchina che ha un `.env` di
+# sviluppo ci infilerebbe dentro localhost:7106.
+!.env.production

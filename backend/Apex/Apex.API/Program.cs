@@ -16,7 +16,14 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// CORS
+// In produzione l'app gira come **servizio di Windows**: parte con la macchina,
+// prima ancora che qualcuno faccia login. Fuori da un servizio la chiamata è
+// innocua, quindi non serve un ramo per ambiente.
+builder.Host.UseWindowsService();
+
+// CORS serve **solo in sviluppo**, dove Vite sta su una porta diversa. In
+// produzione è questa stessa applicazione a servire il frontend: l'origine è
+// una sola e il browser non ha niente da chiedere.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -111,10 +118,43 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowFrontend");      
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors("AllowFrontend");
+    // Il dirottamento su HTTPS vale solo qui. In produzione l'app risponde in
+    // chiaro su una rete privata (Tailscale), dove il traffico è già cifrato da
+    // WireGuard: un redirect verso una porta HTTPS che non esiste renderebbe
+    // l'app irraggiungibile, e sarebbe il modo più stupido di rompere il deploy.
+    app.UseHttpsRedirection();
+}
+
 app.UseAuthentication();
-app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+
+// ── Il frontend, servito da qui ──────────────────────────────────────────────
+// La build di Vite viene copiata in wwwroot dallo script di pubblicazione.
+// Un processo solo invece di due: niente CORS, niente seconda porta da aprire,
+// niente reverse proxy da configurare. Per un'installazione a utente singolo è
+// tutto quello che serve.
+// `MapStaticAssets` e non `UseStaticFiles`: dalla pubblicazione .NET descrive i
+// file di wwwroot in un manifesto (`*.staticwebassets.endpoints.json`) con tanto
+// di varianti compresse e impronte per la cache. Il vecchio middleware guarda
+// solo il disco e, in output pubblicato, non serviva **niente** — ogni richiesta
+// finiva nel fallback e il browser riceveva l'HTML della pagina al posto del
+// JavaScript, con una schermata bianca e nessun errore in console.
+app.MapStaticAssets();
+
+// Un endpoint `/api/...` che non esiste deve rispondere 404, non la pagina.
+// Va dichiarato **prima** del fallback e come catch-all: fra gli endpoint veri
+// il catch-all è quello a priorità più bassa, quindi i controller continuano a
+// vincere, ma batte comunque il fallback. Senza, un indirizzo sbagliato tornava
+// 200 con dell'HTML, il client provava a leggerlo come JSON e falliva con un
+// errore di sintassi — cioè il più lontano possibile dalla causa vera.
+app.Map("/api/{**rest}", () => Results.NotFound());
+
+// Tutto il resto è il router del browser: `/trades/123`, `/discipline` e la
+// home non esistono sul server, e ricaricando la pagina si otterrebbe un 404.
+app.MapFallbackToFile("index.html");
 
 app.Run();
