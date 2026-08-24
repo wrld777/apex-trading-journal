@@ -1,33 +1,16 @@
 import { useMemo, useState } from 'react'
-import { Skeleton } from '../../components/ui/Skeleton'
+
 import { t } from '../../i18n'
-import EmptyState from '../../components/ui/EmptyState'
+
 import { useDiscipline, useRuleImpact, useStrategyStats } from '../../hooks/useAnalytics'
 import type {
-  DisciplinePointDto,
   Granularity,
   MetricsBlockDto,
-  RuleImpactDto,
   StrategyStatsDto,
 } from '../../types/analytics'
-
-/* ── HELPERS ── */
-function fmt(n: number, decimals = 0) {
-  return n.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
-}
-function fmtPnl(n: number) {
-  return n >= 0 ? `+$${fmt(n)}` : `-$${fmt(Math.abs(n))}`
-}
-function pnlColor(n: number) {
-  return n > 0 ? 'text-green-500' : n < 0 ? 'text-red-500' : 'text-zinc-400'
-}
-/** Risultato in unità di rischio: il metro che non dipende dalla size. */
-function fmtR(n: number) {
-  return `${n >= 0 ? '+' : '−'}${fmt(Math.abs(n), 2)}R`
-}
-
-const card = 'bg-[#111113] border border-white/[0.04] rounded-[10px] hover:border-white/[0.07] transition-colors'
-const label = 'text-[11px] text-zinc-600 uppercase tracking-widest'
+import { fmt, fmtPnl, fmtR, pnlColor } from '../../lib/format'
+import { Card, CardHeader, EmptyState, PageHeader, SegmentedControl, Select, Skeleton, StatRow, Tooltip } from '../../design-system'
+import { DisciplineChart, RuleImpactBars } from '../../components/charts'
 
 /* ── METRIC COLUMN (one of Overall / Adherent / Not adherent) ── */
 function MetricColumn({ title, block, accent }: { title: string; block: MetricsBlockDto; accent: string }) {
@@ -35,32 +18,26 @@ function MetricColumn({ title, block, accent }: { title: string; block: MetricsB
   return (
     <div className="flex-1 min-w-0">
       <div className="flex items-center gap-1.5 mb-2">
-        <span className={`w-1.5 h-1.5 rounded-full ${accent}`} />
-        <span className="text-[10px] text-zinc-500 uppercase tracking-widest truncate">{title}</span>
+        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${accent}`} />
+        <span className="text-2xs text-content-secondary uppercase tracking-widest truncate">{title}</span>
       </div>
       {empty ? (
-        <div className="text-zinc-700 text-lg font-display font-bold">—</div>
+        <div className="text-content-faint text-lg font-mono font-medium">—</div>
       ) : (
         <>
-          <div className="font-display font-bold text-[22px] leading-none text-white mb-1.5">{fmt(block.winRate, 1)}%</div>
-          <div className="flex flex-col gap-0.5">
+          <div className="font-mono font-medium text-xl leading-none text-content-strong mb-1.5">{fmt(block.winRate, 1)}%</div>
+          <div className="flex flex-col">
             {/* L'expectancy in R viene prima: è quella con cui si confrontano
                 due strategie. I dollari restano sotto come riferimento. */}
-            <Row k={t('insights.expectancy')} v={fmtR(block.expectancyR)} vc={pnlColor(block.expectancyR)} />
-            <Row k={t('insights.inDollars')} v={fmtPnl(block.expectancy)} vc="text-zinc-500" />
-            <Row k={t('insights.avgRR')} v={fmt(block.avgRR, 2)} />
-            <Row k={t('insights.tradesLabel')} v={String(block.totalTrades)} />
+            <StatRow label={t('insights.expectancy')} tone={block.expectancyR >= 0 ? 'positive' : 'negative'} className="py-1">
+              {fmtR(block.expectancyR)}
+            </StatRow>
+            <StatRow label={t('insights.inDollars')} tone="muted" className="py-1">{fmtPnl(block.expectancy)}</StatRow>
+            <StatRow label={t('insights.avgRR')} className="py-1">{fmt(block.avgRR, 2)}</StatRow>
+            <StatRow label={t('insights.tradesLabel')} className="py-1">{String(block.totalTrades)}</StatRow>
           </div>
         </>
       )}
-    </div>
-  )
-}
-function Row({ k, v, vc = 'text-zinc-300' }: { k: string; v: string; vc?: string }) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-[10px] text-zinc-600">{k}</span>
-      <span className={`text-[11px] font-mono ${vc}`}>{v}</span>
     </div>
   )
 }
@@ -73,117 +50,44 @@ function verdict(s: StrategyStatsDto): { text: string; cls: string } | null {
   if (a.totalTrades < 2 || n.totalTrades < 2) return null
   const delta = a.winRate - n.winRate
   if (delta >= 15) {
-    return { text: t('insights.verdictDisciplined'), cls: 'bg-amber-500/10 border-amber-500/20 text-amber-400' }
+    return { text: t('insights.verdictDisciplined'), cls: 'bg-warn/10 border-warn/20 text-warn' }
   }
   // Il caso opposto mancava e finiva in "allineati", che è la lettura più
   // sbagliata possibile: se rispettare la checklist va *peggio* che ignorarla,
   // il problema è nelle regole, non nell'esecuzione. È il caso più interessante.
   if (delta <= -15) {
-    return { text: t('insights.verdictInverted'), cls: 'bg-violet-500/10 border-violet-500/20 text-violet-400' }
+    return { text: t('insights.verdictInverted'), cls: 'bg-brand/10 border-brand/20 text-brand' }
   }
   if (a.winRate < 45 && n.winRate < 45) {
-    return { text: t('insights.verdictWeak'), cls: 'bg-red-500/10 border-red-500/20 text-red-400' }
+    return { text: t('insights.verdictWeak'), cls: 'bg-neg/10 border-neg/20 text-neg' }
   }
-  return { text: t('insights.verdictAligned'), cls: 'bg-zinc-500/10 border-white/10 text-zinc-400' }
+  return { text: t('insights.verdictAligned'), cls: 'bg-neutral2/10 border-white/10 text-content-secondary' }
 }
 
 /* ── STRATEGY CARD ── */
 function StrategyCard({ s }: { s: StrategyStatsDto }) {
   const v = verdict(s)
   return (
-    <div className={`${card} p-4 lg:p-[18px]`}>
+    <Card interactive>
       <div className="flex items-center justify-between mb-4">
-        <div className="text-sm font-medium text-white truncate">{s.strategyName}</div>
-        <div className={`text-[11px] font-mono ${pnlColor(s.overall.expectancyR)}`} title={t('insights.expTitle', { value: fmtPnl(s.overall.expectancy) })}>
-          {t('insights.expShort', { value: fmtR(s.overall.expectancyR) })}
-        </div>
+        <div className="text-sm font-medium text-content-strong truncate">{s.strategyName}</div>
+        <Tooltip content={t('insights.expTitle', { value: fmtPnl(s.overall.expectancy) })}>
+          <span className={`text-xs font-mono ${pnlColor(s.overall.expectancyR)}`}>
+            {t('insights.expShort', { value: fmtR(s.overall.expectancyR) })}
+          </span>
+        </Tooltip>
       </div>
       <div className="flex gap-3">
-        <MetricColumn title={t('insights.all')} block={s.overall} accent="bg-zinc-500" />
+        <MetricColumn title={t('insights.all')} block={s.overall} accent="bg-content-muted" />
         <div className="w-px bg-white/[0.05]" />
-        <MetricColumn title={t('insights.fullChecklist')} block={s.whenFullyAdherent} accent="bg-green-500" />
+        <MetricColumn title={t('insights.fullChecklist')} block={s.whenFullyAdherent} accent="bg-pos" />
         <div className="w-px bg-white/[0.05]" />
-        <MetricColumn title={t('insights.rulesSkipped')} block={s.whenNotAdherent} accent="bg-red-500" />
+        <MetricColumn title={t('insights.rulesSkipped')} block={s.whenNotAdherent} accent="bg-neg" />
       </div>
       {v && (
-        <div className={`mt-4 px-3 py-2 rounded-md border text-[11px] ${v.cls}`}>{v.text}</div>
+        <div className={`mt-4 px-3 py-2 rounded-md border text-xs ${v.cls}`}>{v.text}</div>
       )}
-    </div>
-  )
-}
-
-/* ── RULE IMPACT TABLE ── */
-function RuleImpactTable({ rules, isLoading }: { rules: RuleImpactDto[] | undefined; isLoading: boolean }) {
-  if (isLoading) return <div className="flex flex-col gap-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-11 w-full" />)}</div>
-  if (!rules || rules.length === 0)
-    return <div className="py-8 text-center text-xs text-zinc-600">{t('insights.noAdherence')}</div>
-
-  return (
-    <div className="flex flex-col gap-1.5">
-      {rules.map(r => {
-        // impact ∈ [-100, 100]; scale bar width off its magnitude.
-        const width = Math.min(Math.abs(r.impact), 100)
-        const pos = r.impact >= 0
-        return (
-          <div key={r.strategyRuleId} className="flex items-center gap-3 px-3 py-2.5 rounded-md bg-[#141416] border border-white/[0.04]">
-            <div className="flex-1 min-w-0">
-              <div className="text-xs text-zinc-200 truncate mb-1">{r.label}</div>
-              <div className="flex items-center gap-3 text-[10px] text-zinc-600 font-mono">
-                <span className="text-green-500/80">✓ {r.timesRespected} · {fmt(r.winRateRespected, 0)}%</span>
-                <span className="text-red-500/80">✗ {r.timesViolated} · {fmt(r.winRateViolated, 0)}%</span>
-              </div>
-            </div>
-            <div className="w-24 shrink-0">
-              <div className="h-1.5 rounded-full bg-white/[0.05] overflow-hidden">
-                <div className={`h-full rounded-full ${pos ? 'bg-green-500/70' : 'bg-red-500/70'}`} style={{ width: `${width}%` }} />
-              </div>
-            </div>
-            <div className={`w-14 text-right text-xs font-mono font-medium shrink-0 ${pos ? 'text-green-500' : 'text-red-500'}`}>
-              {pos ? '+' : ''}{fmt(r.impact, 0)}%
-            </div>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-/* ── DISCIPLINE TREND (adherence % over time) ── */
-function DisciplineChart({ points }: { points: DisciplinePointDto[] }) {
-  if (points.length === 0)
-    return <div className="h-[180px] flex items-center justify-center text-xs text-zinc-600">{t('insights.noAdherenceData')}</div>
-
-  const W = 400, H = 180, pad = 18
-  const n = points.length
-  const vals = points.map(p => p.adherenceRate)
-  const x = (i: number) => (n === 1 ? W / 2 : (i / (n - 1)) * (W - pad) + pad / 2)
-  const y = (v: number) => pad + (1 - v / 100) * (H - 2 * pad) // 0..100 fixed scale
-
-  const coords = points.map((p, i) => `${x(i).toFixed(1)},${y(p.adherenceRate).toFixed(1)}`)
-  const line = n === 1 ? `${pad / 2},${y(vals[0])} ${W},${y(vals[0])}` : coords.join(' ')
-  const area = `${line} ${x(n - 1).toFixed(1)},${H - pad} ${x(0).toFixed(1)},${H - pad}`
-  const last = vals[n - 1]
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
-      <defs>
-        <linearGradient id="disc-grad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="rgba(59,130,246,0.28)" />
-          <stop offset="100%" stopColor="rgba(59,130,246,0)" />
-        </linearGradient>
-      </defs>
-      {[25, 50, 75].map(g => (
-        <line key={g} x1="0" y1={y(g)} x2={W} y2={y(g)} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-      ))}
-      <line x1="0" y1={y(100)} x2={W} y2={y(100)} stroke="rgba(255,255,255,0.06)" strokeDasharray="3,3" strokeWidth="1" />
-      <polygon points={area} fill="url(#disc-grad)" />
-      <polyline points={line} fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      {points.map((p, i) => (
-        <circle key={i} cx={x(i)} cy={y(p.adherenceRate)} r="2.5" fill="#3b82f6" />
-      ))}
-      <text x="4" y={y(100) + 10} fill="rgba(255,255,255,0.2)" fontSize="9" fontFamily="monospace">100%</text>
-      <text x={W - 4} y={y(last) - 6} textAnchor="end" fill="#3b82f6" fontSize="10" fontFamily="monospace">{fmt(last, 0)}%</text>
-    </svg>
+    </Card>
   )
 }
 
@@ -203,18 +107,15 @@ export default function StrategyAnalytics() {
     [strategies, activeId],
   )
 
-  const selectCls = 'bg-[#141416] border border-white/[0.07] rounded-md px-2.5 py-1.5 text-[11px] text-zinc-300 outline-none focus:border-white/[0.18] [color-scheme:dark]'
-
   return (
-    <div className="p-4 lg:p-7">
-      {/* Header */}
-      <div className="mb-5">
-        <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">{t('insights.title')}</h1>
-        <p className="text-xs text-zinc-600">{t('insights.subtitle', { count: strategies?.length ?? 0 })}</p>
-      </div>
+    <>
+      <PageHeader
+        title={t('insights.title')}
+        subtitle={t('insights.subtitle', { count: strategies?.length ?? 0 })}
+      />
 
       {isError && (
-        <div className="mb-4 px-4 py-3 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+        <div className="mb-4 px-4 py-3 rounded-md bg-neg/10 border border-neg/20 text-neg text-xs">
           {t('insights.loadFailed')}
         </div>
       )}
@@ -225,14 +126,14 @@ export default function StrategyAnalytics() {
           {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-[190px] w-full rounded-[10px]" />)}
         </div>
       ) : !strategies || strategies.length === 0 ? (
-        <div className={`${card} mb-3.5`}>
+        <Card className="mb-3.5">
           <EmptyState
             title={t('insights.emptyTitle')}
             description={t('insights.emptyBody')}
             actionLabel={t('nav.logTrade')}
             actionTo="/log-trade"
           />
-        </div>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 mb-3.5">
           {strategies.map(s => <StrategyCard key={s.strategyId} s={s} />)}
@@ -242,48 +143,47 @@ export default function StrategyAnalytics() {
       {/* Rule impact + Discipline trend */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
         {/* Rule impact */}
-        <div className={`${card} p-4 lg:p-[18px]`}>
-          <div className="flex items-center justify-between mb-4 gap-2">
-            <div className={label}>{t('insights.ruleImpact')}</div>
-            {strategies && strategies.length > 0 && (
-              <select value={activeId} onChange={e => setSelectedId(e.target.value)} className={selectCls} aria-label={t('insights.strategyAria')}>
+        <Card interactive>
+          <CardHeader
+            title={t('insights.ruleImpact')}
+            subtitle={strategies && strategies.length > 0 ? t('insights.ruleImpactHint', { name: activeName || t('common.rule') }) : undefined}
+            action={strategies && strategies.length > 0 && (
+              <Select
+                value={activeId}
+                onChange={e => setSelectedId(e.target.value)}
+                className="w-auto text-xs"
+                aria-label={t('insights.strategyAria')}
+              >
                 {strategies.map(s => <option key={s.strategyId} value={s.strategyId}>{s.strategyName}</option>)}
-              </select>
+              </Select>
             )}
-          </div>
+          />
           {!strategies || strategies.length === 0 ? (
-            <div className="py-8 text-center text-xs text-zinc-600">—</div>
+            <div className="py-8 text-center text-xs text-content-muted">—</div>
           ) : (
-            <>
-              <p className="text-[10px] text-zinc-600 mb-3">
-                {t('insights.ruleImpactHint', { name: activeName || t('common.rule') })}
-              </p>
-              <RuleImpactTable rules={rules} isLoading={rulesLoading} />
-            </>
+            <RuleImpactBars rules={rules} isLoading={rulesLoading} />
           )}
-        </div>
+        </Card>
 
         {/* Discipline trend */}
-        <div className={`${card} p-4 lg:p-[18px]`}>
-          <div className="flex items-center justify-between mb-4">
-            <div className={label}>{t('insights.disciplineTrend')}</div>
-            <div className="flex items-center gap-1 bg-[#141416] border border-white/[0.07] rounded-md p-0.5">
-              {(['week', 'month'] as Granularity[]).map(g => (
-                <button
-                  key={g}
-                  onClick={() => setGran(g)}
-                  className={`px-2.5 py-1 rounded text-[10px] uppercase tracking-widest transition-all ${
-                    gran === g ? 'bg-[#1f1f23] text-white' : 'text-zinc-600 hover:text-zinc-400'
-                  }`}
-                >
-                  {g === 'week' ? t('insights.week') : t('insights.month')}
-                </button>
-              ))}
-            </div>
-          </div>
+        <Card interactive>
+          <CardHeader
+            title={t('insights.disciplineTrend')}
+            action={
+              <SegmentedControl<Granularity>
+                value={gran}
+                onChange={setGran}
+                label={t('insights.granularityAria')}
+                options={[
+                  { value: 'week', label: t('insights.week') },
+                  { value: 'month', label: t('insights.month') },
+                ]}
+              />
+            }
+          />
           {discLoading ? <Skeleton className="h-[180px] w-full" /> : <DisciplineChart points={discipline ?? []} />}
-        </div>
+        </Card>
       </div>
-    </div>
+    </>
   )
 }

@@ -1,6 +1,98 @@
-# Current Sprint — US #5 Frontend API Integration
+# Current Sprint — Posizionamento e identità
 
-tags: #roadmap #sprint #frontend
+tags: #roadmap #sprint
+
+**Branch base:** `develop` (a `974b823` al 14/08/2026)
+**Obiettivo:** togliere di mezzo tutto ciò che faceva sembrare l'app un gestore di conti funded, e darle un'identità coerente.
+
+**Ordine deciso dall'utente il 13/08:** 1) via la logica conti → 2) tasti periodo → 3) ricognizione → 4) grafica e brand.
+
+> Da qui in poi (13/08) sviluppa **Claude, backend e frontend**. L'utente decide e revisiona.
+
+---
+
+## Fatto in questo sprint
+
+### ✅ #106 — Via il capitale, dentro l'R-multiplo
+**PR [#107](https://github.com/wrld777/apex-trading-journal/pull/107)** — mergiata.
+L'app si presentava come conto funded: header `Funded $150.000`, delta `% of capital`, un `CAPITAL = 150_000` **hardcoded** in `Analytics.tsx`. Nessuna di quelle misure dice quanto è buona una strategia: dipendono da quanto capitale dichiari.
+Sostituite dall'**R-multiplo**: `PnL / (|entry − SL| × pointValue × qty)`, coi dollari affiancati. Rimosso `User.AccountSize` con migration.
+- ⚠️ `Trade.RiskReward` **non** è l'R: `CalculateRR` usa valori assoluti, quindi è una magnitudine senza segno (un −1R risulta `rr = 1`). Convivono, non sono intercambiabili.
+- `RMultiple` è `null`, non zero, quando lo stop coincide con l'entry: uno zero avrebbe sporcato tutte le medie.
+
+### ✅ #108 — I tasti periodo non facevano niente
+**PR [#109](https://github.com/wrld777/apex-trading-journal/pull/109)** — mergiata.
+Non erano rotti: erano `<button>` **senza `onClick`**, con `1W` evidenziato fisso. Solo sulla Dashboard — Analytics aveva già un range da/a e StrategyAnalytics il toggle cablato.
+Ora un solo `PeriodPicker` filtra tutta la pagina; la heatmap resta su query separata perché promette "Last 13 Weeks". Tolto `'May 2025'` inchiodato in `Topbar.tsx`.
+- 🐛 Trovati e corretti due bug sul **profit factor**: era `avgWin/|avgLoss|` invece di lordo/lordo (3.00 invece di 9.00 sui dati di prova), e senza perdite tornava 0 facendo leggere "Negative edge" a un periodo chiuso al 100% di win.
+
+### ✅ #110 — Profilo: anagrafica, foto, cambio password
+**PR [#111](https://github.com/wrld777/apex-trading-journal/pull/111)** — mergiata.
+`Instrument` era l'ultimo residuo del "conto funded" ed era usato in due soli punti decorativi — e non veniva nemmeno salvato in registrazione. Rimosso. `Name` → `FirstName`+`LastName`, foto come data URI ridimensionato lato client, cambio password con verifica della vecchia.
+- ⚠️ **Migration critica:** EF scaffoldava `DropColumn Name` + `AddColumn FirstName`, che avrebbe azzerato il nome dei 10 utenti. Tenendo `FirstName` a 100 caratteri come il vecchio `Name`, EF genera `RenameColumn` e i dati sopravvivono.
+- Fuori scope per decisione: reset password via email (manca il mittente), dati di fatturazione, fuso orario.
+
+### ✅ #112 — Difetti della ricognizione
+**PR [#113](https://github.com/wrld777/apex-trading-journal/pull/113)** — mergiata.
+Giro completo su un account con 19 trade, 2 strategie e 4 strumenti misti. Sistemati: celle giganti di heatmap e calendario (colonne `1fr` + `aspect-square` → `minmax(0, Npx)`), `DayOfWeekChart` senza asse zero, `verdict()` senza il ramo "aderenza peggiore", Strategy Insights che confrontava in dollari, Setup Performance colorata sui dollari con numero in R, `Avg RR` con la "R" attaccata, colonna R nelle tabelle, numeri sulle card Strategie, `PAGE_META` completa.
+
+---
+
+## ✅ #114 — Lingua unica e rebrand — CHIUSA
+**PR [#115](https://github.com/wrld777/apex-trading-journal/pull/115)** — mergiata in `develop`.
+Inglese ovunque passando da un dizionario (`src/i18n/`): il tipo delle chiavi deriva dall'inglese, quindi una traduzione incompleta **non compila**. Nome **Apex → Rubric** (`Apex` collideva con Apex Trader Funding, una prop firm — puntava al mondo dei conti funded che lo sprint aveva appena tolto). Rebrand solo in superficie: namespace `Apex.*`, solution, repo e nome DB restano.
+⚠️ Il dominio `.com` non sarà disponibile: serve una variante, da verificare prima di stampare qualsiasi cosa.
+
+---
+
+## 🚧 In corso — #116 Redesign enterprise
+
+**Branch `feature/AJ-116`, otto commit — pushato, NON in PR.** Issue [#116](https://github.com/wrld777/apex-trading-journal/issues/116), tutte e otto le tappe spuntate.
+
+**⚠️ Verifica visiva nel browser ancora da fare.** `tsc -b`, `eslint` e `vite build` sono puliti su tutte le tappe, ma l'estensione Chrome non era connessa: nessuna schermata è stata guardata dopo la tappa 3. Da fare **prima della PR**, con login reale su un account che ha trade, strategie e uscite parziali.
+
+| Tappa | Commit | Cosa |
+|---|---|---|
+| 1 | `a8cf537` | Token, rampa dei grigi WCAG AA, scala tipografica |
+| 2 | `30f9714` | Primitive: Button, Field/Input/Select, Card, Badge, Table, Modal, Toaster |
+| 3 | `306dd01` | Telaio: AppShell, sidebar comprimibile, PageHeader |
+| 4 | `5246402` | Fondamenta dei grafici + gli 8 grafici riscritti, con tooltip |
+| 5 | `aa94fe0` | Contratto `StatCard`, `Stat`, `StatRow`, `Meter` |
+| 6 | `cd51221` | LogTrade scomposto, convalida `zod`, errori accanto ai campi |
+| 7 | `06aa503` | Marchio, favicon, wordmark |
+| 8 | `a84f667` | Code-splitting per rotta, area di tocco, lint pulito |
+
+### Decisioni prese strada facendo
+
+- **Grafici in pixel misurati, non in `viewBox` stirato.** Con `preserveAspectRatio="none"` (la curva della Dashboard) lo stiramento non è uniforme: la linea da 2px era spessa 2px in verticale e mezzo in orizzontale. Con `meet`, i 9px di un'etichetta diventavano 5 o 14 a seconda della card. Ora `ResizeObserver` misura la larghezza e una unità SVG è un pixel CSS.
+- **Le tre miniature sulle card KPI erano finte** — coordinate scritte a mano, uguali per ogni utente e ogni periodo. Quella del P&L netto ora è la curva vera; le altre due non hanno una serie dietro e sono sparite. Un grafico inventato accanto a un numero vero non è decorazione.
+- **Tono e direzione sono cose diverse.** `KpiCard` aveva un solo `deltaUp` per il colore del valore *e* per il verso del confronto: un win rate del 49,8% usciva rosso, come un errore. Ora il tono è `neutral` di default e si colora solo ciò che ha un segno.
+- **`react-hook-form` valutata e non usata.** Era fra le librerie approvate, ma LogTrade tiene stati che un gestore di form non modella comodamente (uscite parziali, aderenza per regola, strumenti filtrati dalla strategia). Lo schema `zod` serviva, il gestore no.
+- **Marchio.** Le tre barre crescenti erano un istogramma, cioè il disegno di tutte le app di statistiche. Il nuovo segno è la *rubric*: tre righe, ognuna un criterio (quadratino in colore di marca) con la sua misura (barra). Favicon rifatta uguale — prima scheda del browser e sidebar mostravano due disegni diversi.
+- **Il nome esce dal dizionario**: un marchio non si traduce, e `brand.name` invitava a farlo.
+
+### Trovato e corretto per strada
+
+- Il calendario scriveva **`+$0.1k` per una giornata da +$89**: arrotondamento che cancellava il numero invece di abbreviarlo.
+- La ciambella win/loss erano tre `<circle>` con `strokeDasharray` e `linecap` arrotondato: le estremità di una fetta coprivano l'inizio della successiva, e con un 90% di vincite la fetta rossa spariva. Ora sono archi veri, e il pareggio è una terza fetta — senza, la somma non faceva il totale dei trade.
+- Le barre di "giorno della settimana" e "impatto delle regole" partivano da un lato con larghezza pari al **valore assoluto**: +40 e −40 disegnavano la stessa barra.
+- Nessuna convalida impediva **stop uguale all'entry**: un trade senza rischio definito, quindi senza R, che finiva nelle medie come `rMultiple: null`.
+- Due frammenti di **codice morto** dalla tappa 2 (la stringa di classi di un `const` cancellato, sospesa a mezz'aria) e `App.css`, 184 righe di esempio Vite mai importate.
+
+---
+
+## Prossimo
+
+1. **Verificare la #116 nel browser**, schermata per schermata, poi aprire la PR su `develop`.
+2. **Deploy su VM** — 4 pre-requisiti ancora aperti, vedi `Da Discutere.md`: `docker-compose.yml` fuori sincrono con la realtà (Docker non installato, Postgres 18 nativo), JWT secret in chiaro committato, **nessun reset password** (su VM = lockout definitivo), `Microsoft.OpenApi` 2.4.1 con NU1903.
+
+**Trappola di workflow:** `Closes #N` nelle PR **non chiude** le issue, perché GitHub lo applica solo al merge nel branch di default (`main`) e qui si mergia su `develop`. Vanno chiuse a mano con `gh issue close`.
+
+**Trappola di verifica:** `npx tsc --noEmit` sulla root **non controlla niente** — `tsconfig.json` ha `files: []` e solo project reference. Usciva verde anche con un errore di sintassi JSX. Usare **`tsc -b`**.
+
+---
+
+# Archivio — US #5 Frontend API Integration
 
 **User Story:** [#34 — US #5 Frontend API Integration](https://github.com/wrld777/apex-trading-journal/issues/34)  
 **Branch base:** `develop`  

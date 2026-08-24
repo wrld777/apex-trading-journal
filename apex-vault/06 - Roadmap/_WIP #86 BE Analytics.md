@@ -3,7 +3,7 @@ tags: [wip, temp, "#86"]
 stato: bozza-lavoro
 creato: 2026-07-24
 ---
-
+ 
 # #86 Fase 3 — Analytics Strategie (BE) · nota di lavoro
 
 > ⚠️ **File temporaneo di lavoro.** Serve solo a guidare l'implementazione del BE. Da cancellare (o consolidare nel Current Sprint / ADR) a lavoro finito. Issue: [#86](https://github.com/wrld777/apex-trading-journal/issues/86) · dipende da Fase 2 #85 (aderenza registrata, ora in `develop`).

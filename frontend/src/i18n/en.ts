@@ -11,10 +11,6 @@
  * manca anche una sola chiave, TypeScript rifiuta di compilare.
  */
 export const en = {
-  // ── Brand ──
-  'brand.name': 'Rubric',
-  'brand.plan': 'PRO',
-
   // ── Comuni ──
   'common.save': 'Save',
   'common.saveChanges': 'Save Changes',
@@ -29,6 +25,8 @@ export const en = {
   'common.close': 'Close',
   'common.clear': 'Clear',
   'common.deleting': 'Deleting…',
+  'toast.region': 'Notifications',
+  'toast.dismiss': 'Dismiss notification',
   'common.viewAll': 'View All',
   'common.optional': 'Optional.',
   'common.trade': 'trade',
@@ -44,9 +42,10 @@ export const en = {
   'nav.strategies': 'Strategies',
   'nav.insights': 'Insights',
   'nav.profile': 'Profile',
-  'nav.search': 'Search',
-  'nav.newEntry': 'New Entry',
   'nav.openNavigation': 'Open navigation',
+  'nav.primary': 'Main navigation',
+  'nav.collapseSidebar': 'Collapse sidebar',
+  'nav.expandSidebar': 'Expand sidebar',
 
   // ── Autenticazione ──
   'auth.welcomeBack': 'Welcome back',
@@ -172,6 +171,7 @@ export const en = {
   'insights.noAdherence': 'No adherence recorded for this strategy.',
   'insights.noAdherenceData': 'No adherence data',
   'insights.disciplineTrend': 'Discipline trend',
+  'insights.granularityAria': 'Time granularity',
   'insights.week': 'Week',
   'insights.month': 'Month',
   'insights.strategyAria': 'Strategy',
@@ -192,7 +192,9 @@ export const en = {
   'dash.netPnl': 'Net P&L',
   'dash.winRate': 'Win Rate',
   'dash.expectancy': 'Expectancy',
-  'dash.expectancyHint': 'Per trade',
+  'dash.netPnlSpark': 'Cumulative P&L for the selected period',
+  'dash.avgRRHint': 'Planned reward against planned risk',
+  'dash.pfHint': '${won} won against ${lost} lost',
   'dash.expectancyHintCount': 'Per trade · {count} trades',
   'dash.expectancyHintOne': 'Per trade · 1 trade',
   'dash.avgRR': 'Avg RR',
@@ -208,10 +210,11 @@ export const en = {
   'dash.pfNoLosses': 'No losing trades',
   'dash.breakEvenCount': '{count} B/E',
   'dash.winLoss': '{wins}W / {losses}L',
+  'dash.periodAria': 'Period shown on this page',
   'dash.equityCurve': 'Equity Curve',
-  'dash.noTradesShort': 'No trades yet',
   'dash.sessions': 'Sessions',
   'dash.sessionLine': '{count} trades · {winRate}% WR · {r}',
+  'dash.setupWinRate': 'Win rate for {setup}',
   'dash.setupPerformance': 'Setup Performance',
   'dash.statistics': 'Statistics',
   'dash.totalTrades': 'Total Trades',
@@ -252,9 +255,9 @@ export const en = {
   'analytics.clear': 'Clear',
   'analytics.fromDate': 'From date',
   'analytics.toDate': 'To date',
-  'analytics.noRange': 'No data for this range',
   'analytics.cumulativePnl': 'Cumulative P&L',
   'analytics.drawdown': 'Drawdown Analysis',
+  'analytics.drawdownHint': 'How far below the peak, in risk units',
   'analytics.byDayOfWeek': 'P&L by Day of Week',
   // Le chiavi di DOW_ORDER restano i nomi inglesi che manda il backend:
   // qui si traduce solo l'etichetta che finisce sull'asse.
@@ -290,7 +293,7 @@ export const en = {
   'logTrade.submit': 'Submit Trade',
   'logTrade.submitting': 'Submitting…',
   'logTrade.selectInstrument': '— Select instrument —',
-  'logTrade.strategyHint': 'Select a strategy to load its objective entry rules and record which you followed on this trade.',
+  'logTrade.strategyHint': 'Optional. Pick one and its entry rules appear here, so you can record which you followed — and the instrument list narrows to the ones it trades.',
   'logTrade.sectionNotes': 'Notes & Psychology',
   'logTrade.sectionTradeDetails': 'Trade Details',
   'logTrade.sectionContext': 'Context',
@@ -312,6 +315,7 @@ export const en = {
   'logTrade.tags': 'Tags',
   'logTrade.tagPlaceholder': 'Add tag…',
   'logTrade.sectionStrategy': 'Strategy & Adherence',
+  'logTrade.sectionStrategyHint': 'Start here: it decides which instruments you can pick.',
   'logTrade.strategy': 'Strategy',
   'logTrade.noStrategy': '— No strategy —',
   'logTrade.strategyNoRules': 'This strategy has no rules yet.',
@@ -333,7 +337,25 @@ export const en = {
   'logTrade.hintBreakEven': 'Exited at entry price',
   'logTrade.hintManual': 'Exit price entered by hand',
   'logTrade.exitPrice': 'Exit price *',
+  'logTrade.instrumentRestricted': 'Limited to the {count} instruments of {name}.',
   'logTrade.derivedPrice': 'Exited at {level} — the price comes from the field above.',
+  // Errori del modulo: ognuno nomina il proprio campo, perché compare sotto
+  // quel campo e non in un toast generico.
+  'logTrade.errInstrument': 'Pick the instrument you traded.',
+  'logTrade.errDate': 'Set the date of the trade.',
+  'logTrade.errEntryPrice': 'Enter the entry price.',
+  'logTrade.errStopLoss': 'Enter the stop loss — it is what defines your risk.',
+  'logTrade.errStopEqualsEntry': 'Stop and entry are the same price: this trade has no defined risk, so it has no R.',
+  'logTrade.errQuantity': 'Enter how many contracts, as a whole number.',
+  'logTrade.saved': 'Trade logged.',
+  'logTrade.saveFailed': 'Failed to log trade. Please try again.',
+  'logTrade.followedCount': '{done}/{total} followed',
+  'logTrade.adherenceAria': 'Rules followed on this trade',
+  'logTrade.removeTag': 'Remove tag {tag}',
+  'logTrade.exitOutcomeAria': 'Outcome of exit {n}',
+  'logTrade.exitContractsAria': 'Contracts on exit {n}',
+  'logTrade.exitPriceAria': 'Price of exit {n}',
+  'logTrade.errFixBelow': 'Some fields need attention — they are marked below.',
   'logTrade.chooseOutcome': 'Choose how the trade closed.',
   'logTrade.manualNeedsPrice': 'A manual exit needs its price.',
   'logTrade.manualNeedsPricePlural': 'Manual exits need their price.',
@@ -409,4 +431,20 @@ export const en = {
   'screenshot.notAnImage': 'That link does not show an image.',
   'screenshot.removeAria': 'Remove screenshot',
   'screenshot.alt': 'Trade screenshot',
+
+  // ── Grafici ──
+  // Le voci `*Aria` sono la descrizione che uno screen reader legge al posto
+  // del disegno: devono contenere il numero, non il tipo di grafico.
+  'chart.noData': 'No data for this range',
+  'chart.total': 'Total',
+  'chart.thatDay': 'That day',
+  'chart.tradesCount': '{count} trades',
+  'chart.underPeak': 'Below peak',
+  'chart.adherence': 'Adherence',
+  'chart.breakEven': 'Break-even {count}',
+  'chart.equityAria': 'Cumulative P&L across {count} days, currently {value}',
+  'chart.drawdownAria': 'Drawdown from peak, in risk units. Worst so far {value}R',
+  'chart.dowAria': 'P&L by day of the week',
+  'chart.donutAria': 'Win rate {rate} percent, {wins} wins against {losses} losses',
+  'chart.disciplineAria': 'Checklist adherence over time, latest {value} percent',
 } as const

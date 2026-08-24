@@ -1,12 +1,15 @@
 import { useMemo, useState } from 'react'
 import { useTrades, useDeleteTrade } from '../../hooks/useTrades'
-import { TableSkeleton } from '../../components/ui/Skeleton'
-import EmptyState from '../../components/ui/EmptyState'
-import Modal from '../../components/ui/Modal'
+
 import { useToastStore } from '../../store/toastStore'
 import EditTradeModal from './EditTradeModal'
 import type { Direction, TradeDto, TradeOutcome, TradeQuery, TradeStatus } from '../../types/trade'
 import { t as tr } from '../../i18n'
+
+import TradeStatusBadge from '../../components/TradeStatusBadge'
+
+import { Pencil, Trash2 } from 'lucide-react'
+import { Button, Card, EmptyState, IconButton, Input, Modal, PageHeader, Select, SortableTH, TBody, TH, THead, TR, Table, TableSkeleton, TableWrap } from '../../design-system'
 
 /* ── helpers ── */
 function fmtNum(n: number, d = 0) {
@@ -28,20 +31,9 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { year: '2-digit', month: 'short', day: 'numeric' })
 }
 
-const INPUT = 'bg-[#141416] border border-white/[0.07] rounded-md px-2.5 py-1.5 text-[12px] text-zinc-300 outline-none focus:border-white/[0.18] [color-scheme:dark]'
-
 type SortKey = 'date' | 'pnl' | 'rr'
 type SortDir = 'asc' | 'desc'
 const PAGE_SIZE = 15
-
-function StatusBadge({ status }: { status: TradeDto['status'] }) {
-  const map: Record<TradeDto['status'], string> = {
-    Win:       'bg-green-500/10 border-green-500/20 text-green-500',
-    Loss:      'bg-red-500/10 border-red-500/20 text-red-500',
-    BreakEven: 'bg-zinc-500/10 border-zinc-500/20 text-zinc-400',
-  }
-  return <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] border ${map[status]}`}>{status}</span>
-}
 
 // Come si è usciti, accanto al prezzo (#96). Un'uscita manuale non aggiunge
 // nulla al prezzo già mostrato, quindi resta muta.
@@ -60,24 +52,7 @@ function ExitOutcomeTag({ exits }: { exits: TradeDto['exits'] }) {
     : labels[exits[0].outcome]
   if (!text) return null
 
-  return <span className="ml-1.5 text-[9px] text-zinc-600 uppercase tracking-wide">{text}</span>
-}
-
-function SortHeader({ label, col, sort, onSort, align = 'left' }: {
-  label: string; col: SortKey; sort: { key: SortKey; dir: SortDir }; onSort: (k: SortKey) => void; align?: 'left' | 'right'
-}) {
-  const active = sort.key === col
-  return (
-    <th
-      onClick={() => onSort(col)}
-      className={`font-medium pb-2 px-3 cursor-pointer select-none hover:text-zinc-400 transition-colors ${align === 'right' ? 'text-right' : 'text-left'}`}
-    >
-      <span className="inline-flex items-center gap-1">
-        {label}
-        <span className={active ? 'text-zinc-400' : 'text-zinc-700'}>{active ? (sort.dir === 'asc' ? '▲' : '▼') : '↕'}</span>
-      </span>
-    </th>
-  )
+  return <span className="ml-1.5 text-2xs text-content-muted uppercase tracking-wide">{text}</span>
 }
 
 export default function TradeLog() {
@@ -176,59 +151,55 @@ export default function TradeLog() {
   }
 
   return (
-    <div className="p-4 lg:p-7">
+    <>
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-        <div>
-          <h1 className="font-display font-bold text-xl lg:text-[22px] tracking-tight text-white leading-none mb-1">{tr('tradeLog.title')}</h1>
-          <p className="text-xs text-zinc-600">
-            {isLoading ? tr('common.loading') : tr(hasFilters ? 'tradeLog.countFiltered' : 'tradeLog.count', { count: total })}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title={tr('tradeLog.title')}
+        subtitle={isLoading ? tr('common.loading') : tr(hasFilters ? 'tradeLog.countFiltered' : 'tradeLog.count', { count: total })}
+      />
 
       {/* Filters */}
-      <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-3 mb-3.5 flex flex-wrap items-center gap-2">
-        <select value={symbol} onChange={e => setSymbol(e.target.value)} className={INPUT}>
+      <Card padding="compact" className="mb-3.5 flex flex-wrap items-center gap-2">
+        <Select value={symbol} onChange={e => setSymbol(e.target.value)}>
           <option value="">{tr('tradeLog.filterSymbol')}</option>
           {symbols.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select value={setup} onChange={e => setSetup(e.target.value)} className={INPUT}>
+        </Select>
+        <Select value={setup} onChange={e => setSetup(e.target.value)}>
           <option value="">{tr('tradeLog.filterSetup')}</option>
           {setups.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select value={session} onChange={e => setSession(e.target.value)} className={INPUT}>
+        </Select>
+        <Select value={session} onChange={e => setSession(e.target.value)}>
           <option value="">{tr('tradeLog.filterSession')}</option>
           {sessions.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select value={direction} onChange={e => setDirection(e.target.value)} className={INPUT}>
+        </Select>
+        <Select value={direction} onChange={e => setDirection(e.target.value)}>
           <option value="">{tr('tradeLog.filterSide')}</option>
           <option value="Long">{tr('tradeLog.sideLong')}</option>
           <option value="Short">{tr('tradeLog.sideShort')}</option>
-        </select>
-        <select value={status} onChange={e => setStatus(e.target.value)} className={INPUT}>
+        </Select>
+        <Select value={status} onChange={e => setStatus(e.target.value)}>
           <option value="">{tr('tradeLog.filterStatus')}</option>
           <option value="Win">{tr('tradeLog.statusWin')}</option>
           <option value="Loss">{tr('tradeLog.statusLoss')}</option>
           <option value="BreakEven">{tr('tradeLog.statusBreakEven')}</option>
-        </select>
-        <input type="date" value={from} max={to || undefined} onChange={e => setFrom(e.target.value)} className={INPUT} aria-label={tr('tradeLog.fromDate')} />
-        <span className="text-zinc-700 text-xs">→</span>
-        <input type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} className={INPUT} aria-label={tr('tradeLog.toDate')} />
+        </Select>
+        <Input type="date" className="w-auto" value={from} max={to || undefined} onChange={e => setFrom(e.target.value)} aria-label={tr('tradeLog.fromDate')} />
+        <span className="text-content-faint text-xs">→</span>
+        <Input type="date" className="w-auto" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} aria-label={tr('tradeLog.toDate')} />
         {hasFilters && (
-          <button onClick={clearFilters} className="px-2.5 py-1.5 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all">
+          <Button size="sm" onClick={clearFilters} >
             {tr('common.clear')}
-          </button>
+          </Button>
         )}
-      </div>
+      </Card>
 
       {/* Table */}
-      <div className="bg-[#111113] border border-white/[0.04] rounded-[10px] p-4 lg:p-[18px]">
+      <Card>
         {isLoading ? (
           <TableSkeleton rows={10} />
         ) : isError ? (
-          <div className="text-xs text-red-400 py-6 text-center">{tr('tradeLog.loadFailed')}</div>
+          <div className="text-xs text-neg py-6 text-center">{tr('tradeLog.loadFailed')}</div>
         ) : total === 0 && !hasFilters ? (
           <EmptyState
             title={tr('tradeLog.emptyTitle')}
@@ -237,109 +208,99 @@ export default function TradeLog() {
             actionTo="/log-trade"
           />
         ) : total === 0 ? (
-          <div className="text-xs text-zinc-600 py-8 text-center">{tr('tradeLog.noMatch')}</div>
+          <div className="text-xs text-content-muted py-8 text-center">{tr('tradeLog.noMatch')}</div>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[940px] text-left">
-                <thead>
-                  <tr className="text-[10px] text-zinc-700 uppercase tracking-[0.06em] border-b border-white/[0.04]">
-                    <SortHeader label={tr('tradeLog.colDate')} col="date" sort={sort} onSort={onSort} />
-                    <th className="font-medium pb-2 px-3">{tr('tradeLog.colSymbol')}</th>
-                    <th className="font-medium pb-2 px-3">{tr('tradeLog.colSide')}</th>
-                    <th className="font-medium pb-2 px-3">{tr('tradeLog.colSetup')}</th>
-                    <th className="font-medium pb-2 px-3">{tr('tradeLog.colSession')}</th>
-                    <th className="font-medium pb-2 px-3 text-right">{tr('tradeLog.colQty')}</th>
-                    <th className="font-medium pb-2 px-3 text-right">{tr('tradeLog.colEntry')}</th>
-                    <th className="font-medium pb-2 px-3 text-right">{tr('tradeLog.colExit')}</th>
-                    <SortHeader label={tr('tradeLog.colPnl')} col="pnl" sort={sort} onSort={onSort} align="right" />
-                    <th className="font-medium pb-2 px-3 text-right">{tr('tradeLog.colR')}</th>
-                    <SortHeader label={tr('tradeLog.colRr')} col="rr" sort={sort} onSort={onSort} align="right" />
-                    <th className="font-medium pb-2 px-3 text-right">{tr('tradeLog.colStatus')}</th>
-                    <th className="font-medium pb-2 px-3 text-right">{tr('tradeLog.colActions')}</th>
+            <TableWrap>
+              <Table className="min-w-[940px]">
+                <THead>
+                  <tr className="border-b border-line">
+                    <SortableTH label={tr('tradeLog.colDate')} active={sort.key === 'date'} direction={sort.dir} onSort={() => onSort('date')} />
+                    <TH>{tr('tradeLog.colSymbol')}</TH>
+                    <TH>{tr('tradeLog.colSide')}</TH>
+                    <TH>{tr('tradeLog.colSetup')}</TH>
+                    <TH>{tr('tradeLog.colSession')}</TH>
+                    <TH numeric>{tr('tradeLog.colQty')}</TH>
+                    <TH numeric>{tr('tradeLog.colEntry')}</TH>
+                    <TH numeric>{tr('tradeLog.colExit')}</TH>
+                    <SortableTH label={tr('tradeLog.colPnl')} active={sort.key === 'pnl'} direction={sort.dir} onSort={() => onSort('pnl')} numeric />
+                    <TH numeric>{tr('tradeLog.colR')}</TH>
+                    <SortableTH label={tr('tradeLog.colRr')} active={sort.key === 'rr'} direction={sort.dir} onSort={() => onSort('rr')} numeric />
+                    <TH numeric>{tr('tradeLog.colStatus')}</TH>
+                    <TH numeric>{tr('tradeLog.colActions')}</TH>
                   </tr>
-                </thead>
-                <tbody>
+                </THead>
+                <TBody>
                   {rows.map(t => (
-                    <tr key={t.id} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02] transition-colors">
-                      <td className="py-2.5 px-3 text-[11px] text-zinc-500 whitespace-nowrap">{fmtDate(t.entryTime)}</td>
-                      <td className="py-2.5 px-3 text-xs font-medium text-white">{t.symbol}</td>
+                    <TR key={t.id}>
+                      <td className="py-2.5 px-3 text-2xs text-content-secondary whitespace-nowrap">{fmtDate(t.entryTime)}</td>
+                      <td className="py-2.5 px-3 text-xs font-medium text-content-strong">{t.symbol}</td>
                       <td className="py-2.5 px-3">
-                        <span className={`text-[11px] font-medium ${t.direction === 'Long' ? 'text-green-500' : 'text-red-500'}`}>
+                        <span className={`text-2xs font-medium ${t.direction === 'Long' ? 'text-pos' : 'text-neg'}`}>
                           {t.direction === 'Long' ? 'LONG' : 'SHORT'}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3 text-[11px] text-zinc-400">{t.setup}</td>
-                      <td className="py-2.5 px-3 text-[11px] text-zinc-500">{t.session}</td>
-                      <td className="py-2.5 px-3 text-[11px] text-zinc-500 text-right font-mono">{t.quantity}</td>
-                      <td className="py-2.5 px-3 text-[11px] text-zinc-500 text-right font-mono">{fmtNum(t.entryPrice, 2)}</td>
-                      <td className="py-2.5 px-3 text-[11px] text-zinc-500 text-right font-mono">
+                      <td className="py-2.5 px-3 text-2xs text-content-secondary">{t.setup}</td>
+                      <td className="py-2.5 px-3 text-2xs text-content-secondary">{t.session}</td>
+                      <td className="py-2.5 px-3 text-2xs text-content-secondary text-right font-mono">{t.quantity}</td>
+                      <td className="py-2.5 px-3 text-2xs text-content-secondary text-right font-mono">{fmtNum(t.entryPrice, 2)}</td>
+                      <td className="py-2.5 px-3 text-2xs text-content-secondary text-right font-mono">
                         {fmtNum(t.exitPrice, 2)}
                         {/* Come si è chiuso (#96): sui parziali il prezzo è una media,
                             quindi da solo direbbe poco. */}
                         <ExitOutcomeTag exits={t.exits} />
                       </td>
-                      <td className={`py-2.5 px-3 text-[11px] text-right font-mono ${t.pnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>{fmtPnl(t.pnL)}</td>
-                      <td className={`py-2.5 px-3 text-[11px] text-right font-mono ${
-                        t.rMultiple === null ? 'text-zinc-700' : t.rMultiple >= 0 ? 'text-green-500' : 'text-red-500'
+                      <td className={`py-2.5 px-3 text-2xs text-right font-mono ${t.pnL >= 0 ? 'text-pos' : 'text-neg'}`}>{fmtPnl(t.pnL)}</td>
+                      <td className={`py-2.5 px-3 text-2xs text-right font-mono ${
+                        t.rMultiple === null ? 'text-content-faint' : t.rMultiple >= 0 ? 'text-pos' : 'text-neg'
                       }`}>{fmtR(t.rMultiple)}</td>
-                      <td className="py-2.5 px-3 text-[11px] text-zinc-400 text-right font-mono">{fmtNum(t.riskReward, 2)}</td>
-                      <td className="py-2.5 px-3 text-right"><StatusBadge status={t.status} /></td>
+                      <td className="py-2.5 px-3 text-2xs text-content-secondary text-right font-mono">{fmtNum(t.riskReward, 2)}</td>
+                      <td className="py-2.5 px-3 text-right"><TradeStatusBadge status={t.status} /></td>
                       <td className="py-2.5 px-3">
                         <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => setEditTrade(t)}
-                            aria-label={tr('tradeLog.editAria')}
-                            title={tr('common.edit')}
-                            className="p-1.5 rounded-md text-zinc-500 hover:text-white hover:bg-white/[0.06] transition-all"
-                          >
-                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-                              <path d="M9.5 2.5l2 2L5 11l-2.5.5L3 9l6.5-6.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
-                            </svg>
-                          </button>
-                          <button
+                          <IconButton onClick={() => setEditTrade(t)} label={tr('tradeLog.editAria')}>
+                            <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                          </IconButton>
+                          <IconButton
                             onClick={() => setPendingDelete(t)}
-                            aria-label={tr('tradeLog.deleteAria')}
-                            title={tr('common.delete')}
-                            className="p-1.5 rounded-md text-zinc-500 hover:text-red-400 hover:bg-red-500/[0.08] transition-all"
+                            label={tr('tradeLog.deleteAria')}
+                            className="hover:text-neg"
                           >
-                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-                              <path d="M2.5 3.5h9M5.5 3.5V2.3h3v1.2M3.5 3.5l.5 8h6l.5-8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          </button>
+                            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                          </IconButton>
                         </div>
                       </td>
-                    </tr>
+                    </TR>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </TBody>
+              </Table>
+            </TableWrap>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/[0.04]">
-              <span className="text-[11px] text-zinc-600">
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-line">
+              <span className="text-2xs text-content-muted">
                 {tr('tradeLog.page', { page, total: totalPages })}
               </span>
               <div className="flex gap-1.5">
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page <= 1}
-                  className="px-2.5 py-1 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-2.5 py-1 rounded-md text-2xs text-content-secondary border border-line-2 hover:bg-surface-3 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {tr('tradeLog.prev')}
                 </button>
-                <button
+                <Button size="sm"
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  className="px-2.5 py-1 rounded-md text-[11px] text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  
                 >
                   {tr('tradeLog.next')}
-                </button>
+                </Button>
               </div>
             </div>
           </>
         )}
-      </div>
+      </Card>
 
       {/* Edit modal */}
       <EditTradeModal
@@ -356,29 +317,16 @@ export default function TradeLog() {
         maxWidth="max-w-sm"
         footer={
           <>
-            <button
-              onClick={() => setPendingDelete(null)}
-              disabled={isDeleting}
-              className="px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-50"
-            >
+            <Button onClick={() => setPendingDelete(null)} disabled={isDeleting}>
               {tr('common.cancel')}
-            </button>
-            <button
-              onClick={confirmDelete}
-              disabled={isDeleting}
-              className="px-3 py-1.5 rounded-md text-xs font-medium bg-red-500 text-white hover:bg-red-500/90 transition-all disabled:opacity-60 flex items-center gap-1.5"
-            >
-              {isDeleting && (
-                <svg className="animate-spin" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="10"/>
-                </svg>
-              )}
+            </Button>
+            <Button variant="danger" onClick={confirmDelete} loading={isDeleting}>
               {isDeleting ? tr('common.deleting') : tr('common.delete')}
-            </button>
+            </Button>
           </>
         }
       >
-        <p className="text-[13px] text-zinc-400 leading-relaxed">
+        <p className="text-sm text-content-secondary leading-relaxed">
           {pendingDelete && (
             tr('tradeLog.deleteBody', {
               symbol: pendingDelete.symbol,
@@ -388,6 +336,6 @@ export default function TradeLog() {
           )}
         </p>
       </Modal>
-    </div>
+    </>
   )
 }

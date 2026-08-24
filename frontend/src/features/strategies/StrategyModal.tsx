@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import Modal from '../../components/ui/Modal'
+
 import { useCreateStrategy, useUpdateStrategy } from '../../hooks/useStrategies'
 import { useInstruments } from '../../hooks/useInstruments'
 import { useToastStore } from '../../store/toastStore'
 import type { StrategyDto } from '../../types/strategy'
 import { t } from '../../i18n'
+import { Button, Input, Modal, Textarea } from '../../design-system'
 
 interface StrategyModalProps {
   open: boolean
@@ -22,9 +23,6 @@ interface RuleDraft {
   label: string
   required: boolean
 }
-
-const INPUT =
-  'bg-[#141416] border border-white/[0.07] rounded-md px-2.5 py-1.5 text-[13px] text-zinc-200 outline-none focus:border-white/[0.18] placeholder:text-zinc-700 w-full'
 
 let ruleKeySeq = 1
 const newRule = (): RuleDraft => ({ key: `r${ruleKeySeq++}`, label: '', required: false })
@@ -133,50 +131,35 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
       maxWidth="max-w-xl"
       footer={
         <>
-          <button
-            onClick={onClose}
-            disabled={isPending}
-            className="px-3 py-1.5 rounded-md text-xs text-zinc-400 border border-white/[0.07] hover:bg-[#1a1a1d] transition-all disabled:opacity-50"
-          >
+          <Button onClick={onClose} disabled={isPending}>
             {t('common.cancel')}
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={isPending}
-            className="px-3 py-1.5 rounded-md text-xs font-medium bg-white text-black hover:bg-white/90 transition-all disabled:opacity-60 flex items-center gap-1.5"
-          >
-            {isPending && (
-              <svg className="animate-spin" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="10" />
-              </svg>
-            )}
+          </Button>
+          <Button variant="primary" onClick={handleSubmit} loading={isPending}>
             {isEdit ? t('common.save') : t('common.create')}
-          </button>
+          </Button>
         </>
       }
     >
       <div className="flex flex-col gap-4">
         {/* Name */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] text-zinc-500 uppercase tracking-wide">{t('strategyModal.name')}</label>
-          <input
+          <label className="text-2xs text-content-secondary uppercase tracking-wide">{t('strategyModal.name')}</label>
+          <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t('strategyModal.namePlaceholder')}
-            className={INPUT}
             autoFocus
           />
         </div>
 
         {/* Description */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] text-zinc-500 uppercase tracking-wide">{t('strategyModal.description')}</label>
-          <textarea
+          <label className="text-2xs text-content-secondary uppercase tracking-wide">{t('strategyModal.description')}</label>
+          <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder={t('strategyModal.descriptionPlaceholder')}
-            rows={2}
-            className={`${INPUT} resize-none`}
+            rows={2} className="resize-none"
           />
         </div>
 
@@ -184,10 +167,10 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
             di un multi-select, così i simboli si leggono tutti a colpo d'occhio. */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <label className="text-[11px] text-zinc-500 uppercase tracking-wide">
+            <label className="text-2xs text-content-secondary uppercase tracking-wide">
               {t('strategyModal.instruments')}
             </label>
-            <span className="text-[10px] text-zinc-700">
+            <span className="text-2xs text-content-faint">
               {instrumentIds.length === 0
                 ? t('strategyModal.instrumentsAll')
                 : t('strategyModal.instrumentsSelected', { count: instrumentIds.length })}
@@ -195,7 +178,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
           </div>
 
           {instruments === undefined ? (
-            <p className="text-[11px] text-zinc-700">{t('strategyModal.instrumentsLoading')}</p>
+            <p className="text-2xs text-content-faint">{t('strategyModal.instrumentsLoading')}</p>
           ) : (
             <>
               <div className="flex flex-wrap gap-1.5">
@@ -208,10 +191,10 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
                       onClick={() => toggleInstrument(ins.instrumentId)}
                       aria-pressed={active}
                       title={t('strategyModal.instrumentTitle', { name: ins.instrumentName, currency: ins.currency, pointValue: ins.pointValue })}
-                      className={`px-2 py-1 rounded-md text-[11px] font-medium border transition-all ${
+                      className={`px-2 py-1 rounded-md text-2xs font-medium border transition-all ${
                         active
-                          ? 'bg-white text-black border-white'
-                          : 'text-zinc-400 border-white/[0.07] hover:border-white/[0.18] hover:text-zinc-200'
+                          ? 'bg-brand text-brand-ink border-brand'
+                          : 'text-content-secondary border-line-2 hover:border-line-control hover:text-content'
                       }`}
                     >
                       {ins.symbol}
@@ -219,7 +202,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
                   )
                 })}
               </div>
-              <p className="text-[10px] text-zinc-700 leading-relaxed">
+              <p className="text-2xs text-content-faint leading-relaxed">
                 {t('strategyModal.instrumentsHint')}
               </p>
             </>
@@ -229,10 +212,10 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
         {/* Rules editor */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <label className="text-[11px] text-zinc-500 uppercase tracking-wide">
+            <label className="text-2xs text-content-secondary uppercase tracking-wide">
               {t('strategyModal.rules')}
             </label>
-            <span className="text-[10px] text-zinc-700">{t('strategyModal.rulesCount', { count: rules.length })}</span>
+            <span className="text-2xs text-content-faint">{t('strategyModal.rulesCount', { count: rules.length })}</span>
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -244,25 +227,24 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
                     onClick={() => moveRule(i, -1)}
                     disabled={i === 0}
                     aria-label={t('strategyModal.moveUp')}
-                    className="text-zinc-700 hover:text-zinc-400 disabled:opacity-30 leading-none text-[10px]"
+                    className="text-content-faint hover:text-content-secondary disabled:opacity-30 leading-none text-2xs"
                   >▲</button>
                   <button
                     onClick={() => moveRule(i, 1)}
                     disabled={i === rules.length - 1}
                     aria-label={t('strategyModal.moveDown')}
-                    className="text-zinc-700 hover:text-zinc-400 disabled:opacity-30 leading-none text-[10px]"
+                    className="text-content-faint hover:text-content-secondary disabled:opacity-30 leading-none text-2xs"
                   >▼</button>
                 </div>
 
-                <input
+                <Input
                   value={rule.label}
                   onChange={(e) => updateRule(rule.key, { label: e.target.value })}
-                  placeholder={t('strategyModal.rulePlaceholder', { n: i + 1 })}
-                  className={`${INPUT} flex-1`}
+                  placeholder={t('strategyModal.rulePlaceholder', { n: i + 1 })} className="flex-1"
                 />
 
                 <label
-                  className="flex items-center gap-1.5 text-[11px] text-zinc-500 cursor-pointer select-none whitespace-nowrap"
+                  className="flex items-center gap-1.5 text-2xs text-content-secondary cursor-pointer select-none whitespace-nowrap"
                   title={t('strategyModal.requiredHint')}
                 >
                   <input
@@ -279,7 +261,7 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
                   disabled={rules.length === 1}
                   aria-label={t('strategyModal.removeRule')}
                   title={t('common.remove')}
-                  className="p-1 rounded-md text-zinc-600 hover:text-red-400 hover:bg-red-500/[0.08] transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+                  className="p-1 rounded-md text-content-muted hover:text-neg hover:bg-neg/[0.08] transition-all disabled:opacity-30 disabled:hover:bg-transparent"
                 >
                   <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
                     <path d="M2.5 3.5h9M5.5 3.5V2.3h3v1.2M3.5 3.5l.5 8h6l.5-8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -289,15 +271,15 @@ export default function StrategyModal({ open, onClose, strategy }: StrategyModal
             ))}
           </div>
 
-          <button
+          <Button size="sm" className="self-start mt-1 border-dashed"
             onClick={() => setRules((rs) => [...rs, newRule()])}
-            className="self-start mt-1 px-2.5 py-1 rounded-md text-[11px] text-zinc-400 border border-dashed border-white/[0.12] hover:bg-[#1a1a1d] hover:text-zinc-200 transition-all"
+            
           >
             {t('strategyModal.addRule')}
-          </button>
+          </Button>
         </div>
 
-        {error && <p className="text-[12px] text-red-400">{error}</p>}
+        {error && <p className="text-xs text-neg">{error}</p>}
       </div>
     </Modal>
   )

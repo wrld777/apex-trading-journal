@@ -1,44 +1,89 @@
+/* eslint-disable react-refresh/only-export-components --
+   Questo modulo esporta la tabella delle rotte, che non è un componente, e
+   accanto definisce i caricamenti pigri, che lo sembrano. È esattamente la
+   forma che la regola vieta, e qui non c'è un'alternativa sensata: separare i
+   `lazy` in un altro file darebbe un secondo modulo che esporta non-componenti,
+   spostando il problema di un file. */
+import { lazy, Suspense } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
-import Layout from '../components/Layout'
-import Dashboard from '../features/dashboard/Dashboard'
-import LogTrade from '../features/log-trade/LogTrade'
-import Analytics from '../features/analytics/Analytics'
-import StrategyAnalytics from '../features/strategy-analytics/StrategyAnalytics'
-import TradeLog from '../features/trade-log/TradeLog'
-import Strategies from '../features/strategies/Strategies'
-import Profile from '../features/profile/Profile'
-import LoginPage from '../features/auth/LoginPage'
-import RegisterPage from '../features/auth/RegisterPage'
+
+import AppShell from '../components/app-shell/AppShell'
 import ProtectedRoute from '../components/ProtectedRoute'
 import RootError from '../components/RootError'
+import { Skeleton } from '../design-system'
+
+/**
+ * Le rotte, e il punto in cui il codice si divide.
+ *
+ * Tutto stava in un pacchetto solo da 507 KB: chi apriva la Dashboard scaricava
+ * anche il modulo di registrazione trade, la pagina Strategie e le sue modali —
+ * roba che magari non aprirà mai in quella sessione. `lazy` fa sì che ogni
+ * pagina arrivi quando serve.
+ *
+ * Il telaio (`AppShell`, sidebar, topbar) resta nel pacchetto principale, e non
+ * per dimenticanza: si vede subito, su ogni rotta, ed è l'unica cosa che non
+ * ha senso far aspettare.
+ */
+
+const Dashboard = lazy(() => import('../features/dashboard/Dashboard'))
+const LogTrade = lazy(() => import('../features/log-trade/LogTrade'))
+const Analytics = lazy(() => import('../features/analytics/Analytics'))
+const StrategyAnalytics = lazy(() => import('../features/strategy-analytics/StrategyAnalytics'))
+const TradeLog = lazy(() => import('../features/trade-log/TradeLog'))
+const Strategies = lazy(() => import('../features/strategies/Strategies'))
+const Profile = lazy(() => import('../features/profile/Profile'))
+const LoginPage = lazy(() => import('../features/auth/LoginPage'))
+const RegisterPage = lazy(() => import('../features/auth/RegisterPage'))
+
+/**
+ * L'attesa mentre arriva una pagina.
+ *
+ * Ha la forma di un'intestazione più contenuto, cioè quello che sta per
+ * comparire davvero: uno spinner al centro dello schermo farebbe saltare il
+ * layout nel momento in cui la pagina si monta.
+ */
+function PageFallback() {
+  return (
+    <div className="flex flex-col gap-3.5">
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-6 w-52" />
+        <Skeleton className="h-3 w-72" />
+      </div>
+      <Skeleton className="h-40 w-full rounded-lg" />
+    </div>
+  )
+}
+
+/** Ogni pagina arriva dentro la sua attesa. */
+const page = (element: React.ReactNode) => <Suspense fallback={<PageFallback />}>{element}</Suspense>
 
 export const router = createBrowserRouter([
   {
     path: '/login',
-    element: <LoginPage />,
+    element: page(<LoginPage />),
     errorElement: <RootError />,
   },
   {
     path: '/register',
-    element: <RegisterPage />,
+    element: page(<RegisterPage />),
     errorElement: <RootError />,
   },
   {
     path: '/',
     element: (
       <ProtectedRoute>
-        <Layout />
+        <AppShell />
       </ProtectedRoute>
     ),
     errorElement: <RootError />,
     children: [
-      { index: true, element: <Dashboard /> },
-      { path: 'log-trade', element: <LogTrade /> },
-      { path: 'trades', element: <TradeLog /> },
-      { path: 'strategies', element: <Strategies /> },
-      { path: 'strategy-insights', element: <StrategyAnalytics /> },
-      { path: 'analytics', element: <Analytics /> },
-      { path: 'profile', element: <Profile /> },
+      { index: true, element: page(<Dashboard />) },
+      { path: 'log-trade', element: page(<LogTrade />) },
+      { path: 'trades', element: page(<TradeLog />) },
+      { path: 'strategies', element: page(<Strategies />) },
+      { path: 'strategy-insights', element: page(<StrategyAnalytics />) },
+      { path: 'analytics', element: page(<Analytics />) },
+      { path: 'profile', element: page(<Profile />) },
     ],
   },
 ])
