@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Apex.Domain.Common;
 using Apex.Domain.Contracts;
 using Apex.Domain.DTO;
@@ -91,22 +91,54 @@ public class TradeService : ITradeService
     {
         var trade = await _tradeRepository.GetByIdAsync(id, ct);
         if (trade is null || trade.UserId != userId)
-            return Result<TradeDto>.Failure(Error.FromTradeError(TradeErrors.NotFound(id)));
+            return Result<TradeDto>.Failure(Error.NotFound(TradeErrors.NotFound(id).Message));
 
+        // Lo strumento è modificabile come tutto il resto: si sbaglia a scegliere MNQ
+        // al posto di NQ come si sbaglia una quantità, e il PointValue che ne deriva
+        // cambia il PnL. Si ricarica solo se è davvero cambiato.
+        var instrument = trade.Instrument;
+        if (dto.InstrumentId != Guid.Empty && dto.InstrumentId != trade.InstrumentId)
+        {
+            var replacement = await _instrumentRepository.GetInstrumentByIdAsync(dto.InstrumentId, ct);
+            if (replacement is null)
+                return Result<TradeDto>.Failure(
+                    Error.FromTradeError(TradeErrors.InstrumentNotFound(dto.InstrumentId)));
+
+            instrument = replacement;
+            trade.InstrumentId = replacement.InstrumentId;
+            // Come in create: serve al mapper per il Symbol nella response.
+            trade.Instrument = replacement;
+        }
+
+        // Una PUT rimpiazza il trade: si riscrive anche il "prima" (direzione, livelli,
+        // size, orario d'ingresso), non solo il "dopo". Restano fuori solo Id, UserId,
+        // CreatedAt e i campi derivati, che li ricalcola RecomputeFromExits.
+        trade.Direction = dto.Direction;
+        trade.EntryPrice = dto.EntryPrice;
+        trade.StopLoss = dto.StopLoss;
+        trade.TakeProfit = dto.TakeProfit;
+        trade.Quantity = dto.Quantity;
+        trade.EntryTime = dto.EntryTime;
+        trade.Session = dto.Session;
+        trade.Setup = dto.Setup;
+        trade.HTFBias = dto.HTFBias;
+        trade.Grade = dto.Grade;
         trade.ExitTime = dto.ExitTime;
         trade.Rationale = dto.Rationale;
         trade.EmotionalState = dto.EmotionalState;
         trade.Mistakes = dto.Mistakes;
+        trade.MistakeTags = dto.MistakeTags;
         trade.Tags = dto.Tags;
         trade.Screenshots = dto.Screenshots;
+        trade.UpdatedAt = DateTime.UtcNow;
 
+        // Dopo i livelli, non prima: TP/SL/BE derivano il prezzo dai livelli appena
+        // riscritti, e la quantità è quella nuova a dover tornare coi contratti.
         var exits = BuildExits(trade, dto);
         if (!exits.IsSuccess)
             return Result<TradeDto>.Failure(exits.Error!);
 
-        // Lo strumento di un trade non è modificabile in update: il PointValue è quello
-        // caricato con la navigation da GetByIdAsync.
-        RecomputeFromExits(trade, trade.Instrument.PointValue);
+        RecomputeFromExits(trade, instrument.PointValue);
 
         // Riconcilia strategia + aderenza: replace totale dei rule check.
         var applied = await ApplyStrategyAndChecks(trade, dto.StrategyId, dto.RuleChecks, userId, ct);

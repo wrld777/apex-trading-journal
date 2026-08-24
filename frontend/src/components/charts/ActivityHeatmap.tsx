@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 
 import { Tooltip } from '../../design-system'
 import { t } from '../../i18n'
-import { fmtPnl } from '../../lib/format'
+import { DATE_LOCALE, fmtPnl } from '../../lib/format'
 import type { DailyPnLDto } from '../../types/stats'
 
 const WEEKS = 13
@@ -57,7 +57,7 @@ export default function ActivityHeatmap({ daily }: { daily: DailyPnLDto[] }) {
   const monthLabels = Array.from({ length: WEEKS }, (_, w) => {
     const m = dateAt(w, 0).getMonth()
     const prev = w === 0 ? -1 : dateAt(w - 1, 0).getMonth()
-    return m === prev ? '' : dateAt(w, 0).toLocaleDateString('en-US', { month: 'short' })
+    return m === prev ? '' : dateAt(w, 0).toLocaleDateString(DATE_LOCALE, { month: 'short' })
   })
 
   // Le colonne erano `1fr`: su desktop diventavano quadrati da ~90px e la
@@ -89,7 +89,7 @@ export default function ActivityHeatmap({ daily }: { daily: DailyPnLDto[] }) {
           {Array.from({ length: WEEKS }, (_, w) => {
             const date = dateAt(w, di)
             const entry = byDate.get(keyOf(date))
-            const label = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            const label = date.toLocaleDateString(DATE_LOCALE, { month: 'short', day: 'numeric' })
             const future = date > today
 
             if (!entry) {

@@ -1,10 +1,14 @@
 import { useState } from 'react'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import { useNavigate, Link } from 'react-router-dom'
 import { authService } from '../../services/authService'
 import { t } from '../../i18n'
 import { Button, Field, Input, Wordmark } from '../../design-system'
 
 export default function RegisterPage() {
+  // Le pagine fuori dal telaio non passano da AppShell: il titolo se lo
+  // dichiarano da sé.
+  useDocumentTitle('/register')
   const navigate = useNavigate()
 
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '' })

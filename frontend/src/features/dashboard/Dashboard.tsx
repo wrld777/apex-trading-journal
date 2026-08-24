@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { fmtMargin, isNoise, noiseHint } from '../../lib/confidence'
 import { Link } from 'react-router-dom'
 
 import { useStats } from '../../hooks/useStats'
@@ -8,7 +9,7 @@ import { useAuthStore } from '../../store/authStore'
 import type { TradeDto } from '../../types/trade'
 import { t, tPlural, type TranslationKey } from '../../i18n'
 import type { StatTone } from '../../design-system'
-import { fmt, fmtDay, fmtPnl, fmtR } from '../../lib/format'
+import { DATE_LOCALE, fmt, fmtDay, fmtPnl, fmtR } from '../../lib/format'
 import { cumulative } from '../../lib/series'
 
 import TradeStatusBadge from '../../components/TradeStatusBadge'
@@ -145,7 +146,7 @@ export default function Dashboard() {
   const trades = tradesPage?.items
   const { data: profile } = useProfile()
 
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+  const today = new Date().toLocaleDateString(DATE_LOCALE, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
   // La miniatura sulla card del P&L netto: la stessa curva del grafico grande,
   // ridotta a una riga. Ha senso solo con almeno due giorni.
@@ -231,12 +232,25 @@ export default function Dashboard() {
               {fmt(data.winRate, 1)}%
             </StatCard>
 
+            {/* Il margine accanto al numero non è pignoleria: è ciò che
+                impedisce di concludere da venti trade. Quando l'intervallo è
+                più largo del numero stesso, non si sa nemmeno il segno, e
+                l'avviso lo dice al posto del suggerimento abituale. */}
             <StatCard
               label={t('dash.expectancy')}
               tone={data.expectancyR >= 0 ? 'positive' : 'negative'}
-              hint={tPlural(data.rTradeCount, 'dash.expectancyHintOne', 'dash.expectancyHintCount')}
+              hint={
+                isNoise(data.expectancyR, data.expectancyRStdErr)
+                  ? noiseHint()
+                  : tPlural(data.rTradeCount, 'dash.expectancyHintOne', 'dash.expectancyHintCount')
+              }
             >
               {fmtR(data.expectancyR)}
+              {data.expectancyRStdErr > 0 && (
+                <span className="text-md text-content-faint ml-1.5">
+                  {fmtMargin(data.expectancyRStdErr)}
+                </span>
+              )}
             </StatCard>
 
             <StatCard

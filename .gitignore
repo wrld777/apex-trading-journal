@@ -24,3 +24,6 @@ apex-vault/.obsidian/
 Thumbs.db
 
 .env
+# La build del frontend copiata dentro il backend dallo script di pubblicazione:
+# è un artefatto, si rigenera con deploy/publish.ps1.
+backend/Apex/Apex.API/wwwroot/

@@ -6,9 +6,11 @@ import { useDiscipline, useRuleImpact, useStrategyStats } from '../../hooks/useA
 import type {
   Granularity,
   MetricsBlockDto,
+  RuleImpactDto,
   StrategyStatsDto,
 } from '../../types/analytics'
 import { fmt, fmtPnl, fmtR, pnlColor } from '../../lib/format'
+import { fmtMargin, isNoise, noiseHint } from '../../lib/confidence'
 import { Card, CardHeader, EmptyState, PageHeader, SegmentedControl, Select, Skeleton, StatRow, Tooltip } from '../../design-system'
 import { DisciplineChart, RuleImpactBars } from '../../components/charts'
 
@@ -31,6 +33,9 @@ function MetricColumn({ title, block, accent }: { title: string; block: MetricsB
                 due strategie. I dollari restano sotto come riferimento. */}
             <StatRow label={t('insights.expectancy')} tone={block.expectancyR >= 0 ? 'positive' : 'negative'} className="py-1">
               {fmtR(block.expectancyR)}
+            {block.expectancyRStdErr > 0 && (
+                <span className="text-content-faint ml-1"> {fmtMargin(block.expectancyRStdErr)}</span>
+              )}
             </StatRow>
             <StatRow label={t('insights.inDollars')} tone="muted" className="py-1">{fmtPnl(block.expectancy)}</StatRow>
             <StatRow label={t('insights.avgRR')} className="py-1">{fmt(block.avgRR, 2)}</StatRow>
@@ -87,11 +92,49 @@ function StrategyCard({ s }: { s: StrategyStatsDto }) {
       {v && (
         <div className={`mt-4 px-3 py-2 rounded-md border text-xs ${v.cls}`}>{v.text}</div>
       )}
+      {/* Il verdetto sopra confronta due gruppi che possono essere entrambi
+          minuscoli: se l'intervallo è più largo del numero, va detto prima che
+          qualcuno ci costruisca sopra una decisione. */}
+      {isNoise(s.overall.expectancyR, s.overall.expectancyRStdErr) && (
+        <p className="mt-2 text-2xs text-content-faint leading-relaxed">{noiseHint()}</p>
+      )}
     </Card>
   )
 }
 
 /* ── MAIN ── */
+/**
+ * La regola che costa di più, detta in una frase.
+ *
+ * Le barre ci sono già, e sono lette bene solo da chi si ferma a confrontarle.
+ * Ma se una singola regola cambia il win rate di venti punti, quella è la cosa
+ * da sapere entrando nella pagina — non da ricostruire guardando un grafico.
+ *
+ * Serve un minimo di trade su entrambi i lati: con due volte rispettata e una
+ * saltata la differenza è rumore, e annunciarla come una scoperta sarebbe
+ * peggio che tacere.
+ */
+const MIN_OCCURRENCES = 3
+
+function CostliestRule({ rules }: { rules: RuleImpactDto[] | undefined }) {
+  const worst = (rules ?? [])
+    .filter(r => r.timesRespected >= MIN_OCCURRENCES && r.timesViolated >= MIN_OCCURRENCES)
+    .reduce<RuleImpactDto | null>((best, r) => (best === null || r.impact > best.impact ? r : best), null)
+
+  if (!worst || worst.impact <= 0) return null
+
+  return (
+    <p className="text-xs text-content-secondary leading-relaxed mb-3.5 pb-3.5 border-b border-line">
+      {t('insights.costliestRule', {
+        label: worst.label,
+        points: fmt(worst.impact, 0),
+        respected: worst.timesRespected,
+        violated: worst.timesViolated,
+      })}
+    </p>
+  )
+}
+
 export default function StrategyAnalytics() {
   const { data: strategies, isLoading, isError } = useStrategyStats()
   const [selectedId, setSelectedId] = useState<string>('')
@@ -161,7 +204,10 @@ export default function StrategyAnalytics() {
           {!strategies || strategies.length === 0 ? (
             <div className="py-8 text-center text-xs text-content-muted">—</div>
           ) : (
-            <RuleImpactBars rules={rules} isLoading={rulesLoading} />
+            <>
+              <CostliestRule rules={rules} />
+              <RuleImpactBars rules={rules} isLoading={rulesLoading} />
+            </>
           )}
         </Card>
 

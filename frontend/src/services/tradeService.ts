@@ -32,6 +32,13 @@ export const tradeService = {
     return res.data
   },
 
+  // GET /api/trade/{id} — la lettura completa: aderenza con le etichette delle
+  // regole e nome della strategia, che l'elenco paginato non porta.
+  getById: async (id: string): Promise<TradeDto> => {
+    const res = await apiClient.get<TradeDto>(`/api/trade/${id}`)
+    return res.data
+  },
+
   update: async (id: string, data: UpdateTradeRequest): Promise<TradeDto> => {
     const res = await apiClient.put<TradeDto>(`/api/trade/${id}`, data)
     return res.data

@@ -29,11 +29,16 @@ const Dashboard = lazy(() => import('../features/dashboard/Dashboard'))
 const LogTrade = lazy(() => import('../features/log-trade/LogTrade'))
 const Analytics = lazy(() => import('../features/analytics/Analytics'))
 const StrategyAnalytics = lazy(() => import('../features/strategy-analytics/StrategyAnalytics'))
+const Discipline = lazy(() => import('../features/discipline/Discipline'))
 const TradeLog = lazy(() => import('../features/trade-log/TradeLog'))
+const TradeDetail = lazy(() => import('../features/trade-log/TradeDetail'))
+const EditTrade = lazy(() => import('../features/trade-log/EditTrade'))
 const Strategies = lazy(() => import('../features/strategies/Strategies'))
 const Profile = lazy(() => import('../features/profile/Profile'))
 const LoginPage = lazy(() => import('../features/auth/LoginPage'))
 const RegisterPage = lazy(() => import('../features/auth/RegisterPage'))
+const ForgotPasswordPage = lazy(() => import('../features/auth/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('../features/auth/ResetPasswordPage'))
 
 /**
  * L'attesa mentre arriva una pagina.
@@ -69,6 +74,16 @@ export const router = createBrowserRouter([
     errorElement: <RootError />,
   },
   {
+    path: '/forgot-password',
+    element: page(<ForgotPasswordPage />),
+    errorElement: <RootError />,
+  },
+  {
+    path: '/reset-password',
+    element: page(<ResetPasswordPage />),
+    errorElement: <RootError />,
+  },
+  {
     path: '/',
     element: (
       <ProtectedRoute>
@@ -80,10 +95,17 @@ export const router = createBrowserRouter([
       { index: true, element: page(<Dashboard />) },
       { path: 'log-trade', element: page(<LogTrade />) },
       { path: 'trades', element: page(<TradeLog />) },
+      { path: 'trades/:id', element: page(<TradeDetail />) },
+      { path: 'trades/:id/edit', element: page(<EditTrade />) },
       { path: 'strategies', element: page(<Strategies />) },
       { path: 'strategy-insights', element: page(<StrategyAnalytics />) },
       { path: 'analytics', element: page(<Analytics />) },
+      { path: 'discipline', element: page(<Discipline />) },
       { path: 'profile', element: page(<Profile />) },
     ],
   },
+  // Qualunque altro indirizzo. Senza questa voce il 404 dipende da quale rotta
+  // React Router considera la radice, e con tre rotte di primo livello non è
+  // una cosa su cui valga la pena scommettere.
+  { path: '*', element: <RootError /> },
 ])

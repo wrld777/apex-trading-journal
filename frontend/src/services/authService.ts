@@ -12,4 +12,14 @@ export const authService = {
     const res = await apiClient.post<RegisterResponse>('/api/auth/register', data)
     return res.data
   },
+
+  // Riesce sempre, anche per un indirizzo che non ha un account: il server non
+  // dice quali email sono registrate, e il client non deve fingere di saperlo.
+  forgotPassword: async (email: string): Promise<void> => {
+    await apiClient.post('/api/auth/forgot-password', { email })
+  },
+
+  resetPassword: async (token: string, newPassword: string): Promise<void> => {
+    await apiClient.post('/api/auth/reset-password', { token, newPassword })
+  },
 }

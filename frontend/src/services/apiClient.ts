@@ -2,9 +2,19 @@ import axios from 'axios'
 import { useAuthStore } from '../store/authStore'
 import { useToastStore } from '../store/toastStore'
 
-const baseURL = import.meta.env.VITE_API_URL
-if (!baseURL) {
-  console.warn('[apiClient] VITE_API_URL is not set — API requests will fail. Check your .env file.')
+/**
+ * Dove sta l'API.
+ *
+ * In sviluppo Vite e il backend girano su porte diverse, quindi serve un
+ * indirizzo assoluto (`VITE_API_URL`). In produzione è il backend stesso a
+ * servire questa pagina: l'indirizzo giusto è **nessun indirizzo**, cioè un
+ * percorso relativo che segue l'origine da cui il browser ha caricato l'app.
+ * È anche ciò che rende l'installazione indifferente al nome della macchina —
+ * `localhost`, il nome Tailscale o un dominio funzionano tutti senza ricompilare.
+ */
+const baseURL = import.meta.env.VITE_API_URL ?? ''
+if (!baseURL && import.meta.env.DEV) {
+  console.warn('[apiClient] VITE_API_URL non è impostata: in sviluppo le chiamate falliranno. Controlla il file .env.')
 }
 
 const apiClient = axios.create({

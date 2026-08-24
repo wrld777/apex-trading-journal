@@ -3,8 +3,8 @@ import { useChangePassword, useProfile, useUpdateProfile } from '../../hooks/use
 import { useAuthStore } from '../../store/authStore'
 import { useToastStore } from '../../store/toastStore'
 
-import { t } from '../../i18n'
-import { Button, Card, CardHeader, Field, Input, PageHeader, Skeleton } from '../../design-system'
+import { LOCALE_NAMES, LOCALES, setLocale, storedLocale, systemLocale, t, type Locale } from '../../i18n'
+import { Button, Card, CardHeader, Field, Input, PageHeader, Select, Skeleton } from '../../design-system'
 
 /** Lato più lungo dell'avatar dopo il ridimensionamento. */
 const AVATAR_SIZE = 256
@@ -201,6 +201,25 @@ export default function Profile() {
                 {isPending ? t('common.saving') : t('common.saveChanges')}
               </Button>
             </div>
+          </Card>
+
+          {/* La lingua sta nel profilo e non in un menu a bandierine: si sceglie
+              una volta e non si tocca più, quindi non merita spazio permanente
+              in ogni schermata. In automatico segue il browser, che è la cosa
+              giusta per la stragrande maggioranza di chi apre l'app. */}
+          <Card className="flex flex-col gap-4">
+            <CardHeader title={t('profile.languageSection')} subtitle={t('profile.languageHint')} />
+            <Field label={t('profile.language')}>
+              <Select
+                value={storedLocale() ?? 'auto'}
+                onChange={(e) => setLocale(e.target.value === 'auto' ? null : (e.target.value as Locale))}
+              >
+                <option value="auto">{t('profile.languageAuto', { name: LOCALE_NAMES[systemLocale] })}</option>
+                {LOCALES.map((code) => (
+                  <option key={code} value={code}>{LOCALE_NAMES[code]}</option>
+                ))}
+              </Select>
+            </Field>
           </Card>
 
           <Card className="flex flex-col gap-4">

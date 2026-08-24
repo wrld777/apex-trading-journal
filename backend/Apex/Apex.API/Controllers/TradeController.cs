@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Apex.Domain.Common;
 using Apex.Domain.Contracts;
 using Apex.Domain.DTOs;
@@ -97,7 +97,13 @@ public class TradeController : ControllerBase
         var dto = _mapper.Map<TradeDto>(request);
         var result = await _tradeService.UpdateAsync(id, dto, userId, ct);
         if (!result.IsSuccess)
-            return NotFound(result.Error);
+            // Da quando la PUT accetta il trade intero, qui non arriva più solo
+            // "non esiste": contratti che non tornano, strumento inesistente, una
+            // regola di un'altra strategia. Rispondere 404 a tutto direbbe al client
+            // la cosa sbagliata.
+            return result.Error!.Code == "NOT_FOUND"
+                ? NotFound(result.Error)
+                : BadRequest(result.Error);
 
         return Ok(_mapper.Map<TradeResponse>(result.Value));
     }

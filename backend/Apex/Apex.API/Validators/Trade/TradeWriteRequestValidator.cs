@@ -1,13 +1,23 @@
-﻿using Apex.Domain.Common;
+using Apex.Domain.Common;
 using Apex.Domain.Enums;
 using Apex.Domain.Requests;
 using FluentValidation;
 
 namespace Apex.Domain.Validators;
 
-public class CreateTradeRequestValidator : AbstractValidator<CreateTradeRequest>
+/// <summary>
+/// Le regole valide per ogni scrittura di un trade, create e update insieme.
+/// </summary>
+/// <remarks>
+/// Sta su un generico e non su <see cref="CreateTradeRequest"/> perché
+/// FluentValidation risolve il validator sul tipo concreto: un
+/// <c>AbstractValidator&lt;CreateTradeRequest&gt;</c> non verrebbe mai applicato a
+/// una <see cref="UpdateTradeRequest"/>, per quanto ne erediti. Così le due
+/// sottoclassi qui sotto sono vuote e le regole restano scritte una volta sola.
+/// </remarks>
+public abstract class TradeWriteRequestValidator<T> : AbstractValidator<T> where T : CreateTradeRequest
 {
-    public CreateTradeRequestValidator()
+    protected TradeWriteRequestValidator()
     {
         RuleFor(x => x.InstrumentId)
             .NotEmpty().WithMessage(TradeErrors.MissingInstrument.Message);
@@ -106,7 +116,7 @@ public class CreateTradeRequestValidator : AbstractValidator<CreateTradeRequest>
 
     // Vero se l'esito è usato da almeno un'uscita, sia nella forma a parziali che
     // nell'esito singolo.
-    private static bool UsesOutcome(CreateTradeRequest request, TradeOutcome outcome) =>
+    private static bool UsesOutcome(T request, TradeOutcome outcome) =>
         request.Exits is { Count: > 0 }
             ? request.Exits.Any(e => e.Outcome == outcome)
             : request.Outcome == outcome;
@@ -120,4 +130,12 @@ public class CreateTradeRequestValidator : AbstractValidator<CreateTradeRequest>
     private static bool BeHttpUrl(string url) =>
     Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
     (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+}
+
+public class CreateTradeRequestValidator : TradeWriteRequestValidator<CreateTradeRequest>
+{
+}
+
+public class UpdateTradeRequestValidator : TradeWriteRequestValidator<UpdateTradeRequest>
+{
 }

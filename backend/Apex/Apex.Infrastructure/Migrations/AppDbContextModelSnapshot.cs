@@ -202,6 +202,39 @@ namespace Apex.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Apex.Domain.Entities.PasswordResetToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PasswordResetTokens");
+                });
+
             modelBuilder.Entity("Apex.Domain.Entities.Strategy", b =>
                 {
                     b.Property<Guid>("Id")
@@ -302,6 +335,10 @@ namespace Apex.Infrastructure.Migrations
 
                     b.Property<Guid>("InstrumentId")
                         .HasColumnType("uuid");
+
+                    b.PrimitiveCollection<List<string>>("MistakeTags")
+                        .IsRequired()
+                        .HasColumnType("text[]");
 
                     b.Property<string>("Mistakes")
                         .IsRequired()
@@ -481,6 +518,17 @@ namespace Apex.Infrastructure.Migrations
                     b.HasIndex("StrategyId");
 
                     b.ToTable("StrategyInstruments");
+                });
+
+            modelBuilder.Entity("Apex.Domain.Entities.PasswordResetToken", b =>
+                {
+                    b.HasOne("Apex.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Apex.Domain.Entities.Strategy", b =>

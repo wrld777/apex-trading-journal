@@ -1,4 +1,4 @@
-﻿using Apex.Domain.Entities;
+using Apex.Domain.Entities;
 using Apex.Domain.Repositories;
 using Apex.Domain.Request.Trade;
 using Apex.Infrastructure.DbContext;
@@ -27,8 +27,15 @@ public class TradeRepository : ITradeRepository
     public async Task<Trade?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _context.Trades
-            .Include(t => t.RuleChecks)
-            .Include(t => t.Exits)
+            // La regola dietro ogni check e la strategia servono alla pagina di
+            // dettaglio: senza, l'aderenza sarebbe una lista di GUID.
+            .Include(t => t.RuleChecks).ThenInclude(rc => rc.StrategyRule)
+            .Include(t => t.Strategy)
+            // Ordinate: senza, Postgres le restituisce nell'ordine che gli
+            // conviene, e la tabella delle uscite mostrava "manuale, TP, BE" per
+            // un trade uscito "TP, BE, manuale" — cambiando ordine a ogni
+            // rilettura. `Order` esiste proprio per questo.
+            .Include(t => t.Exits.OrderBy(e => e.Order))
             .Include(t => t.Instrument)
             .FirstOrDefaultAsync(t => t.Id == id, ct);
     }
@@ -79,7 +86,8 @@ public class TradeRepository : ITradeRepository
         var query = _context.Trades.
             AsNoTracking().
             Include(t => t.Instrument).
-            Include(t => t.Exits).
+            Include(t => t.Strategy).
+            Include(t => t.Exits.OrderBy(e => e.Order)).
             Where(t => t.UserId == userId);
 
         // Postgres 'timestamp with time zone' accetta solo DateTime in UTC.

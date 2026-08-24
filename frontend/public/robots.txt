@@ -1,0 +1,5 @@
+# Rubric è un'app privata dietro autenticazione: non c'è niente da indicizzare,
+# e le pagine di accesso e registrazione nei risultati di ricerca non servono a
+# nessuno.
+User-agent: *
+Disallow: /

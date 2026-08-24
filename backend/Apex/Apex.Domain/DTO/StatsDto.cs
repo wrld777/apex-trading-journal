@@ -1,4 +1,4 @@
-﻿namespace Apex.Domain.DTOs;
+namespace Apex.Domain.DTOs;
 
 public class StatsDto
 {
@@ -9,6 +9,10 @@ public class StatsDto
     // RTradeCount dice su quanti trade sono calcolate.
     public decimal NetR { get; set; }
     public decimal ExpectancyR { get; set; }
+    // Quanto quell'expectancy può discostarsi da quella vera, dato quanti trade
+    // la sostengono: con un campione piccolo il numero è un intervallo, non un
+    // risultato, e mostrarlo nudo invita a concludere dal rumore.
+    public decimal ExpectancyRStdErr { get; set; }
     public decimal MaxDrawdownR { get; set; }
     public int RTradeCount { get; set; }
     public decimal WinRate { get; set; }

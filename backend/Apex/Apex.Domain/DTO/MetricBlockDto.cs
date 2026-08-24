@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -14,6 +14,19 @@ namespace Apex.Domain.DTO
         public decimal ExpectancyR { get; set; }
         public decimal NetR { get; set; }
         public decimal AvgRR { get; set; }
+
+        /// <summary>
+        /// L'incertezza dell'expectancy in R: errore standard della media.
+        /// </summary>
+        /// <remarks>
+        /// Con diciannove trade "+0,85R" non è +0,85R, è un intervallo largo — e
+        /// leggerlo come una certezza è il modo più comune di rovinarsi una
+        /// strategia che funzionava. Questo numero è ciò che permette di
+        /// scriverlo accanto (`±0,42R`) invece di far finta che il campione sia
+        /// abbastanza grande. Zero quando i trade con R definito sono meno di
+        /// due: con uno solo la dispersione non esiste.
+        /// </remarks>
+        public decimal ExpectancyRStdErr { get; set; }
     }
 
     public class StrategyStatsDto
@@ -34,6 +47,19 @@ namespace Apex.Domain.DTO
         public decimal WinRateRespected { get; set; }
         public decimal WinRateViolated { get; set; }
         public decimal Impact { get; set; }
+    }
+
+    /// <summary>
+    /// Un mese di risultati, per la vista "come sta andando la strategia mese
+    /// per mese". Il netto in dollari sta a parte perché
+    /// <see cref="MetricsBlockDto.Expectancy"/> è una media per trade, non un
+    /// totale: sono due letture diverse dello stesso mese.
+    /// </summary>
+    public class MonthlyPerformanceDto
+    {
+        public DateTime Month { get; set; }
+        public decimal NetPnL { get; set; }
+        public MetricsBlockDto Metrics { get; set; } = new();
     }
 
     public class DisciplinePointDto
