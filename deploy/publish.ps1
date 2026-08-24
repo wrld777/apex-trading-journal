@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Costruisce Rubric in un'unica cartella pronta da eseguire.
 

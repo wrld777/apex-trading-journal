@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Fa girare il backup ogni giorno, da solo.
 
@@ -25,7 +25,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$taskName = 'Rubric — Backup database'
+$taskName = 'Rubric - Backup database'
 
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
     [Security.Principal.WindowsBuiltInRole]::Administrator)
@@ -51,6 +51,5 @@ Register-ScheduledTask -TaskName $taskName `
     -Action $action -Trigger $trigger -Settings $settings `
     -RunLevel Highest -User 'SYSTEM' -Force | Out-Null
 
-Write-Host "Attività registrata: «$taskName», ogni giorno alle $($At.ToString('HH:mm'))." -ForegroundColor Green
-Write-Host 'Provala subito con:  Start-ScheduledTask -TaskName "' -NoNewline -ForegroundColor Cyan
-Write-Host "$taskName`"" -ForegroundColor Cyan
+Write-Host "Attivita' registrata: $taskName, ogni giorno alle $($At.ToString('HH:mm'))." -ForegroundColor Green
+Write-Host "Provala subito con:  Start-ScheduledTask -TaskName '$taskName'" -ForegroundColor Cyan

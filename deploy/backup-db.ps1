@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Copia di sicurezza del database, con rotazione.
 

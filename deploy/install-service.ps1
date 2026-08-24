@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Registra Rubric come servizio di Windows, così parte con la macchina.
 
@@ -55,9 +55,17 @@ if (-not (Test-Path $exe)) {
 if (-not $JwtSecret) {
     # 32 byte veri, non un GUID: un GUID è comodo e non è imprevedibile per
     # costruzione, e questa chiave è ciò che firma i token di sessione.
-    $bytes = [byte[]]::new(32)
-    [System.Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
-    $JwtSecret = [Convert]::ToBase64String($bytes)
+    #
+    # `Create()` e non `Fill()`: Windows PowerShell 5.1 gira su .NET Framework,
+    # dove il metodo statico non esiste. Questo funziona su entrambi.
+    $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+    try {
+        $bytes = New-Object byte[] 32
+        $rng.GetBytes($bytes)
+        $JwtSecret = [Convert]::ToBase64String($bytes)
+    } finally {
+        $rng.Dispose()
+    }
     Write-Host 'Chiave JWT generata.' -ForegroundColor Cyan
 }
 
