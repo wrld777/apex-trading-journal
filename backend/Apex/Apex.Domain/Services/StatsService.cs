@@ -1,4 +1,4 @@
-﻿using Apex.Domain.Common;
+using Apex.Domain.Common;
 using Apex.Domain.Contracts;
 using Apex.Domain.DTOs;
 using Apex.Domain.Enums;
@@ -170,6 +170,7 @@ public class StatsService : IStatsService
             NetPnL = Math.Round(netPnL, 2),
             NetR = Math.Round(netR, 2),
             ExpectancyR = expectancyR,
+            ExpectancyRStdErr = StdErr(rTrades.Select(t => t.RMultiple!.Value).ToList()),
             MaxDrawdownR = Math.Round(maxDrawdownR, 2),
             RTradeCount = rTrades.Count,
             WinRate = winRate,
@@ -192,5 +193,17 @@ public class StatsService : IStatsService
             DayOfWeekStats = dowStats,
             DailyPnL = dailyPnL
         };
+    }
+
+    // Errore standard della media dell'R: la larghezza dell'intervallo attorno
+    // all'expectancy. Con meno di due trade non è definito.
+    private static decimal StdErr(List<decimal> values)
+    {
+        if (values.Count < 2) return 0;
+
+        var mean = values.Average();
+        var variance = values.Sum(v => (v - mean) * (v - mean)) / (values.Count - 1);
+        var stdDev = (decimal)Math.Sqrt((double)variance);
+        return Math.Round(stdDev / (decimal)Math.Sqrt(values.Count), 2);
     }
 }

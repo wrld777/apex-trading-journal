@@ -127,6 +127,7 @@ public class TradeService : ITradeService
         trade.Rationale = dto.Rationale;
         trade.EmotionalState = dto.EmotionalState;
         trade.Mistakes = dto.Mistakes;
+        trade.MistakeTags = dto.MistakeTags;
         trade.Tags = dto.Tags;
         trade.Screenshots = dto.Screenshots;
         trade.UpdatedAt = DateTime.UtcNow;

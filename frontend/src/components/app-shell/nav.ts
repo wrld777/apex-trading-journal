@@ -1,4 +1,4 @@
-import { ClipboardList, Gauge, LayoutGrid, ListChecks, PlusCircle, TrendingUp } from 'lucide-react'
+import { ClipboardList, Gauge, LayoutGrid, ListChecks, PlusCircle, ShieldCheck, TrendingUp } from 'lucide-react'
 import type { TranslationKey } from '../../i18n'
 
 /**
@@ -32,6 +32,7 @@ export const NAV: NavGroup[] = [
     items: [
       { to: '/', end: true, labelKey: 'nav.dashboard', Icon: LayoutGrid },
       { to: '/analytics', labelKey: 'nav.analytics', Icon: TrendingUp },
+      { to: '/discipline', labelKey: 'nav.discipline', Icon: ShieldCheck },
     ],
   },
   {

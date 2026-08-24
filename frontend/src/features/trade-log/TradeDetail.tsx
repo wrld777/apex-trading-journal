@@ -277,6 +277,13 @@ export default function TradeDetail() {
               <div>
                 <span className="text-2xs text-content-muted uppercase tracking-[0.08em] block mb-1">{t('logTrade.mistakes')}</span>
                 <p className="text-xs text-content-secondary leading-relaxed whitespace-pre-wrap">{trade.mistakes || '—'}</p>
+                {/* Le etichette sotto al racconto, non al posto suo: qui servono
+                    a riconoscere l'errore che torna, in Disciplina a contarlo. */}
+                {trade.mistakeTags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {trade.mistakeTags.map(tag => <Badge key={tag} tone="neg">{tag}</Badge>)}
+                  </div>
+                )}
               </div>
             </div>
           </Card>

@@ -41,6 +41,7 @@ export const en = {
   'nav.tradeLog': 'Trade Log',
   'nav.strategies': 'Strategies',
   'nav.insights': 'Insights',
+  'nav.discipline': 'Discipline',
   'nav.profile': 'Profile',
   'nav.openNavigation': 'Open navigation',
   'nav.primary': 'Main navigation',
@@ -350,6 +351,9 @@ export const en = {
   'logTrade.rationalePlaceholder': 'Describe the setup…',
   'logTrade.emotionalState': 'Emotional State',
   'logTrade.mistakes': 'Mistakes / Lessons',
+  'logTrade.mistakeTags': 'Mistake tags',
+  'logTrade.mistakeTagPlaceholder': 'Name the mistake…',
+  'logTrade.mistakeTagsHint': 'The note above is the story; these are what the analytics can count.',
   'logTrade.mistakesPlaceholder': 'What could have been done better?',
   'logTrade.exitDate': 'Exit Date',
   'logTrade.exitTime': 'Exit Time',
@@ -501,6 +505,68 @@ export const en = {
   'monthly.colNetR': 'Net R',
   'monthly.colNetPnl': 'Net P&L',
   'monthly.total': 'Total',
+
+  // ── Fiducia nel campione ──
+  'confidence.noise': 'Too few trades to call: the margin is wider than the number itself, so even the sign is undecided.',
+
+  // ── Disciplina ──
+  // Il taglio delle frasi è deliberato: dicono cosa fare, non cosa è successo.
+  // "Il tuo win rate cala di 23 punti dopo uno stop" si legge una volta e
+  // resta; una tabella con gli stessi numeri va riletta ogni volta.
+  'discipline.title': 'Discipline',
+  'discipline.subtitle': 'How you execute — the part the strategy pages cannot see.',
+
+  'discipline.weekTitle': 'This Week',
+  'discipline.weekSubtitle': 'Week of {week} · {days} trading days · compared with the week before',
+  'discipline.weekEmpty': 'No trades logged this week yet.',
+  'discipline.weekR': 'Net R',
+  'discipline.weekPnl': 'Net P&L',
+  'discipline.weekTrades': 'Trades',
+  'discipline.weekAdherence': 'Adherence',
+  'discipline.flat': 'same',
+  'discipline.slipped': 'Rules that slipped',
+  'discipline.slippedNone': 'Every rule followed on every trade this week.',
+  'discipline.slippedCount': '{skipped} of {total}',
+  'discipline.weekMistakes': 'Mistakes tagged',
+  'discipline.weekMistakesNone': 'Nothing tagged this week.',
+
+  'discipline.mistakesTitle': 'What Your Mistakes Cost',
+  'discipline.mistakesSubtitle': 'The last column is the one that matters: how you do with the mistake versus without it.',
+  'discipline.mistakesEmpty': 'No mistakes tagged yet. Tag them when you log a trade — the note is the story, the tag is what can be counted.',
+  'discipline.colMistake': 'Mistake',
+  'discipline.colTimes': 'Times',
+  'discipline.colWinRate': 'Win rate',
+  'discipline.colNetR': 'Net R',
+  'discipline.colNetPnl': 'Net P&L',
+  'discipline.colCost': 'Cost / trade',
+
+  'discipline.tiltTitle': 'After a Loss',
+  'discipline.tiltSubtitle': 'The trade that comes right after a stop, against your usual.',
+  'discipline.tiltNotEnough': 'Not enough trades yet — this needs at least {min} on each side to mean anything.',
+  'discipline.tiltBad': 'Your win rate drops {points} after a stop — {after} against your usual {usual}. That is not a strategy problem.',
+  'discipline.tiltBadRushed': 'Your win rate drops {points} after a stop — {after} against your usual {usual} — and you are back in after {minutes} minutes, median. That is not a strategy problem.',
+  'discipline.tiltFine': 'You hold up after a loss: {after} win rate, in line with your usual. Nothing to fix here.',
+  'discipline.afterLoss': 'After a loss',
+  'discipline.afterWin': 'After a win',
+  'discipline.baseline': 'All trades',
+  'discipline.winRate': 'Win rate',
+
+  'discipline.sequenceTitle': 'Trade of the Day',
+  'discipline.sequenceSubtitle': '{avg} trades a day on average, {max} at most, across {days} days.',
+  'discipline.sequenceEmpty': 'No trades to sequence yet.',
+  'discipline.sequenceDecay': 'Your {position} trade of the day runs at {value} against {first} on the first — over {trades} trades. That is where the day should end.',
+  'discipline.nTrades': '{count} tr',
+
+  'discipline.riskTitle': 'Risk Consistency',
+  'discipline.riskSubtitle': 'Every R is only comparable if every trade risks about the same.',
+  'discipline.riskEmpty': 'No trades with a defined risk yet.',
+  'discipline.riskSteady': 'Your risk is steady — {pct} variation. R means the same thing on every page of this app.',
+  'discipline.riskDrifting': 'Your risk drifts: {pct} variation. Summing R still works, but it is starting to lie a little.',
+  'discipline.riskElastic': 'Your risk swings {pct}. R is an elastic unit at this point — a good month can be one oversized trade, and a bad one too.',
+  'discipline.riskMedian': 'Median risk',
+  'discipline.riskRange': 'Smallest – largest',
+  'discipline.riskVariation': 'Variation',
+  'discipline.riskAria': 'Risk taken on the last {count} trades, {pct} variation.',
 
   // ── Screenshot ──
   'screenshot.placeholder': 'Paste the image link (e.g. a TradingView snapshot)…',

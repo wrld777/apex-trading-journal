@@ -47,3 +47,64 @@ export function useDiscipline(granularity: Granularity) {
     staleTime: 30_000,
   })
 }
+
+/* ── Le letture di comportamento (#pre-deploy) ── */
+/* Scritte una per una e non da una fabbrica di hook: un helper che chiama
+   `useQuery` dentro sé stesso è un hook travestito da funzione, e ogni regola
+   del linter che lo riguarda va poi zittita a mano. Cinque blocchi uguali sono
+   più noiosi e più onesti. */
+
+export function useMistakeImpact() {
+  const userId = useAuthStore((s) => s.userId)
+
+  return useQuery({
+    queryKey: ['analytics', 'mistakes', userId],
+    queryFn: () => analyticsService.getMistakes(),
+    enabled: !!userId,
+    staleTime: 30_000,
+  })
+}
+
+export function useTilt() {
+  const userId = useAuthStore((s) => s.userId)
+
+  return useQuery({
+    queryKey: ['analytics', 'tilt', userId],
+    queryFn: () => analyticsService.getTilt(),
+    enabled: !!userId,
+    staleTime: 30_000,
+  })
+}
+
+export function useSequence() {
+  const userId = useAuthStore((s) => s.userId)
+
+  return useQuery({
+    queryKey: ['analytics', 'sequence', userId],
+    queryFn: () => analyticsService.getSequence(),
+    enabled: !!userId,
+    staleTime: 30_000,
+  })
+}
+
+export function useRiskConsistency() {
+  const userId = useAuthStore((s) => s.userId)
+
+  return useQuery({
+    queryKey: ['analytics', 'risk', userId],
+    queryFn: () => analyticsService.getRiskConsistency(),
+    enabled: !!userId,
+    staleTime: 30_000,
+  })
+}
+
+export function useWeeklyReview(weekStart?: string) {
+  const userId = useAuthStore((s) => s.userId)
+
+  return useQuery({
+    queryKey: ['analytics', 'weekly', userId, weekStart ?? 'current'],
+    queryFn: () => analyticsService.getWeeklyReview(weekStart),
+    enabled: !!userId,
+    staleTime: 30_000,
+  })
+}

@@ -1,5 +1,6 @@
 import ScreenshotInput from '../../components/ui/ScreenshotInput'
 import { Card, CardHeader } from '../../design-system'
+import { useMistakeImpact } from '../../hooks/useAnalytics'
 import { t } from '../../i18n'
 
 import Context from './sections/Context'
@@ -17,6 +18,10 @@ import type { TradeFormApi } from './useTradeForm'
  * qui e le due schermate lo montano passando lo stesso `useTradeForm`.
  */
 export default function TradeFormFields({ f }: { f: TradeFormApi }) {
+  // Le etichette d'errore già usate, per riproporle invece di lasciare che si
+  // frammentino in dieci varianti della stessa cosa.
+  const { data: mistakes = [] } = useMistakeImpact()
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
       {/* La strategia viene per prima, e non è una questione di gusto: decide
@@ -71,7 +76,13 @@ export default function TradeFormFields({ f }: { f: TradeFormApi }) {
 
         <Context form={f.form} onField={f.onField} tags={f.tags} onTags={f.setTags} />
 
-        <Notes form={f.form} onField={f.onField} />
+        <Notes
+          form={f.form}
+          onField={f.onField}
+          mistakeTags={f.mistakeTags}
+          onMistakeTags={f.setMistakeTags}
+          knownMistakeTags={mistakes.map(m => m.tag)}
+        />
       </div>
     </div>
   )

@@ -89,6 +89,9 @@ export interface TradeDto {
   rationale: string
   emotionalState: string
   mistakes: string
+  // Gli stessi errori in forma contabile: il testo libero racconta, le
+  // etichette si sommano.
+  mistakeTags: string[]
   tags: string[]
   screenshots: string[]
   createdAt: string
@@ -122,6 +125,7 @@ export interface CreateTradeRequest {
   rationale: string
   emotionalState: string
   mistakes: string
+  mistakeTags: string[]
   tags: string[]
   screenshots: string[]
   // ADR 0003 — optional strategy + per-rule adherence captured at log time.

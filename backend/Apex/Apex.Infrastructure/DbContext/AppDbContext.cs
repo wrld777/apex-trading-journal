@@ -52,6 +52,9 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
             entity.Property(t => t.Tags)
                 .HasColumnType("text[]");
 
+            entity.Property(t => t.MistakeTags)
+                .HasColumnType("text[]");
+
             entity.Property(t => t.Screenshots)
                 .HasColumnType("text[]");
 

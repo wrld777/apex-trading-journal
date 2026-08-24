@@ -28,6 +28,7 @@ public class TradeDto
     public string Rationale { get; set; } = string.Empty;
     public string EmotionalState { get; set; } = string.Empty;
     public string Mistakes { get; set; } = string.Empty;
+    public List<string> MistakeTags { get; set; } = new();
     public List<string> Tags { get; set; } = new();
     public DateTime CreatedAt { get; set; }
     public List<string> Screenshots { get; set; } = new();

@@ -29,6 +29,7 @@ const Dashboard = lazy(() => import('../features/dashboard/Dashboard'))
 const LogTrade = lazy(() => import('../features/log-trade/LogTrade'))
 const Analytics = lazy(() => import('../features/analytics/Analytics'))
 const StrategyAnalytics = lazy(() => import('../features/strategy-analytics/StrategyAnalytics'))
+const Discipline = lazy(() => import('../features/discipline/Discipline'))
 const TradeLog = lazy(() => import('../features/trade-log/TradeLog'))
 const TradeDetail = lazy(() => import('../features/trade-log/TradeDetail'))
 const EditTrade = lazy(() => import('../features/trade-log/EditTrade'))
@@ -99,6 +100,7 @@ export const router = createBrowserRouter([
       { path: 'strategies', element: page(<Strategies />) },
       { path: 'strategy-insights', element: page(<StrategyAnalytics />) },
       { path: 'analytics', element: page(<Analytics />) },
+      { path: 'discipline', element: page(<Discipline />) },
       { path: 'profile', element: page(<Profile />) },
     ],
   },

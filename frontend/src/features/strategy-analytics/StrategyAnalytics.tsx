@@ -10,6 +10,7 @@ import type {
   StrategyStatsDto,
 } from '../../types/analytics'
 import { fmt, fmtPnl, fmtR, pnlColor } from '../../lib/format'
+import { fmtMargin, isNoise, noiseHint } from '../../lib/confidence'
 import { Card, CardHeader, EmptyState, PageHeader, SegmentedControl, Select, Skeleton, StatRow, Tooltip } from '../../design-system'
 import { DisciplineChart, RuleImpactBars } from '../../components/charts'
 
@@ -32,6 +33,9 @@ function MetricColumn({ title, block, accent }: { title: string; block: MetricsB
                 due strategie. I dollari restano sotto come riferimento. */}
             <StatRow label={t('insights.expectancy')} tone={block.expectancyR >= 0 ? 'positive' : 'negative'} className="py-1">
               {fmtR(block.expectancyR)}
+            {block.expectancyRStdErr > 0 && (
+                <span className="text-content-faint ml-1"> {fmtMargin(block.expectancyRStdErr)}</span>
+              )}
             </StatRow>
             <StatRow label={t('insights.inDollars')} tone="muted" className="py-1">{fmtPnl(block.expectancy)}</StatRow>
             <StatRow label={t('insights.avgRR')} className="py-1">{fmt(block.avgRR, 2)}</StatRow>
@@ -87,6 +91,12 @@ function StrategyCard({ s }: { s: StrategyStatsDto }) {
       </div>
       {v && (
         <div className={`mt-4 px-3 py-2 rounded-md border text-xs ${v.cls}`}>{v.text}</div>
+      )}
+      {/* Il verdetto sopra confronta due gruppi che possono essere entrambi
+          minuscoli: se l'intervallo è più largo del numero, va detto prima che
+          qualcuno ci costruisca sopra una decisione. */}
+      {isNoise(s.overall.expectancyR, s.overall.expectancyRStdErr) && (
+        <p className="mt-2 text-2xs text-content-faint leading-relaxed">{noiseHint()}</p>
       )}
     </Card>
   )

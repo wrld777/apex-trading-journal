@@ -5,6 +5,7 @@ import { useMonthly } from '../../hooks/useAnalytics'
 import { useStrategies } from '../../hooks/useStrategies'
 import { t } from '../../i18n'
 import { fmt, fmtPct, fmtPnl, fmtR } from '../../lib/format'
+import { fmtMargin } from '../../lib/confidence'
 
 /**
  * Mese per mese: come sta andando, e come sta andando **una** strategia.
@@ -102,7 +103,12 @@ export default function MonthlyPerformance() {
                   <TD className="text-content-strong whitespace-nowrap">{monthLabel(m.month)}</TD>
                   <TD numeric>{fmt(m.metrics.totalTrades)}</TD>
                   <TD numeric>{fmtPct(m.metrics.winRate, 1)}</TD>
-                  <TD numeric>{fmtR(m.metrics.expectancyR)}</TD>
+                  <TD numeric>
+                    {fmtR(m.metrics.expectancyR)}
+                    {m.metrics.expectancyRStdErr > 0 && (
+                      <span className="text-content-faint"> {fmtMargin(m.metrics.expectancyRStdErr)}</span>
+                    )}
+                  </TD>
                   <TD><RBar value={m.metrics.netR} max={maxR} /></TD>
                   <TD numeric className={m.netPnL >= 0 ? 'text-pos' : 'text-neg'}>{fmtPnl(m.netPnL)}</TD>
                 </TR>

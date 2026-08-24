@@ -14,6 +14,19 @@ namespace Apex.Domain.DTO
         public decimal ExpectancyR { get; set; }
         public decimal NetR { get; set; }
         public decimal AvgRR { get; set; }
+
+        /// <summary>
+        /// L'incertezza dell'expectancy in R: errore standard della media.
+        /// </summary>
+        /// <remarks>
+        /// Con diciannove trade "+0,85R" non è +0,85R, è un intervallo largo — e
+        /// leggerlo come una certezza è il modo più comune di rovinarsi una
+        /// strategia che funzionava. Questo numero è ciò che permette di
+        /// scriverlo accanto (`±0,42R`) invece di far finta che il campione sia
+        /// abbastanza grande. Zero quando i trade con R definito sono meno di
+        /// due: con uno solo la dispersione non esiste.
+        /// </remarks>
+        public decimal ExpectancyRStdErr { get; set; }
     }
 
     public class StrategyStatsDto

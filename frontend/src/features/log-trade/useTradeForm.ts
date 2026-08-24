@@ -38,6 +38,7 @@ export interface TradeFormApi {
   errors: FormErrors
   direction: Direction
   tags: string[]
+  mistakeTags: string[]
   screenshots: string[]
   strategyId: string
   ruleChecks: Record<string, boolean>
@@ -58,6 +59,7 @@ export interface TradeFormApi {
   ) => void
   setDirection: (d: Direction) => void
   setTags: (tags: string[]) => void
+  setMistakeTags: (tags: string[]) => void
   setScreenshots: (urls: string[]) => void
   selectStrategy: (id: string) => void
   toggleRule: (id: string) => void
@@ -80,6 +82,7 @@ export function useTradeForm(): TradeFormApi {
   const [form, setForm] = useState<FormState>(DEFAULT_FORM)
   const [direction, setDirection] = useState<Direction>('Long')
   const [tags, setTags] = useState<string[]>([])
+  const [mistakeTags, setMistakeTags] = useState<string[]>([])
   const [screenshots, setScreenshots] = useState<string[]>([])
   const [strategyId, setStrategyId] = useState('')
   // Aderenza per regola: quali condizioni oggettive erano rispettate su questo trade.
@@ -136,6 +139,7 @@ export function useTradeForm(): TradeFormApi {
     setForm(DEFAULT_FORM)
     setDirection('Long')
     setTags([])
+    setMistakeTags([])
     setScreenshots([])
     setStrategyId('')
     setRuleChecks({})
@@ -183,6 +187,7 @@ export function useTradeForm(): TradeFormApi {
     })
     setDirection(trade.direction)
     setTags(trade.tags ?? [])
+    setMistakeTags(trade.mistakeTags ?? [])
     setScreenshots(trade.screenshots ?? [])
     setStrategyId(trade.strategyId ?? '')
     setRuleChecks(Object.fromEntries((trade.ruleChecks ?? []).map(c => [c.strategyRuleId, c.checked])))
@@ -225,6 +230,7 @@ export function useTradeForm(): TradeFormApi {
       rationale: form.rationale,
       emotionalState: form.emotionalState,
       mistakes: form.mistakes,
+      mistakeTags,
       tags,
       screenshots,
       strategyId: strategyId || null,
@@ -247,12 +253,13 @@ export function useTradeForm(): TradeFormApi {
   }
 
   return {
-    form, errors, direction, tags, screenshots, strategyId, ruleChecks, outcome, partialsOpen, partials,
+    form, errors, direction, tags, mistakeTags, screenshots, strategyId, ruleChecks, outcome, partialsOpen, partials,
     instruments, instrumentsLoading, strategies, selectedInstrument, selectedStrategy, visibleInstruments,
     restricted: allowedInstrumentIds.length > 0,
     onField,
     setDirection,
     setTags,
+    setMistakeTags,
     setScreenshots,
     selectStrategy,
     toggleRule: id => setRuleChecks(prev => ({ ...prev, [id]: !prev[id] })),

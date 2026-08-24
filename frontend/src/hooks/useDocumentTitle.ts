@@ -19,6 +19,7 @@ const BRAND = 'Rubric'
 const TITLES: [pattern: RegExp, key: TranslationKey][] = [
   [/^\/$/, 'nav.dashboard'],
   [/^\/analytics/, 'nav.analytics'],
+  [/^\/discipline/, 'nav.discipline'],
   [/^\/log-trade/, 'nav.logTrade'],
   [/^\/trades\/[^/]+\/edit/, 'tradeLog.editTitle'],
   [/^\/trades\/[^/]+/, 'tradeDetail.pageTitle'],

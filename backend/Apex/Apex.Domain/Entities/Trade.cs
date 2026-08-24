@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using Apex.Domain.Enums;
 
 namespace Apex.Domain.Entities;
@@ -29,6 +29,11 @@ public class Trade
     public string Rationale { get; set; } = string.Empty;
     public string EmotionalState { get; set; } = string.Empty;
     public string Mistakes { get; set; } = string.Empty;
+    // Gli stessi errori, ma in una forma che le analisi possono leggere.
+    // `Mistakes` resta il racconto ("revenge trade dopo la perdita di ieri");
+    // questi sono le etichette che permettono di contarlo — sette volte questo
+    // trimestre, meno sei R. Un campo di testo libero non si somma.
+    public List<string> MistakeTags { get; set; } = new();
     public List<string> Tags { get; set; } = new();
     public List<string> Screenshots { get; set; } = new();
     public Guid UserId { get; set; }

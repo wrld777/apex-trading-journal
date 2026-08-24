@@ -35,6 +35,9 @@ export interface StatsDto {
   // non hanno un R definito e restano esclusi.
   netR: number
   expectancyR: number
+  // L'errore standard della media: quanto quel numero può discostarsi da quello
+  // vero, dato quanti trade lo sostengono.
+  expectancyRStdErr: number
   maxDrawdownR: number
   rTradeCount: number
   winRate: number
